@@ -14,17 +14,18 @@ jobs:
   set-matrix:
     runs-on: ubuntu-latest
     outputs:
-      subdirs: ${{ steps.set-subdir.outputs.value }}
+      subdirs: ${{ steps.set-subdir.outputs.target-list }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Get src subdirectories
         id: set-subdir
         run: |
-          list=`ls -1F src | jq -R -s -c 'split("\n")[:-1]'`
-          echo "::set-output name=value::$(echo $list | jq -c .)"
+          list=`ls -1F src | jq -R -s -c 'split("\n")[:-1]' | jq -c .`
+          echo "target-list=$list" >> $GITHUB_OUTPUT
   check-license:
     runs-on: ubuntu-latest
+    needs: set-matrix
     strategy:
       matrix:
         target: ${{ fromJson(needs.set-matrix.outputs.subdirs) }}
@@ -33,7 +34,6 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-          cache: 'pip' 
       - name: Checkout
         uses: actions/checkout@v3
       - name: Get allowed licence list
@@ -44,7 +44,6 @@ jobs:
       - name: Install and run pip-licenses          
         working-directory: src/${{ matrix.target }}
         run: |
-          echo "${{ matrix.target }}"
           pip install -r requirements.txt
           pip install -U pip-licenses 
           pip-licenses --allow-only="${{ env.license }}"
