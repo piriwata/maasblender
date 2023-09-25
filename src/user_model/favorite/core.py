@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2022 TOYOTA MOTOR CORPORATION and MaaS Blender Contributors
+# SPDX-FileCopyrightText: 2023 TOYOTA MOTOR CORPORATION and MaaS Blender Contributors
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
@@ -24,6 +24,8 @@ class Location:
 
 
 class Runner:
+    """ イベントコントローラー """
+
     def __init__(self):
         self._env = simpy.Environment()
 
@@ -48,17 +50,18 @@ class Task:
 
 
 class User:
-    """ A moving object that travels between locations using multiple mobility services """
+    """ 地点間を複数のモビリティサービスを利用しながら移動する動体 """
 
     def __init__(self, id_: str, org: Location, dst: Location, dept: float, tasks: list[Task]):
         self.user_id = id_
         self.org = org  # （旅程全体の）出発地
         self.dst = dst  # （旅程全体の）目的地
-        self.dept = dept # departure time
+        self.dept = dept  # departure time
         self.task: Task | None = None  # 移動中の旅程
         self.tasks: list[Task] = tasks  # 未来の旅程
 
     def run(self):
+        """ 行動プロセス """
         while True:
             if not len(self.tasks):
                 return
@@ -80,6 +83,7 @@ class Trip:
 @dataclass(frozen=True)
 class Route:
     trips: list[Trip]
+    walking_time: float | None = None
 
     @property
     def org(self):

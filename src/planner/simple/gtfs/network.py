@@ -10,7 +10,7 @@ from networkx.exception import NetworkXNoPath
 from core import Location, Path, Trip, MobilityNetwork
 from gtfs.object import Trip as gtfs_Trip, StopTimeWithDatetime as StopTime
 
-logger = logging.getLogger("planner")
+logger = logging.getLogger(__name__)
 
 
 class SchedulePoint(typing.NamedTuple):
@@ -113,7 +113,7 @@ class Network(MobilityNetwork):
         try:
             return sorted(
                 nx.all_shortest_paths(
-                    G=graph,
+                    graph,
                     source=org,
                     target=dst,
                     weight="weight"

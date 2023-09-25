@@ -1,13 +1,15 @@
-# SPDX-FileCopyrightText: 2022 TOYOTA MOTOR CORPORATION and MaaS Blender Contributors
+# SPDX-FileCopyrightText: 2023 TOYOTA MOTOR CORPORATION and MaaS Blender Contributors
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
+import dataclasses
 import itertools
 import logging
 
 from core import Runner, User, Task, Location, Route
 from event import Manager as EventManager, \
     EventIdentifier, ReserveEvent, ReservedEvent, DepartEvent, DepartedEvent, ArrivedEvent
+from jschema.query import SortType, UserType
 from planner import Planner
 
 logger = logging.getLogger(__name__)
@@ -15,7 +17,8 @@ logger = logging.getLogger(__name__)
 
 class Trip(Task):
 
-    def __init__(self, manager: EventManager, org: Location, dst: Location, service: str, dept: float, arrv: float | None = None, fail: list[Task] = None):
+    def __init__(self, manager: EventManager, org: Location, dst: Location, service: str,
+                 dept: float, arrv: float | None = None, fail: list[Task] = None):
         self.event_manager = manager
         self.service = service
         self.org = org
@@ -29,7 +32,8 @@ class Trip(Task):
 
     def _process(self, user: User):
         dept = self.event_manager.env.now
-        arrv = dept + (self.arrv - self.dept) if self.arrv else None  # modify expected arrival if the depature is changed
+        # modify expected arrival if the departure is changed
+        arrv = dept + (self.arrv - self.dept) if self.arrv else None
         self.event_manager.enqueue(ReserveEvent(
             service=self.service,
             user_id=user.user_id,
@@ -71,6 +75,73 @@ class Trip(Task):
         ))
 
 
+@dataclasses.dataclass(frozen=True)
+class RouteFilter:
+    def __call__(self, plans: list[Route]) -> list[Route]:
+        plans = [plan for plan in self._sorted(plans) if self._check(plan)]
+        assert plans, "no user_favorite_plans"
+        return plans
+
+    def _sorted(self, plans: list[Route]):
+        return plans
+
+    def _check(self, plan: Route) -> bool:
+        # everything pass
+        return True
+
+
+@dataclasses.dataclass(frozen=True)
+class SortTypeRouteFilter(RouteFilter):
+    sort_type: SortType | None
+
+    @staticmethod
+    def _debug_route(plans: list[Route]):
+        logger.debug(f"arrvs {[p.arrv for p in plans]}")
+        logger.debug(f"walking_time {[p.walking_time for p in plans]}")
+
+    def _sorted(self, plans: list[Route]):
+        self._debug_route(plans)
+        if self.sort_type is None:
+            return plans
+        match self.sort_type:
+            case SortType.BY_ARRIVAL_TIME:
+                sorted_plans = sorted(plans, key=lambda x: x.arrv)
+            case SortType.BY_WALKING_TIME:
+                sorted_plans = sorted(plans, key=lambda x: x.walking_time)
+            case _:
+                raise ValueError(f"Invalid sort type {self.sort_type}")
+        self._debug_route(sorted_plans)
+        return sorted_plans
+
+
+@dataclasses.dataclass(frozen=True)
+class FavoriteRouteFilter(RouteFilter):
+    favorite_service: set[str] | None
+    walking_time_limit_min: float
+
+    def _check(self, plan: Route) -> bool:
+        if plan.is_walking_only():  # only walking routes remain
+            return True
+        return self._check_service(plan) and self._check_walking_limit(plan)
+
+    def _check_service(self, plan: Route) -> bool:
+        if self.favorite_service is None:
+            return True
+        if self.favorite_service == {"walking"}:
+            return False
+        services = set(t.service for t in plan.trips)
+        return bool(self.favorite_service & services)
+
+    def _check_walking_limit(self, plan: Route) -> bool:
+        walking_time = sum(t.arrv - t.dept for t in plan.trips if t.service == "walking")
+        return walking_time <= self.walking_time_limit_min
+
+
+@dataclasses.dataclass(frozen=True)
+class FavoriteSortedRouteFilter(SortTypeRouteFilter, FavoriteRouteFilter):
+    pass
+
+
 class Wait(Task):
     """
     waiting for departure
@@ -82,7 +153,7 @@ class Wait(Task):
     def __call__(self, user: User):
         return self.event_manager.env.process(self._process(user))
 
-    def _process(self, user: User):
+    def _process(self, _: User):
         if self.dept > self.event_manager.env.now:
             yield self.event_manager.env.timeout(self.dept - self.event_manager.env.now)
 
@@ -129,7 +200,7 @@ class Reserve(Task):
 
         if len(event.route.trips) > 1 and event.route.trips[0].service == "walking":
             # add pre walking trip from event
-            pre_dst = event.route.trips[0].dst # maybe org of mobility
+            pre_dst = event.route.trips[0].dst  # maybe org of mobility
             pre_arrv = event.route.trips[0].arrv
             mobility_trip = event.route.trips[1]
         else:
@@ -152,7 +223,7 @@ class Reserve(Task):
                 self.event_manager,
                 org=self.org,
                 dst=pre_dst,
-                service=self.route.trips[0].service, # walking
+                service=self.route.trips[0].service,  # walking
                 dept=self.route.trips[0].dept,
                 arrv=pre_arrv,
             ),
@@ -165,7 +236,7 @@ class Reserve(Task):
             ),
             Trip(
                 self.event_manager,
-                org=post_org, # maybe dst of mobility
+                org=post_org,  # maybe dst of mobility
                 dst=self.dst,
                 service=self.route.trips[2].service,
                 dept=post_dept,
@@ -229,12 +300,21 @@ def filter_plans_by_fixed_service(plans: list[Route], fixed_service: str) -> lis
 
 class UserManager(Runner):
     _event_manager: EventManager
+    _route_filter: dict[str, RouteFilter]  # key: userId
     route_planner: Planner | None
     confirmed_services: list[str]
 
-    def __init__(self, confirmed_services: list[str] = None):
+    def __init__(self, user_params: dict[str, UserType | None], confirmed_services: list[str] = None):
         super().__init__()
         self._event_manager = EventManager(env=self.env)
+        self._route_filter = {
+            k: FavoriteSortedRouteFilter(
+                favorite_service=v.favorite_service,
+                walking_time_limit_min=v.walking_time_limit_min,
+                sort_type=v.sort_type,
+            ) if v else RouteFilter()
+            for k, v in user_params.items()
+        }
         self.route_planner = None
         self.confirmed_services = confirmed_services or []
 
@@ -260,13 +340,20 @@ class UserManager(Runner):
 
         route_plans = await self.route_planner.plan(org, dst, dept)
 
-        tasks = self.plans_to_trips(route_plans, fixed_service)
+        import pprint
+        logger.debug(f"plans_from_otp_planner num={len(route_plans)}")
+        for rp in route_plans:
+            logger.debug(pprint.pformat(rp))
+
+        assert user_id in self._route_filter, f"{user_id=} not includes on users"
+        route_filter = self._route_filter[user_id]
+        tasks = self.plans_to_trips(route_plans, fixed_service, route_filter)
         user = User(
             id_=user_id,
             org=org,
             dst=dst,
             dept=dept,
-            tasks=self.wait_for_departure(dept, tasks) # add waiting task
+            tasks=self.wait_for_departure(dept, tasks)  # add waiting task
         )
         self.env.process(user.run())
 
@@ -283,9 +370,11 @@ class UserManager(Runner):
         else:
             return tasks
 
-    def plans_to_trips(self, plans: list[Route], fixed_service: str | None):
+    def plans_to_trips(self, plans: list[Route], fixed_service: str | None, route_filter: RouteFilter):
         if fixed_service:  # check for each DEMAND event
             plans = filter_plans_by_fixed_service(plans, fixed_service)
+        else:  # check for each user
+            plans = route_filter(plans)
 
         # ToDo: Unclear criteria for determining walking plan
         # No alternative plan
@@ -322,7 +411,8 @@ class UserManager(Runner):
                         )]
         return trips
 
-    def trips_with_subsequent_in_case_of_failure(self, primary_trips: list[Reserve] | list[Trip], secondary_trips: list[Reserve] | list[Trip]):
+    def trips_with_subsequent_in_case_of_failure(self, primary_trips: list[Reserve] | list[Trip],
+                                                 secondary_trips: list[Reserve] | list[Trip]):
         # If the primary plan is on foot
         if all(trip.service == "walking" for trip in primary_trips):
             return primary_trips

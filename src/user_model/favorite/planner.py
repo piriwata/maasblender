@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2022 TOYOTA MOTOR CORPORATION and MaaS Blender Contributors
+# SPDX-FileCopyrightText: 2023 TOYOTA MOTOR CORPORATION and MaaS Blender Contributors
 # SPDX-License-Identifier: Apache-2.0
 import aiohttp
 
@@ -17,15 +17,16 @@ class Planner:
     async def plan(self, org: Location, dst: Location, dept: float) -> list[Route]:
         response = self.query(org, dst, dept)
         return [
-            Route([
-                Trip(
+            Route(
+                [Trip(
                     org=Location(trip["org"]["id_"], lat=trip["org"]["lat"], lng=trip["org"]["lng"]),
                     dst=Location(trip["dst"]["id_"], lat=trip["dst"]["lat"], lng=trip["dst"]["lng"]),
                     dept=trip["dept"],
                     arrv=trip["arrv"],
                     service=trip["service"]
-                ) for trip in route["trips"]
-            ]) for route in await response
+                ) for trip in route["trips"]],
+                walking_time=route.get("walking_time_minutes"),
+            ) for route in await response
         ]
 
     async def query(self, org: Location, dst: Location, dept: float):

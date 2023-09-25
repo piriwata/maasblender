@@ -15,8 +15,6 @@ class Location:
 
     @cache
     def distance(self, other: 'Location'):
-        """ 地点間の直線距離(m) """
-
         # Remarks: self.distance(other) may not equal other.distance(self)
         return great_circle([self.lat, self.lng], [other.lat, other.lng]).meters
 
@@ -33,6 +31,7 @@ class Trip:
 @dataclasses.dataclass(frozen=True)
 class Path:
     trips: typing.List[Trip]
+    walking_time_minutes = 0.0
 
     @property
     def org(self):

@@ -1,15 +1,17 @@
 # SPDX-FileCopyrightText: 2022 TOYOTA MOTOR CORPORATION and MaaS Blender Contributors
 # SPDX-License-Identifier: Apache-2.0
 import typing
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 
 from core import Location
 
+
 class Stop(Location):
     """ Stops where vehicles pick up or drop off riders. """
-    def __init__(self, id_: str, lat: float, lng: float, name = None):
+    def __init__(self, id_: str, lat: float, lng: float, name=None):
         super().__init__(id_, lat, lng)
         self.name = name if name else id_ 
+
 
 class Group:
     """ Group of stops """
