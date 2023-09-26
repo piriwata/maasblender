@@ -1,9 +1,11 @@
-# SPDX-FileCopyrightText: 2022 TOYOTA MOTOR CORPORATION and MaaS Blender Contributors
+# SPDX-FileCopyrightText: 2023 TOYOTA MOTOR CORPORATION and MaaS Blender Contributors
 # SPDX-License-Identifier: Apache-2.0
 import logging
 
+import aiohttp
 import fastapi
 
+import httputil
 from config import env
 from core import Location, Route, Trip
 from event import ReservedEvent, DepartedEvent, ArrivedEvent
@@ -55,11 +57,35 @@ async def shutdown_event():
     await finish()
 
 
+def convert(user: dict[str, str], user_types: dict[str, query.UserType]) -> tuple[str, query.UserType | None]:
+    """convert from user infomation to parameters about user favorite"""
+    user_id = user["userId"]
+    if user_type := user.get("userType"):
+        if param := user_types.get(user_type):
+            return user_id, param
+        else:
+            logger.warning("no userType=%s parameter of user_id=%s", user_type, user_id)
+    else:
+        logger.info("no userType of user_id=%s", user_id)
+    return user_id, None
+
+
 @app.post("/setup", response_model=response.Message)
 async def setup(settings: query.Setup):
-    global manager
+    users: list[dict[str, str]] = []
+    async with aiohttp.ClientSession() as session:
+        for e in settings.users:
+            async with session.get(e.fetch_url) as resp:
+                await httputil.check_response(resp)
+                users.extend(await resp.json())
 
-    manager = UserManager(confirmed_services=settings.confirmed_services)
+    global manager
+    if settings.userTypes:
+        user_params = dict(convert(user, settings.userTypes) for user in users)
+    else:
+        logger.warning("user.userTypes setting is not defined")
+        user_params = {user["userId"]: None for user in users}
+    manager = UserManager(user_params, confirmed_services=settings.confirmed_services)
     manager.setup_planer(endpoint=settings.planner.endpoint)
 
     return {

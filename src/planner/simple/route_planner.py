@@ -1,17 +1,17 @@
 # SPDX-FileCopyrightText: 2022 TOYOTA MOTOR CORPORATION and MaaS Blender Contributors
 # SPDX-License-Identifier: Apache-2.0
+import logging
 import re
 import typing
-import logging
 
 from core import Location, Path, Trip, MobilityNetwork
+from jschema.response import DistanceMatrix
 
-
-logger = logging.getLogger("planner")
+logger = logging.getLogger(__name__)
 
 
 class Planner:
-    async def meters_for_all_stops_combinations(self, stops: list[Location]):
+    def meters_for_all_stops_combinations(self, stops: list[Location]) -> DistanceMatrix:
         raise NotImplementedError()
 
     def plan(self, org: Location, dst: Location, dept: float) -> typing.List[Path]:
@@ -26,20 +26,21 @@ class DirectPathPlanner(Planner):
         super().__init__()
         self.networks = list(networks)
 
-    async def meters_for_all_stops_combinations(self, stops: list[Location]):
+    def meters_for_all_stops_combinations(self, stops: list[Location]) -> DistanceMatrix:
         def _distance(org: Location, dst: Location):
             if org.id_ == dst.id_:
                 return 0
             distance = org.distance(dst)
             return distance
 
-        yield ",".join(stop.id_ for stop in stops) + "\n"
-        for stop_a in stops:
-            vals = [
+        matrix = [
+            [
                 _distance(org=stop_a, dst=stop_b)
                 for stop_b in stops
             ]
-            yield ",".join(str(v) for v in vals) + "\n"
+            for stop_a in stops
+        ]
+        return DistanceMatrix(stops=[stop.id_ for stop in stops], matrix=matrix)
 
     def _shortest_paths(self, org: Location, dst: Location, dept: float):
         return sorted((network.shortest_path(org, dst, dept) for network in self.networks), key=lambda path: path.arrv)

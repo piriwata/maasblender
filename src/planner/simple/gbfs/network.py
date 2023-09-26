@@ -9,7 +9,7 @@ import networkx as nx
 from core import Location, Path, Trip, MobilityNetwork
 
 
-logger = logging.getLogger("planner")
+logger = logging.getLogger(__name__)
 
 
 class Node(typing.NamedTuple):
@@ -58,7 +58,7 @@ class Network(MobilityNetwork):
 
         # a list of nodes in the shortest path
         nodes_on_path: typing.List[Node] = nx.shortest_path(
-            G=self.graph, source=org, target=dst, weight="cost"
+            self.graph, source=org, target=dst, weight="cost"
         )[1:-1]
 
         # remove temporary nodes.

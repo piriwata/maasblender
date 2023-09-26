@@ -5,3 +5,8 @@ from pydantic import BaseModel
 
 class Message(BaseModel):
     message: str
+
+
+class DistanceMatrix(BaseModel):
+    stops: list[str]
+    matrix: list[list[float]]

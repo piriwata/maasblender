@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2022 TOYOTA MOTOR CORPORATION and MaaS Blender Contributors
+# SPDX-FileCopyrightText: 2023 TOYOTA MOTOR CORPORATION and MaaS Blender Contributors
 # SPDX-License-Identifier: Apache-2.0
 import logging
 from enum import Enum
@@ -6,7 +6,6 @@ from enum import Enum
 import simpy
 
 from core import Location, Route
-from jschema.events import Trip
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +77,7 @@ class DepartEvent(TriggerEvent):
 
 
 class EventIdentifier:
-    """ identify the event to be succeded """
+    """ identify a simpy.events.Event to be succeeded """
 
     def __init__(self, event_type: EventType, source: str):
         self.type = event_type
@@ -154,8 +153,6 @@ class ArrivedEvent(DepartedArrivedEvent):
 
 
 class Manager:
-    """ すべてのモビリティシミュレータのイベントを一括管理する """
-
     def __init__(self, env: simpy.Environment):
         self._env: simpy.Environment = env
         self._queue: list[TriggerEvent] = []
@@ -174,12 +171,12 @@ class Manager:
         self._queue.append(event)
 
     def trigger(self, identifier: EventIdentifier):
-        """ EventIdentifier から simpy.events.Event を特定して発火する """
+        """ identifies and fires simpy.events.Event from EventIdentifier """
         if event := self._events.pop(identifier, None):
             event.succeed(value=identifier)
 
     def event(self, identifier: EventIdentifier):
-        """ EventIdentifier から simpy.events.Event を特定して返す """
+        """ identifies and returns simpy.events.Event from EventIdentifier """
         if identifier not in self._events:
             self._events[identifier] = self.env.event()
 
