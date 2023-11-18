@@ -94,7 +94,7 @@ class Car(Mobility):
         self._waiting_users: typing.Dict[str, User] = {}
         self._passengers: typing.Dict[str, User] = {}
         _, end_window = self.window()
-        self.env.process(self._move_to_initial_stop(end_window)) # move to initial stop at end_window
+        self.env.process(self._move_to_initial_stop(end_window))  # move to initial stop at end_window
 
     def __str__(self):
         reserved = [e.user_id for e in self._reserved_users.values()]
@@ -167,8 +167,8 @@ class Car(Mobility):
             self.env.process(self.departed())
         else:
             self.schedule.pop()
-            assert not len(self.passengers)
-            assert not len(self.waiting_users)
+            assert not len(self.passengers), self.passengers
+            assert not len(self.waiting_users), self.waiting_users
             _, end_window = self.window()
             if end_window < self.env.datetime_now:
                 # move to initial after end window (fail-safe: avoid arrival after end window in reserve)
