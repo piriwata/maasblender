@@ -43,14 +43,14 @@ class Simulation:
         self.env.step()
         return self.env.now
 
-    def reservable(self, org: str, dst: str):
+    def reservable(self, org: str, dst: str, dept: float = None):
         org = self.stops[org]
         dst = self.stops[dst]
         return bool(self.car_manager.minimum_delay(User(
             user_id=...,
             org=org,
             dst=dst,
-            desired=self.env.datetime_now,  # ToDo: should not be current time?
+            desired=self.env.datetime_from(dept) if dept else self.env.datetime_now,
             ideal=timedelta(minutes=self.network.duration(org.stop_id, dst.stop_id) + self.board_time * 2)
         )))
 
