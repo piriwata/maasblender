@@ -25,8 +25,8 @@ def run(simulation: Simulation, until: float):
 # まいどはやバスGTFS-JP、富山市、クリエイティブ・コモンズ・ライセンス　表示4.0国際
 # （http://creativecommons.org/licenses/by/4.0/deed.ja）
 gtfs_stations = {
-    "3_1":  Stop("3_1", "3_1", lat=36.695557, lng=137.220786),
-    "7_1":  Stop("7_1", "7_1", lat=36.696726, lng=137.227181),
+    "3_1": Stop("3_1", "3_1", lat=36.695557, lng=137.220786),
+    "7_1": Stop("7_1", "7_1", lat=36.696726, lng=137.227181),
     "11_1": Stop("11_1", "11_1", lat=36.690094, lng=137.231366),
     "15_1": Stop("15_1", "15_1", lat=36.685561, lng=137.225999),
     "19_1": Stop("19_1", "19_1", lat=36.692095, lng=137.220579),
@@ -51,13 +51,18 @@ class SimpleTestCase(unittest.TestCase):
                     service=Service(
                         start_date=date.today(),
                         end_date=date.today() + timedelta(days=1),
-                        monday=True, tuesday=True, wednesday=True, thursday=True, friday=True,
-                        saturday=True, sunday=True
+                        monday=True,
+                        tuesday=True,
+                        wednesday=True,
+                        thursday=True,
+                        friday=True,
+                        saturday=True,
+                        sunday=True,
                     ),
                     stop_times=[
                         StopTime(
                             stop=self.stops[each[0]],
-                            departure=timedelta(minutes=each[1])
+                            departure=timedelta(minutes=each[1]),
                         )
                         for each in [
                             ("3_1", 543),
@@ -70,9 +75,9 @@ class SimpleTestCase(unittest.TestCase):
                             ("31_1", 583),
                             ("35_1", 590),
                         ]
-                    ]
+                    ],
                 )
-            }
+            },
         )
         self.simulation.start()
 
@@ -80,53 +85,56 @@ class SimpleTestCase(unittest.TestCase):
         triggered_events = run(self.simulation, until=549)
         expected_events = [
             {
-                'eventType': EventType.ARRIVED,
-                'time': 543.0,
-                'details': {
-                    'userId': None,
-                    'mobilityId': self.mobility_id,
-                    'location': {
+                "eventType": EventType.ARRIVED,
+                "time": 543.0,
+                "details": {
+                    "userId": None,
+                    "mobilityId": self.mobility_id,
+                    "location": {
                         "locationId": self.stops["3_1"].stop_id,
                         "lat": self.stops["3_1"].lat,
-                        "lng": self.stops["3_1"].lng
+                        "lng": self.stops["3_1"].lng,
                     },
-                }
-            }, {
-                'eventType': EventType.DEPARTED,
-                'time': 543.0,
-                'details': {
-                    'userId': None,
-                    'mobilityId': self.mobility_id,
-                    'location': {
+                },
+            },
+            {
+                "eventType": EventType.DEPARTED,
+                "time": 543.0,
+                "details": {
+                    "userId": None,
+                    "mobilityId": self.mobility_id,
+                    "location": {
                         "locationId": self.stops["3_1"].stop_id,
                         "lat": self.stops["3_1"].lat,
-                        "lng": self.stops["3_1"].lng
+                        "lng": self.stops["3_1"].lng,
                     },
-                }
-            }, {
-                'eventType': EventType.ARRIVED,
-                'time': 548.0,
-                'details': {
-                    'userId': None,
-                    'mobilityId': self.mobility_id,
-                    'location': {
+                },
+            },
+            {
+                "eventType": EventType.ARRIVED,
+                "time": 548.0,
+                "details": {
+                    "userId": None,
+                    "mobilityId": self.mobility_id,
+                    "location": {
                         "locationId": self.stops["7_1"].stop_id,
                         "lat": self.stops["7_1"].lat,
-                        "lng": self.stops["7_1"].lng
+                        "lng": self.stops["7_1"].lng,
                     },
-                }
-            }, {
-                'eventType': EventType.DEPARTED,
-                'time': 548.0,
-                'details': {
-                    'userId': None,
-                    'mobilityId': self.mobility_id,
-                    'location': {
+                },
+            },
+            {
+                "eventType": EventType.DEPARTED,
+                "time": 548.0,
+                "details": {
+                    "userId": None,
+                    "mobilityId": self.mobility_id,
+                    "location": {
                         "locationId": self.stops["7_1"].stop_id,
                         "lat": self.stops["7_1"].lat,
-                        "lng": self.stops["7_1"].lng
+                        "lng": self.stops["7_1"].lng,
                     },
-                }
+                },
             },
         ]
         self.assertEqual(expected_events, triggered_events)
@@ -151,27 +159,29 @@ class SimpleTestCase(unittest.TestCase):
 
         expected_events = [
             {
-                'eventType': EventType.RESERVED,
-                'time': user["dept"],
-                'details': {
-                    'success': True,
-                    'userId':  user["user_id"],
-                    'mobilityId': self.mobility_id,
-                    'route': [{
-                        'org': {
-                            "locationId": self.stops[user["org"]].stop_id,
-                            "lat": self.stops[user["org"]].lat,
-                            "lng": self.stops[user["org"]].lng
-                        },
-                        'dst': {
-                            "locationId": self.stops[user["dst"]].stop_id,
-                            "lat": self.stops[user["dst"]].lat,
-                            "lng": self.stops[user["dst"]].lng
-                        },
-                        'dept': 543.0,
-                        'arrv': 574.0
-                    }]
-                }
+                "eventType": EventType.RESERVED,
+                "time": user["dept"],
+                "details": {
+                    "success": True,
+                    "userId": user["user_id"],
+                    "mobilityId": self.mobility_id,
+                    "route": [
+                        {
+                            "org": {
+                                "locationId": self.stops[user["org"]].stop_id,
+                                "lat": self.stops[user["org"]].lat,
+                                "lng": self.stops[user["org"]].lng,
+                            },
+                            "dst": {
+                                "locationId": self.stops[user["dst"]].stop_id,
+                                "lat": self.stops[user["dst"]].lat,
+                                "lng": self.stops[user["dst"]].lng,
+                            },
+                            "dept": 543.0,
+                            "arrv": 574.0,
+                        }
+                    ],
+                },
             }
         ]
         self.assertEqual(expected_events, triggered_events)
@@ -182,40 +192,39 @@ class SimpleTestCase(unittest.TestCase):
 
         triggered_events = run(self.simulation, until=574.1)
         triggered_events = [
-            event
-            for event in triggered_events
-            if event["details"]["userId"]
+            event for event in triggered_events if event["details"]["userId"]
         ]
 
         expected_events = [
             {
-                'eventType': EventType.DEPARTED,
-                'time': 543.0,
-                'details': {
-                    'userId': user["user_id"],
-                    'mobilityId': self.mobility_id,
-                    'location': {
+                "eventType": EventType.DEPARTED,
+                "time": 543.0,
+                "details": {
+                    "userId": user["user_id"],
+                    "mobilityId": self.mobility_id,
+                    "location": {
                         "locationId": self.stops[user["org"]].stop_id,
                         "lat": self.stops[user["org"]].lat,
-                        "lng": self.stops[user["org"]].lng
+                        "lng": self.stops[user["org"]].lng,
                     },
-                }
-            }, {
-                'eventType': EventType.ARRIVED,
-                'time': 574.0,
-                'details': {
-                    'userId': user["user_id"],
-                    'mobilityId': self.mobility_id,
-                    'location': {
+                },
+            },
+            {
+                "eventType": EventType.ARRIVED,
+                "time": 574.0,
+                "details": {
+                    "userId": user["user_id"],
+                    "mobilityId": self.mobility_id,
+                    "location": {
                         "locationId": self.stops[user["dst"]].stop_id,
                         "lat": self.stops[user["dst"]].lat,
-                        "lng": self.stops[user["dst"]].lng
+                        "lng": self.stops[user["dst"]].lng,
                     },
-                }
+                },
             },
         ]
         self.assertEqual(expected_events, triggered_events)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

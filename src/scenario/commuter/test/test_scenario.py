@@ -26,72 +26,76 @@ class CommuterScenarioTestCase(unittest.TestCase):
         self.scenario = CommuterScenario()
 
     def test_one_commuter(self):
-        self.scenario.setup({
-            "U_001": jschema.query.CommuterSetting(
-                org=jschema.query.LocationSetting(
-                    locationId=org["locationId"],
-                    lat=org["lat"],
-                    lng=org["lng"],
-                ),
-                dst=jschema.query.LocationSetting(
-                    locationId=dst["locationId"],
-                    lat=dst["lat"],
-                    lng=dst["lng"],
-                ),
-                deptOut=400,
-                deptIn=800,
-                user_type="commuter_users",
-                service="commuter-trains",
-            )
-        })
+        self.scenario.setup(
+            {
+                "U_001": jschema.query.CommuterSetting(
+                    org=jschema.query.LocationSetting(
+                        locationId=org["locationId"],
+                        lat=org["lat"],
+                        lng=org["lng"],
+                    ),
+                    dst=jschema.query.LocationSetting(
+                        locationId=dst["locationId"],
+                        lat=dst["lat"],
+                        lng=dst["lng"],
+                    ),
+                    deptOut=400,
+                    deptIn=800,
+                    user_type="commuter_users",
+                    service="commuter-trains",
+                )
+            }
+        )
 
         expected_events = [
             {
-                'eventType': 'DEMAND',
-                'time': 400,
-                'details': {
-                    'userId': 'U_001',
-                    'org': org,
-                    'dst': dst,
-                    'service': 'commuter-trains',
-                }
+                "eventType": "DEMAND",
+                "time": 400,
+                "details": {
+                    "userId": "U_001",
+                    "org": org,
+                    "dst": dst,
+                    "service": "commuter-trains",
+                },
             },
             {
-                'eventType': 'DEMAND',
-                'time': 800,
-                'details': {
-                    'userId': 'U_001',
-                    'org': dst,
-                    'dst': org,
-                    'service': 'commuter-trains',
-                }
+                "eventType": "DEMAND",
+                "time": 800,
+                "details": {
+                    "userId": "U_001",
+                    "org": dst,
+                    "dst": org,
+                    "service": "commuter-trains",
+                },
             },
             {
-                'eventType': 'DEMAND',
-                'time': 1840,
-                'details': {
-                    'userId': 'U_001',
-                    'org': org,
-                    'dst': dst,
-                    'service': 'commuter-trains',
-                }
+                "eventType": "DEMAND",
+                "time": 1840,
+                "details": {
+                    "userId": "U_001",
+                    "org": org,
+                    "dst": dst,
+                    "service": "commuter-trains",
+                },
             },
             {
-                'eventType': 'DEMAND',
-                'time': 2240,
-                'details': {
-                    'userId': 'U_001',
-                    'org': dst,
-                    'dst': org,
-                    'service': 'commuter-trains',
-                }
-            }
+                "eventType": "DEMAND",
+                "time": 2240,
+                "details": {
+                    "userId": "U_001",
+                    "org": dst,
+                    "dst": org,
+                    "service": "commuter-trains",
+                },
+            },
         ]
 
-        assert self.scenario.users() == [{
-            "userId": "U_001",
-            "userType": "commuter_users",
-        }]
+        assert self.scenario.users() == [
+            {
+                "userId": "U_001",
+                "userType": "commuter_users",
+            }
+        ]
         self.scenario.start()
         actual_events = []
         while self.scenario.peek() < 2880:
@@ -102,5 +106,5 @@ class CommuterScenarioTestCase(unittest.TestCase):
             self.assertEqual(expected, actual)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

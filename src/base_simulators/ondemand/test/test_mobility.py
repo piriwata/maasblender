@@ -18,7 +18,7 @@ stops = [
 
 group = Group(
     group_id="g1",
-    name='g1',
+    name="g1",
     locations=stops,
 )
 service = Service(
@@ -30,16 +30,20 @@ service = Service(
     thursday=True,
     friday=True,
     saturday=True,
-    sunday=True
+    sunday=True,
 )
 start_windows = [9 * 60, 18 * 60, 22 * 60]
-trips = [Trip(
-    service=service,
-    stop_time=flex_StopTime(
-        group=group,
-        start_window=timedelta(minutes=s),
-        end_window=timedelta(minutes=s + 3 * 60),
-    )) for s in start_windows]
+trips = [
+    Trip(
+        service=service,
+        stop_time=flex_StopTime(
+            group=group,
+            start_window=timedelta(minutes=s),
+            end_window=timedelta(minutes=s + 3 * 60),
+        ),
+    )
+    for s in start_windows
+]
 
 
 class RoutingTestCase(TestCase):
@@ -59,7 +63,7 @@ class RoutingTestCase(TestCase):
             trip=trips[0],
             stop=stops[0],
             board_time=timedelta(minutes=self.board_time),
-            max_delay_time=timedelta(minutes=self.max_delay_time)
+            max_delay_time=timedelta(minutes=self.max_delay_time),
         )
         self.mobility2 = Car(
             mobility_id=...,
@@ -69,7 +73,7 @@ class RoutingTestCase(TestCase):
             trip=trips[1],
             stop=stops[0],
             board_time=timedelta(minutes=self.board_time),
-            max_delay_time=timedelta(minutes=self.max_delay_time)
+            max_delay_time=timedelta(minutes=self.max_delay_time),
         )
 
     def test_find_a_route(self):
@@ -78,14 +82,19 @@ class RoutingTestCase(TestCase):
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime,
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
 
         expected = [
-            Route(stop_times=[
-                StopTime(stop=stops[0], on=[user]),
-                StopTime(stop=stops[1], off=[user])
-            ])
+            Route(
+                stop_times=[
+                    StopTime(stop=stops[0], on=[user]),
+                    StopTime(stop=stops[1], off=[user]),
+                ]
+            )
         ]
         actual = self.mobility1.routes_appended_new_user(user)
 
@@ -97,7 +106,10 @@ class RoutingTestCase(TestCase):
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime,
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
         self.mobility2._reserved_users.update({user1.user_id: user1})
 
@@ -106,30 +118,41 @@ class RoutingTestCase(TestCase):
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime,
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
         expected = [
-            Route(stop_times=[
-                StopTime(stop=stops[0], on=[user1, user2], off=[]),
-                StopTime(stop=stops[1], on=[], off=[user1, user2]),
-            ]),
-            Route(stop_times=[
-                StopTime(stop=stops[0], on=[user1], off=[]),
-                StopTime(stop=stops[1], on=[], off=[user1]),
-                StopTime(stop=stops[0], on=[user2], off=[]),
-                StopTime(stop=stops[1], on=[], off=[user2]),
-            ]),
-            Route(stop_times=[
-                StopTime(stop=stops[0], on=[user2], off=[]),
-                StopTime(stop=stops[1], on=[], off=[user2]),
-                StopTime(stop=stops[0], on=[user1], off=[]),
-                StopTime(stop=stops[1], on=[], off=[user1]),
-            ]),
+            Route(
+                stop_times=[
+                    StopTime(stop=stops[0], on=[user1, user2], off=[]),
+                    StopTime(stop=stops[1], on=[], off=[user1, user2]),
+                ]
+            ),
+            Route(
+                stop_times=[
+                    StopTime(stop=stops[0], on=[user1], off=[]),
+                    StopTime(stop=stops[1], on=[], off=[user1]),
+                    StopTime(stop=stops[0], on=[user2], off=[]),
+                    StopTime(stop=stops[1], on=[], off=[user2]),
+                ]
+            ),
+            Route(
+                stop_times=[
+                    StopTime(stop=stops[0], on=[user2], off=[]),
+                    StopTime(stop=stops[1], on=[], off=[user2]),
+                    StopTime(stop=stops[0], on=[user1], off=[]),
+                    StopTime(stop=stops[1], on=[], off=[user1]),
+                ]
+            ),
         ]
         actual = self.mobility2.routes_appended_new_user(user2)
         order = [expected.index(e) for e in actual]
-        self.assertEqual(order, [2, 0, 1])  
-        expected = [a for i, a in sorted(enumerate(expected), key=lambda e: order.index(e[0]))]
+        self.assertEqual(order, [2, 0, 1])
+        expected = [
+            a for i, a in sorted(enumerate(expected), key=lambda e: order.index(e[0]))
+        ]
         self.assertEqual(expected, actual)
 
     def test_find_routes_of_exceeded_capacity_bus_who_have_same_org_dst(self):
@@ -138,7 +161,10 @@ class RoutingTestCase(TestCase):
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime,
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
         self.mobility1._reserved_users.update({user1.user_id: user1})
 
@@ -147,26 +173,35 @@ class RoutingTestCase(TestCase):
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime,
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
         expected = [
-            Route(stop_times=[
-                StopTime(stop=stops[0], on=[user1], off=[]),
-                StopTime(stop=stops[1], on=[], off=[user1]),
-                StopTime(stop=stops[0], on=[user2], off=[]),
-                StopTime(stop=stops[1], on=[], off=[user2]),
-            ]),
-            Route(stop_times=[
-                StopTime(stop=stops[0], on=[user2], off=[]),
-                StopTime(stop=stops[1], on=[], off=[user2]),
-                StopTime(stop=stops[0], on=[user1], off=[]),
-                StopTime(stop=stops[1], on=[], off=[user1]),
-            ]),
+            Route(
+                stop_times=[
+                    StopTime(stop=stops[0], on=[user1], off=[]),
+                    StopTime(stop=stops[1], on=[], off=[user1]),
+                    StopTime(stop=stops[0], on=[user2], off=[]),
+                    StopTime(stop=stops[1], on=[], off=[user2]),
+                ]
+            ),
+            Route(
+                stop_times=[
+                    StopTime(stop=stops[0], on=[user2], off=[]),
+                    StopTime(stop=stops[1], on=[], off=[user2]),
+                    StopTime(stop=stops[0], on=[user1], off=[]),
+                    StopTime(stop=stops[1], on=[], off=[user1]),
+                ]
+            ),
         ]
         actual = self.mobility1.routes_appended_new_user(user2)
         order = [expected.index(e) for e in actual]
-        self.assertEqual(order, [1, 0])  
-        expected = [a for i, a in sorted(enumerate(expected), key=lambda e: order.index(e[0]))]
+        self.assertEqual(order, [1, 0])
+        expected = [
+            a for i, a in sorted(enumerate(expected), key=lambda e: order.index(e[0]))
+        ]
         self.assertEqual(expected, actual)
 
     def test_find_come_back_routes(self):
@@ -175,7 +210,10 @@ class RoutingTestCase(TestCase):
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime,
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
         self.mobility1._reserved_users.update({user1.user_id: user1})
 
@@ -184,24 +222,33 @@ class RoutingTestCase(TestCase):
             org=stops[1],
             dst=stops[0],
             desired=self.base_datetime,
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
         expected = [
-            Route(stop_times=[
-                StopTime(stop=stops[0], on=[user1]),
-                StopTime(stop=stops[1], on=[user2], off=[user1]),
-                StopTime(stop=stops[0], off=[user2])
-            ]),
-            Route(stop_times=[
-                StopTime(stop=stops[1], on=[user2]),
-                StopTime(stop=stops[0], on=[user1], off=[user2]),
-                StopTime(stop=stops[1], off=[user1])
-            ]),
+            Route(
+                stop_times=[
+                    StopTime(stop=stops[0], on=[user1]),
+                    StopTime(stop=stops[1], on=[user2], off=[user1]),
+                    StopTime(stop=stops[0], off=[user2]),
+                ]
+            ),
+            Route(
+                stop_times=[
+                    StopTime(stop=stops[1], on=[user2]),
+                    StopTime(stop=stops[0], on=[user1], off=[user2]),
+                    StopTime(stop=stops[1], off=[user1]),
+                ]
+            ),
         ]
         actual = self.mobility1.routes_appended_new_user(user2)
         order = [expected.index(e) for e in actual]
-        self.assertEqual(order, [1, 0])  
-        expected = [a for i, a in sorted(enumerate(expected), key=lambda e: order.index(e[0]))]
+        self.assertEqual(order, [1, 0])
+        expected = [
+            a for i, a in sorted(enumerate(expected), key=lambda e: order.index(e[0]))
+        ]
         self.assertEqual(expected, actual)
 
     def test_find_routes_with_a_passenger_and_a_user(self):
@@ -210,21 +257,29 @@ class RoutingTestCase(TestCase):
             org=stops[2],
             dst=stops[0],
             desired=self.base_datetime,
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
         user1 = User(
             user_id="U001",
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime,
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
 
         expected = [
-            Route(stop_times=[
-                StopTime(stop=stops[0], on=[user1], off=[passenger]),
-                StopTime(stop=stops[1], on=[], off=[user1]),
-            ]),
+            Route(
+                stop_times=[
+                    StopTime(stop=stops[0], on=[user1], off=[passenger]),
+                    StopTime(stop=stops[1], on=[], off=[user1]),
+                ]
+            ),
         ]
         self.mobility2._passengers.update({passenger.user_id: passenger})
         self.assertEqual(expected, self.mobility2.routes_appended_new_user(user1))
@@ -235,42 +290,57 @@ class RoutingTestCase(TestCase):
             org=stops[2],
             dst=stops[0],
             desired=self.base_datetime,
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
         user1 = User(
             user_id="U001",
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime,
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
         user2 = User(
             user_id="U002",
             org=stops[1],
             dst=stops[0],
             desired=self.base_datetime,
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
 
         expected = [
-            Route(stop_times=[
-                StopTime(stop=stops[0], on=[user1], off=[passenger]),
-                StopTime(stop=stops[1], on=[user2], off=[user1]),
-                StopTime(stop=stops[0], on=[], off=[user2])
-            ]),
-            Route(stop_times=[
-                StopTime(stop=stops[1], on=[user2], off=[]),
-                StopTime(stop=stops[0], on=[user1], off=[passenger, user2]),
-                StopTime(stop=stops[1], on=[], off=[user1])
-            ]),
+            Route(
+                stop_times=[
+                    StopTime(stop=stops[0], on=[user1], off=[passenger]),
+                    StopTime(stop=stops[1], on=[user2], off=[user1]),
+                    StopTime(stop=stops[0], on=[], off=[user2]),
+                ]
+            ),
+            Route(
+                stop_times=[
+                    StopTime(stop=stops[1], on=[user2], off=[]),
+                    StopTime(stop=stops[0], on=[user1], off=[passenger, user2]),
+                    StopTime(stop=stops[1], on=[], off=[user1]),
+                ]
+            ),
         ]
         self.mobility2._passengers.update({passenger.user_id: passenger})
         self.mobility2._waiting_users.update({user1.user_id: user1})
 
         actual = self.mobility2.routes_appended_new_user(user2)
         order = [expected.index(e) for e in actual]
-        self.assertEqual(order, [1, 0])  
-        expected = [a for i, a in sorted(enumerate(expected), key=lambda e: order.index(e[0]))]
+        self.assertEqual(order, [1, 0])
+        expected = [
+            a for i, a in sorted(enumerate(expected), key=lambda e: order.index(e[0]))
+        ]
         self.assertEqual(expected, actual)
 
     def test_find_routes_with_two_passengers_and_two_users(self):
@@ -279,120 +349,160 @@ class RoutingTestCase(TestCase):
             org=stops[2],
             dst=stops[0],
             desired=self.base_datetime,
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
         passenger2 = User(
             user_id="Passenger2",
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime,
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
         user1 = User(
             user_id="U001",
             org=stops[0],
             dst=stops[2],
             desired=self.base_datetime,
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
         user2 = User(
             user_id="U002",
             org=stops[1],
             dst=stops[0],
             desired=self.base_datetime,
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
 
         expected = [
-            Route(stop_times=[
-                StopTime(stop=stops[1], on=[user2], off=[passenger2]),
-                StopTime(stop=stops[0], on=[user1], off=[passenger1, user2]),
-                StopTime(stop=stops[2], on=[], off=[user1]),
-            ]),
-            Route(stop_times=[
-                StopTime(stop=stops[0], on=[user1], off=[passenger1]),
-                StopTime(stop=stops[1], on=[user2], off=[passenger2]),
-                StopTime(stop=stops[0], on=[], off=[user2]),
-                StopTime(stop=stops[2], on=[], off=[user1]),
-            ]),
-            Route(stop_times=[
-                StopTime(stop=stops[0], on=[], off=[passenger1]),
-                StopTime(stop=stops[1], on=[user2], off=[passenger2]),
-                StopTime(stop=stops[0], on=[user1], off=[user2]),
-                StopTime(stop=stops[2], on=[], off=[user1]),
-            ]),
-            Route(stop_times=[
-                StopTime(stop=stops[0], on=[user1], off=[passenger1]),
-                StopTime(stop=stops[1], on=[user2], off=[passenger2]),
-                StopTime(stop=stops[2], on=[], off=[user1]),
-                StopTime(stop=stops[0], on=[], off=[user2]),
-            ]),
-            Route(stop_times=[
-                StopTime(stop=stops[0], on=[user1], off=[passenger1]),
-                StopTime(stop=stops[2], on=[], off=[user1]),
-                StopTime(stop=stops[1], on=[user2], off=[passenger2]),
-                StopTime(stop=stops[0], on=[], off=[user2]),
-            ]),
-            Route(stop_times=[
-                StopTime(stop=stops[0], on=[user1], off=[passenger1]),
-                StopTime(stop=stops[1], on=[], off=[passenger2]),
-                StopTime(stop=stops[2], on=[], off=[user1]),
-                StopTime(stop=stops[1], on=[user2], off=[]),
-                StopTime(stop=stops[0], on=[], off=[user2]),
-            ]),
-            Route(stop_times=[
-                StopTime(stop=stops[1], on=[], off=[passenger2]),
-                StopTime(stop=stops[0], on=[user1], off=[passenger1]),
-                StopTime(stop=stops[2], on=[], off=[user1]),
-                StopTime(stop=stops[1], on=[user2], off=[]),
-                StopTime(stop=stops[0], on=[], off=[user2]),
-            ]),
-            Route(stop_times=[
-                StopTime(stop=stops[1], on=[], off=[passenger2]),
-                StopTime(stop=stops[0], on=[user1], off=[passenger1]),
-                StopTime(stop=stops[1], on=[user2], off=[]),
-                StopTime(stop=stops[0], on=[], off=[user2]),
-                StopTime(stop=stops[2], on=[], off=[user1]),
-            ]),
-            Route(stop_times=[
-                StopTime(stop=stops[1], on=[], off=[passenger2]),
-                StopTime(stop=stops[0], on=[user1], off=[passenger1]),
-                StopTime(stop=stops[1], on=[user2], off=[]),
-                StopTime(stop=stops[2], on=[], off=[user1]),
-                StopTime(stop=stops[0], on=[], off=[user2]),
-            ]),
-            Route(stop_times=[
-                StopTime(stop=stops[0], on=[], off=[passenger1]),
-                StopTime(stop=stops[1], on=[], off=[passenger2]),
-                StopTime(stop=stops[0], on=[user1], off=[]),
-                StopTime(stop=stops[1], on=[user2], off=[]),
-                StopTime(stop=stops[0], on=[], off=[user2]),
-                StopTime(stop=stops[2], on=[], off=[user1]),
-            ]),
-            Route(stop_times=[
-                StopTime(stop=stops[0], on=[], off=[passenger1]),
-                StopTime(stop=stops[1], on=[], off=[passenger2]),
-                StopTime(stop=stops[0], on=[user1], off=[]),
-                StopTime(stop=stops[1], on=[user2], off=[]),
-                StopTime(stop=stops[2], on=[], off=[user1]),
-                StopTime(stop=stops[0], on=[], off=[user2]),
-            ]),
-            Route(stop_times=[
-                StopTime(stop=stops[0], on=[], off=[passenger1]),
-                StopTime(stop=stops[1], on=[], off=[passenger2]),
-                StopTime(stop=stops[0], on=[user1], off=[]),
-                StopTime(stop=stops[2], on=[], off=[user1]),
-                StopTime(stop=stops[1], on=[user2], off=[]),
-                StopTime(stop=stops[0], on=[], off=[user2]),
-            ]),
+            Route(
+                stop_times=[
+                    StopTime(stop=stops[1], on=[user2], off=[passenger2]),
+                    StopTime(stop=stops[0], on=[user1], off=[passenger1, user2]),
+                    StopTime(stop=stops[2], on=[], off=[user1]),
+                ]
+            ),
+            Route(
+                stop_times=[
+                    StopTime(stop=stops[0], on=[user1], off=[passenger1]),
+                    StopTime(stop=stops[1], on=[user2], off=[passenger2]),
+                    StopTime(stop=stops[0], on=[], off=[user2]),
+                    StopTime(stop=stops[2], on=[], off=[user1]),
+                ]
+            ),
+            Route(
+                stop_times=[
+                    StopTime(stop=stops[0], on=[], off=[passenger1]),
+                    StopTime(stop=stops[1], on=[user2], off=[passenger2]),
+                    StopTime(stop=stops[0], on=[user1], off=[user2]),
+                    StopTime(stop=stops[2], on=[], off=[user1]),
+                ]
+            ),
+            Route(
+                stop_times=[
+                    StopTime(stop=stops[0], on=[user1], off=[passenger1]),
+                    StopTime(stop=stops[1], on=[user2], off=[passenger2]),
+                    StopTime(stop=stops[2], on=[], off=[user1]),
+                    StopTime(stop=stops[0], on=[], off=[user2]),
+                ]
+            ),
+            Route(
+                stop_times=[
+                    StopTime(stop=stops[0], on=[user1], off=[passenger1]),
+                    StopTime(stop=stops[2], on=[], off=[user1]),
+                    StopTime(stop=stops[1], on=[user2], off=[passenger2]),
+                    StopTime(stop=stops[0], on=[], off=[user2]),
+                ]
+            ),
+            Route(
+                stop_times=[
+                    StopTime(stop=stops[0], on=[user1], off=[passenger1]),
+                    StopTime(stop=stops[1], on=[], off=[passenger2]),
+                    StopTime(stop=stops[2], on=[], off=[user1]),
+                    StopTime(stop=stops[1], on=[user2], off=[]),
+                    StopTime(stop=stops[0], on=[], off=[user2]),
+                ]
+            ),
+            Route(
+                stop_times=[
+                    StopTime(stop=stops[1], on=[], off=[passenger2]),
+                    StopTime(stop=stops[0], on=[user1], off=[passenger1]),
+                    StopTime(stop=stops[2], on=[], off=[user1]),
+                    StopTime(stop=stops[1], on=[user2], off=[]),
+                    StopTime(stop=stops[0], on=[], off=[user2]),
+                ]
+            ),
+            Route(
+                stop_times=[
+                    StopTime(stop=stops[1], on=[], off=[passenger2]),
+                    StopTime(stop=stops[0], on=[user1], off=[passenger1]),
+                    StopTime(stop=stops[1], on=[user2], off=[]),
+                    StopTime(stop=stops[0], on=[], off=[user2]),
+                    StopTime(stop=stops[2], on=[], off=[user1]),
+                ]
+            ),
+            Route(
+                stop_times=[
+                    StopTime(stop=stops[1], on=[], off=[passenger2]),
+                    StopTime(stop=stops[0], on=[user1], off=[passenger1]),
+                    StopTime(stop=stops[1], on=[user2], off=[]),
+                    StopTime(stop=stops[2], on=[], off=[user1]),
+                    StopTime(stop=stops[0], on=[], off=[user2]),
+                ]
+            ),
+            Route(
+                stop_times=[
+                    StopTime(stop=stops[0], on=[], off=[passenger1]),
+                    StopTime(stop=stops[1], on=[], off=[passenger2]),
+                    StopTime(stop=stops[0], on=[user1], off=[]),
+                    StopTime(stop=stops[1], on=[user2], off=[]),
+                    StopTime(stop=stops[0], on=[], off=[user2]),
+                    StopTime(stop=stops[2], on=[], off=[user1]),
+                ]
+            ),
+            Route(
+                stop_times=[
+                    StopTime(stop=stops[0], on=[], off=[passenger1]),
+                    StopTime(stop=stops[1], on=[], off=[passenger2]),
+                    StopTime(stop=stops[0], on=[user1], off=[]),
+                    StopTime(stop=stops[1], on=[user2], off=[]),
+                    StopTime(stop=stops[2], on=[], off=[user1]),
+                    StopTime(stop=stops[0], on=[], off=[user2]),
+                ]
+            ),
+            Route(
+                stop_times=[
+                    StopTime(stop=stops[0], on=[], off=[passenger1]),
+                    StopTime(stop=stops[1], on=[], off=[passenger2]),
+                    StopTime(stop=stops[0], on=[user1], off=[]),
+                    StopTime(stop=stops[2], on=[], off=[user1]),
+                    StopTime(stop=stops[1], on=[user2], off=[]),
+                    StopTime(stop=stops[0], on=[], off=[user2]),
+                ]
+            ),
         ]
-        self.mobility2._passengers.update({passenger1.user_id: passenger1, passenger2.user_id: passenger2})
+        self.mobility2._passengers.update(
+            {passenger1.user_id: passenger1, passenger2.user_id: passenger2}
+        )
         self.mobility2._waiting_users.update({user1.user_id: user1})
 
         actual = self.mobility2.routes_appended_new_user(user2)
         order = [expected.index(e) for e in actual]
-        self.assertEqual(order, [4, 1, 3, 5, 2, 9, 10, 11, 0, 7, 8, 6]) 
-        expected = [a for i, a in sorted(enumerate(expected), key=lambda e: order.index(e[0]))]
+        self.assertEqual(order, [4, 1, 3, 5, 2, 9, 10, 11, 0, 7, 8, 6])
+        expected = [
+            a for i, a in sorted(enumerate(expected), key=lambda e: order.index(e[0]))
+        ]
         self.assertEqual(expected, actual)
 
 
@@ -422,17 +532,23 @@ class DelayCalculationTestCase(TestCase):
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime + trips[0].stop_time.start_window,
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
 
-        actual = Delay(car=self.mobility, plan=Route(stop_times=[
-            StopTime(stop=stops[0], on=[user], off=[]),
-            StopTime(stop=stops[1], on=[], off=[user])
-        ]))
+        actual = Delay(
+            car=self.mobility,
+            plan=Route(
+                stop_times=[
+                    StopTime(stop=stops[0], on=[user], off=[]),
+                    StopTime(stop=stops[1], on=[], off=[user]),
+                ]
+            ),
+        )
 
-        expected = [
-            timedelta()
-        ]
+        expected = [timedelta()]
 
         self.assertEqual(expected, actual.values)
         self.assertEqual(sum(expected, timedelta()), actual.value)
@@ -442,41 +558,57 @@ class DelayCalculationTestCase(TestCase):
             user_id="User",
             org=stops[0],
             dst=stops[1],
-            desired=self.base_datetime + trips[0].stop_time.start_window - timedelta(minutes=10),
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            desired=self.base_datetime
+            + trips[0].stop_time.start_window
+            - timedelta(minutes=10),
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
 
-        actual = Delay(car=self.mobility, plan=Route(stop_times=[
-            StopTime(stop=stops[0], on=[user], off=[]),
-            StopTime(stop=stops[1], on=[], off=[user])
-        ]))
+        actual = Delay(
+            car=self.mobility,
+            plan=Route(
+                stop_times=[
+                    StopTime(stop=stops[0], on=[user], off=[]),
+                    StopTime(stop=stops[1], on=[], off=[user]),
+                ]
+            ),
+        )
 
-        expected = [
-            timedelta(minutes=10)
-        ]
+        expected = [timedelta(minutes=10)]
 
         self.assertEqual(expected, actual.values)
         self.assertEqual(sum(expected, timedelta()), actual.value)
 
     def test_ideal_time_when_only_one_user_but_out_of_sevice_time(self):
-        desired = trips[0].stop_time.end_window + timedelta(minutes=10) + timedelta(days=1)
+        desired = (
+            trips[0].stop_time.end_window + timedelta(minutes=10) + timedelta(days=1)
+        )
         user = User(
             user_id="User",
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime + desired,
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
         self.mobility.env.run(until=desired.total_seconds() / 60)
 
-        actual = Delay(car=self.mobility, plan=Route(stop_times=[
-            StopTime(stop=stops[0], on=[user], off=[]),
-            StopTime(stop=stops[1], on=[], off=[user])
-        ]))
+        actual = Delay(
+            car=self.mobility,
+            plan=Route(
+                stop_times=[
+                    StopTime(stop=stops[0], on=[user], off=[]),
+                    StopTime(stop=stops[1], on=[], off=[user]),
+                ]
+            ),
+        )
 
-        expected = [
-            self.mobility._max_delay_time
-        ]
+        expected = [self.mobility._max_delay_time]
 
         self.assertEqual(expected, actual.values)
         self.assertEqual(sum(expected, timedelta()), actual.value)
@@ -488,17 +620,23 @@ class DelayCalculationTestCase(TestCase):
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime + desired,
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
         self.mobility.env.run(until=desired.total_seconds() / 60)
-        actual = Delay(car=self.mobility, plan=Route(stop_times=[
-            StopTime(stop=stops[0], on=[user], off=[]),
-            StopTime(stop=stops[1], on=[], off=[user])
-        ]))
+        actual = Delay(
+            car=self.mobility,
+            plan=Route(
+                stop_times=[
+                    StopTime(stop=stops[0], on=[user], off=[]),
+                    StopTime(stop=stops[1], on=[], off=[user]),
+                ]
+            ),
+        )
 
-        expected = [
-            trips[0].stop_time.start_window + timedelta(days=1) - desired
-        ]
+        expected = [trips[0].stop_time.start_window + timedelta(days=1) - desired]
 
         self.assertEqual(expected, actual.values)
         self.assertEqual(sum(expected, timedelta()), actual.value)
@@ -510,18 +648,24 @@ class DelayCalculationTestCase(TestCase):
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime + desired,
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
         self.mobility.env.run(until=desired.total_seconds() / 60)
 
-        actual = Delay(car=self.mobility, plan=Route(stop_times=[
-            StopTime(stop=stops[0], on=[user], off=[]),
-            StopTime(stop=stops[1], on=[], off=[user])
-        ]))
+        actual = Delay(
+            car=self.mobility,
+            plan=Route(
+                stop_times=[
+                    StopTime(stop=stops[0], on=[user], off=[]),
+                    StopTime(stop=stops[1], on=[], off=[user]),
+                ]
+            ),
+        )
 
-        expected = [
-            self.mobility._max_delay_time
-        ]
+        expected = [self.mobility._max_delay_time]
 
         self.assertEqual(expected, actual.values)
         self.assertEqual(sum(expected, timedelta()), actual.value)
@@ -532,17 +676,23 @@ class DelayCalculationTestCase(TestCase):
             org=stops[1],
             dst=stops[0],
             desired=self.base_datetime + trips[0].stop_time.start_window,
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
 
-        actual = Delay(car=self.mobility, plan=Route(stop_times=[
-            StopTime(stop=stops[1], on=[user], off=[]),
-            StopTime(stop=stops[0], on=[], off=[user])
-        ]))
+        actual = Delay(
+            car=self.mobility,
+            plan=Route(
+                stop_times=[
+                    StopTime(stop=stops[1], on=[user], off=[]),
+                    StopTime(stop=stops[0], on=[], off=[user]),
+                ]
+            ),
+        )
 
-        expected = [
-            timedelta(minutes=30)
-        ]
+        expected = [timedelta(minutes=30)]
 
         self.assertEqual(expected, actual.values)
         self.assertEqual(sum(expected, timedelta()), actual.value)
@@ -553,24 +703,35 @@ class DelayCalculationTestCase(TestCase):
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime + trips[0].stop_time.start_window,
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
         user2 = User(
             user_id="User2",
             org=stops[0],
             dst=stops[1],
-            desired=self.base_datetime + trips[0].stop_time.start_window + timedelta(minutes=10),
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            desired=self.base_datetime
+            + trips[0].stop_time.start_window
+            + timedelta(minutes=10),
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
 
-        actual = Delay(car=self.mobility, plan=Route(stop_times=[
-            StopTime(stop=stops[0], on=[user1, user2], off=[]),
-            StopTime(stop=stops[1], on=[], off=[user1, user2])
-        ]))
+        actual = Delay(
+            car=self.mobility,
+            plan=Route(
+                stop_times=[
+                    StopTime(stop=stops[0], on=[user1, user2], off=[]),
+                    StopTime(stop=stops[1], on=[], off=[user1, user2]),
+                ]
+            ),
+        )
 
-        expected = [
-            timedelta(minutes=10), timedelta()
-        ]
+        expected = [timedelta(minutes=10), timedelta()]
 
         self.assertEqual(expected, actual.values)
         self.assertEqual(sum(expected, timedelta()), actual.value)
@@ -580,26 +741,39 @@ class DelayCalculationTestCase(TestCase):
             user_id="User1",
             org=stops[0],
             dst=stops[1],
-            desired=self.base_datetime + trips[0].stop_time.start_window + timedelta(minutes=10),
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            desired=self.base_datetime
+            + trips[0].stop_time.start_window
+            + timedelta(minutes=10),
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
         user2 = User(
             user_id="User2",
             org=stops[1],
             dst=stops[0],
-            desired=self.base_datetime + trips[0].stop_time.start_window + timedelta(minutes=40),
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            desired=self.base_datetime
+            + trips[0].stop_time.start_window
+            + timedelta(minutes=40),
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
 
-        actual = Delay(car=self.mobility, plan=Route(stop_times=[
-            StopTime(stop=stops[0], on=[user1], off=[]),
-            StopTime(stop=stops[1], on=[user2], off=[user1]),
-            StopTime(stop=stops[0], on=[], off=[user2])
-        ]))
+        actual = Delay(
+            car=self.mobility,
+            plan=Route(
+                stop_times=[
+                    StopTime(stop=stops[0], on=[user1], off=[]),
+                    StopTime(stop=stops[1], on=[user2], off=[user1]),
+                    StopTime(stop=stops[0], on=[], off=[user2]),
+                ]
+            ),
+        )
 
-        expected = [
-            timedelta(), timedelta(minutes=20)
-        ]
+        expected = [timedelta(), timedelta(minutes=20)]
 
         self.assertEqual(expected, actual.values)
         self.assertEqual(sum(expected, timedelta()), actual.value)
@@ -619,12 +793,9 @@ class PlanningTestCase(TestCase):
         manager = CarManager(
             network=self.network,
             event_queue=Mock(env=Environment(self.base_datetime)),
-            settings=[CarSetting(
-                mobility_id="M001",
-                capacity=1,
-                trip=trips[0],
-                stop=stops[0]
-            )],
+            settings=[
+                CarSetting(mobility_id="M001", capacity=1, trip=trips[0], stop=stops[0])
+            ],
             board_time=self.board_time,
             max_delay_time=self.max_delay_time,
         )
@@ -633,7 +804,10 @@ class PlanningTestCase(TestCase):
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime + trips[0].stop_time.start_window,
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
 
         actual = manager.minimum_delay(user)
@@ -649,12 +823,9 @@ class PlanningTestCase(TestCase):
         manager = CarManager(
             network=self.network,
             event_queue=Mock(env=Environment(self.base_datetime)),
-            settings=[CarSetting(
-                mobility_id="M001",
-                capacity=1,
-                trip=trips[0],
-                stop=stops[0]
-            )],
+            settings=[
+                CarSetting(mobility_id="M001", capacity=1, trip=trips[0], stop=stops[0])
+            ],
             board_time=self.board_time,
             max_delay_time=self.max_delay_time,
         )
@@ -664,7 +835,10 @@ class PlanningTestCase(TestCase):
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime + desired,
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
         manager.mobilities["M001"].env.run(until=desired.total_seconds() / 60)
 
@@ -676,12 +850,9 @@ class PlanningTestCase(TestCase):
         manager = CarManager(
             network=self.network,
             event_queue=Mock(env=Environment(self.base_datetime)),
-            settings=[CarSetting(
-                mobility_id="M001",
-                capacity=1,
-                trip=trips[0],
-                stop=stops[0]
-            )],
+            settings=[
+                CarSetting(mobility_id="M001", capacity=1, trip=trips[0], stop=stops[0])
+            ],
             board_time=self.board_time,
             max_delay_time=self.max_delay_time,
         )
@@ -691,7 +862,10 @@ class PlanningTestCase(TestCase):
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime + desired,
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
         manager.mobilities["M001"].env.run(until=desired.total_seconds() / 60)
 
@@ -703,12 +877,9 @@ class PlanningTestCase(TestCase):
         manager = CarManager(
             network=self.network,
             event_queue=Mock(env=Environment(self.base_datetime)),
-            settings=[CarSetting(
-                mobility_id="M001",
-                capacity=1,
-                trip=trips[2],
-                stop=stops[0]
-            )],
+            settings=[
+                CarSetting(mobility_id="M001", capacity=1, trip=trips[2], stop=stops[0])
+            ],
             board_time=self.board_time,
             max_delay_time=self.max_delay_time,
         )
@@ -718,7 +889,10 @@ class PlanningTestCase(TestCase):
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime + desired,
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
 
         manager.mobilities["M001"].env.run(until=desired.total_seconds() / 60)
@@ -735,22 +909,24 @@ class PlanningTestCase(TestCase):
         manager = CarManager(
             network=self.network,
             event_queue=Mock(env=Environment(self.base_datetime)),
-            settings=[CarSetting(
-                mobility_id="M001",
-                capacity=1,
-                trip=trips[2],
-                stop=stops[0]
-            )],
+            settings=[
+                CarSetting(mobility_id="M001", capacity=1, trip=trips[2], stop=stops[0])
+            ],
             board_time=self.board_time,
             max_delay_time=self.max_delay_time,
         )
-        desired = trips[2].stop_time.end_window - timedelta(minutes=50) - timedelta(days=1)
+        desired = (
+            trips[2].stop_time.end_window - timedelta(minutes=50) - timedelta(days=1)
+        )
         user = User(
             user_id="User",
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime + desired,
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
         manager.mobilities["M001"].env.run(until=desired.total_seconds() / 60)
 
@@ -762,12 +938,9 @@ class PlanningTestCase(TestCase):
         manager = CarManager(
             network=self.network,
             event_queue=Mock(env=Environment(self.base_datetime)),
-            settings=[CarSetting(
-                mobility_id="M001",
-                capacity=1,
-                trip=trips[0],
-                stop=stops[0]
-            )],
+            settings=[
+                CarSetting(mobility_id="M001", capacity=1, trip=trips[0], stop=stops[0])
+            ],
             board_time=self.board_time,
             max_delay_time=self.max_delay_time,
         )
@@ -776,14 +949,22 @@ class PlanningTestCase(TestCase):
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime + trips[0].stop_time.start_window,
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
         user2 = User(
             user_id="User2",
             org=stops[1],
             dst=stops[0],
-            desired=self.base_datetime + trips[0].stop_time.start_window + timedelta(minutes=30),
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            desired=self.base_datetime
+            + trips[0].stop_time.start_window
+            + timedelta(minutes=30),
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
 
         manager.mobilities["M001"]._waiting_users.update({user1.user_id: user1})
@@ -801,33 +982,38 @@ class PlanningTestCase(TestCase):
         manager = CarManager(
             network=self.network,
             event_queue=Mock(env=Environment(self.base_datetime)),
-            settings=[CarSetting(
-                mobility_id="M001",
-                capacity=1,
-                trip=trips[0],
-                stop=stops[0]
-            ), CarSetting(
-                mobility_id="M002",
-                capacity=1,
-                trip=trips[0],
-                stop=stops[1]
-            )],
+            settings=[
+                CarSetting(
+                    mobility_id="M001", capacity=1, trip=trips[0], stop=stops[0]
+                ),
+                CarSetting(
+                    mobility_id="M002", capacity=1, trip=trips[0], stop=stops[1]
+                ),
+            ],
             board_time=self.board_time,
-            max_delay_time=self.max_delay_time
+            max_delay_time=self.max_delay_time,
         )
         user1 = User(
             user_id="User1",
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime + trips[0].stop_time.start_window,
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
         user2 = User(
             user_id="User2",
             org=stops[1],
             dst=stops[0],
-            desired=self.base_datetime + trips[0].stop_time.start_window + timedelta(minutes=30),
-            ideal=timedelta(minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id) + self.board_time * 2)
+            desired=self.base_datetime
+            + trips[0].stop_time.start_window
+            + timedelta(minutes=30),
+            ideal=timedelta(
+                minutes=self.network.duration(stops[0].stop_id, stops[1].stop_id)
+                + self.board_time * 2
+            ),
         )
 
         manager.mobilities["M001"]._waiting_users.update({user1.user_id: user1})
@@ -841,5 +1027,5 @@ class PlanningTestCase(TestCase):
         self.assertEqual(expected, actual.stop_times)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

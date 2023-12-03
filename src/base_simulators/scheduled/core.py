@@ -7,20 +7,21 @@ from datetime import date, time, datetime, timedelta
 
 
 class EventType(str, Enum):
-    DEPARTED = 'DEPARTED'
-    ARRIVED = 'ARRIVED'
-    RESERVED = 'RESERVED'
+    DEPARTED = "DEPARTED"
+    ARRIVED = "ARRIVED"
+    RESERVED = "RESERVED"
 
 
 class UserStatus(Enum):
-    """ A user is in one of the following states """
+    """A user is in one of the following states"""
+
     RESERVED = auto()
     WAITING = auto()
     RIDING = auto()
 
 
 class Agency(typing.NamedTuple):
-    """ Transit agencies with service represented in this dataset. """
+    """Transit agencies with service represented in this dataset."""
 
     agency_name: str
     agency_url: str
@@ -28,7 +29,7 @@ class Agency(typing.NamedTuple):
 
 
 class Stop(typing.NamedTuple):
-    """ Stops where vehicles pick up or drop off riders. """
+    """Stops where vehicles pick up or drop off riders."""
 
     stop_id: str
     name: str
@@ -37,7 +38,7 @@ class Stop(typing.NamedTuple):
 
 
 class Route(typing.NamedTuple):
-    """ Transit routes. A route is a group of trips that are displayed to riders as a single service. """
+    """Transit routes. A route is a group of trips that are displayed to riders as a single service."""
 
     agency: Agency
     long_name: str
@@ -47,12 +48,15 @@ class Route(typing.NamedTuple):
 
 @dataclasses.dataclass(init=False)
 class StopTime:
-    """ Times that a vehicle arrives at and departs from stops for each trip."""
+    """Times that a vehicle arrives at and departs from stops for each trip."""
+
     stop: Stop
     arrival: timedelta
     departure: timedelta
 
-    def __init__(self, stop: Stop, arrival: timedelta = None, departure: timedelta = None):
+    def __init__(
+        self, stop: Stop, arrival: timedelta = None, departure: timedelta = None
+    ):
         assert arrival or departure
         self.stop = stop
         self.arrival = arrival if arrival else departure
@@ -79,10 +83,10 @@ class StopTimeWithDateTime:
 
 @dataclasses.dataclass
 class Service:
-    """ A set of dates when service is available for one or more routes.
+    """A set of dates when service is available for one or more routes.
 
     Indicates whether the service operates for each day of the week in the date range specified in the start_date and
-    end_date fields. Exceptions for particular dates can be explicitly activated or deactivated by date. """
+    end_date fields. Exceptions for particular dates can be explicitly activated or deactivated by date."""
 
     _start_day: date
     _end_day: date
@@ -90,9 +94,18 @@ class Service:
     _added_exceptions: typing.List[date]
     _removed_exceptions: typing.List[date]
 
-    def __init__(self, start_date: date, end_date: date,
-                 monday=False, tuesday=False, wednesday=False, thursday=False, friday=False,
-                 saturday=False, sunday=False):
+    def __init__(
+        self,
+        start_date: date,
+        end_date: date,
+        monday=False,
+        tuesday=False,
+        wednesday=False,
+        thursday=False,
+        friday=False,
+        saturday=False,
+        sunday=False,
+    ):
         self._start_day = start_date
         self._end_day = end_date
         self._weekday = (monday, tuesday, wednesday, thursday, friday, saturday, sunday)
@@ -121,7 +134,8 @@ class Service:
 
 @dataclasses.dataclass(frozen=True)
 class Trip:
-    """ Sequence of two or more stops that occur during a specific time period. """
+    """Sequence of two or more stops that occur during a specific time period."""
+
     route: Route
     service: Service
     stop_times: typing.List[StopTime]
@@ -148,7 +162,10 @@ class Trip:
         for stop_time_org in self.stop_times_at(at):
             if stop_time_org.stop == org:
                 for stop_time_dst in self.stop_times_at(at):
-                    if stop_time_dst.stop == dst and stop_time_org.departure < stop_time_dst.arrival:
+                    if (
+                        stop_time_dst.stop == dst
+                        and stop_time_org.departure < stop_time_dst.arrival
+                    ):
                         yield Path(pick_up=stop_time_org, drop_off=stop_time_dst)
 
 
@@ -157,11 +174,14 @@ class Path:
     pick_up: StopTimeWithDateTime
     drop_off: StopTimeWithDateTime
 
-    def __lt__(self, other: 'Path'):
+    def __lt__(self, other: "Path"):
         if not isinstance(other, Path):
             return NotImplementedError()
-        return self.drop_off.arrival < other.drop_off.arrival if self.drop_off.arrival != other.drop_off.arrival else\
-            self.duration < other.duration
+        return (
+            self.drop_off.arrival < other.drop_off.arrival
+            if self.drop_off.arrival != other.drop_off.arrival
+            else self.duration < other.duration
+        )
 
     @property
     def duration(self):
@@ -204,7 +224,7 @@ class User:
 
 
 class Mobility:
-    """ Mobility is moving according to a timetable (`Trip`) """
+    """Mobility is moving according to a timetable (`Trip`)"""
 
     def __init__(self, mobility_id, trip: Trip):
         self.mobility_id = mobility_id
@@ -226,7 +246,7 @@ class Mobility:
 
     @property
     def operation_date(self):
-        """ Returns the operation date from the current time.
+        """Returns the operation date from the current time.
 
         If the previous day's operation has not been completed, returns the previous day's date.
         If the previous day's operation has been completed and there are some operations for the current day,

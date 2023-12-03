@@ -11,13 +11,13 @@ logger = getLogger(__name__)
 
 
 class EventType(str, Enum):
-    DEPARTED = 'DEPARTED'
-    ARRIVED = 'ARRIVED'
-    RESERVED = 'RESERVED'
+    DEPARTED = "DEPARTED"
+    ARRIVED = "ARRIVED"
+    RESERVED = "RESERVED"
 
 
 class Location:
-    """ Base class representing the location's coordinates of an entity """
+    """Base class representing the location's coordinates of an entity"""
 
     def __init__(self, id_, lat: float, lng: float):
         self.location_id = id_

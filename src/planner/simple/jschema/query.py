@@ -67,4 +67,12 @@ class MaaSSimNetworkSetting(BaseModel):
 class Setup(BaseModel):
     walking_meters_per_minute: float
     reference_time: constr(min_length=8, max_length=8)
-    networks: typing.Mapping[str, typing.Union[GtfsNetworkSetting, GbfsNetworkSetting, GtfsFlexNetworkSetting, MaaSSimNetworkSetting]]
+    networks: typing.Mapping[
+        str,
+        typing.Union[
+            GtfsNetworkSetting,
+            GbfsNetworkSetting,
+            GtfsFlexNetworkSetting,
+            MaaSSimNetworkSetting,
+        ],
+    ]

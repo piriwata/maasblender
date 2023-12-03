@@ -23,7 +23,9 @@ class ReservedEvent(Event):
     dept: float
     arrv: float
 
-    def __init__(self, user_id: str, org: Location, dst: Location, dept: float, arrv: float):
+    def __init__(
+        self, user_id: str, org: Location, dst: Location, dept: float, arrv: float
+    ):
         super().__init__(EventType.RESERVED)
         self.user_id = user_id
         self.org = org
@@ -36,12 +38,14 @@ class ReservedEvent(Event):
             "details": {
                 "userId": self.user_id,
                 "success": True,
-                "route": [{
-                    "org": self.org.dumps(),
-                    "dst": self.dst.dumps(),
-                    "dept": self.dept,
-                    "arrv": self.arrv,
-                }]
+                "route": [
+                    {
+                        "org": self.org.dumps(),
+                        "dst": self.dst.dumps(),
+                        "dept": self.dept,
+                        "arrv": self.arrv,
+                    }
+                ],
             }
         }
 

@@ -15,7 +15,9 @@ logger = getLogger(__name__)
 
 
 class Simulation:
-    def __init__(self, start_time: datetime, capacity: int, trips: typing.Dict[str, Trip]) -> None:
+    def __init__(
+        self, start_time: datetime, capacity: int, trips: typing.Dict[str, Trip]
+    ) -> None:
         self.env = Environment(start_time=start_time)
         self.event_queue = EventQueue()
         self.car_manager = CarManager(
@@ -25,13 +27,15 @@ class Simulation:
                 CarSetting(
                     mobility_id=trip_id,
                     capacity=capacity,  # ToDo: All trips may not have the same capacity.
-                    trip=trip
-                ) for trip_id, trip in trips.items()
-            ]
+                    trip=trip,
+                )
+                for trip_id, trip in trips.items()
+            ],
         )
         self.stops = {
             stop_time.stop.stop_id: stop_time.stop
-            for trip in trips.values() for stop_time in trip.stop_times
+            for trip in trips.values()
+            for stop_time in trip.stop_times
         }
 
     def start(self):
@@ -48,7 +52,9 @@ class Simulation:
         org = self.stops[org]
         dst = self.stops[dst]
         if mobility := self.car_manager.earliest_mobility(org, dst, self.env.now):
-            return mobility.is_reservable(mobility.earliest_path(org, dst, self.env.now))
+            return mobility.is_reservable(
+                mobility.earliest_path(org, dst, self.env.now)
+            )
         return False
 
     def reserve_user(self, user_id: str, org: str, dst: str, dept: float):
@@ -64,13 +70,15 @@ class Simulation:
 
     def _failed_to_reserve(self, user_id: str):
         yield self.env.timeout(0)
-        self.event_queue.enqueue(ReserveFailedEvent(
-            env=self.env,
-            user_id=user_id,
-        ))
+        self.event_queue.enqueue(
+            ReserveFailedEvent(
+                env=self.env,
+                user_id=user_id,
+            )
+        )
 
     def dept_user(self, user_id: str):
-        """ A user uses the vehicle reserved by him/her self to go to the destination.
+        """A user uses the vehicle reserved by him/her self to go to the destination.
 
         A user waits at the departure point. When the reserved vehicle arrives,
         the user boards the vehicle and heads for the destination."""

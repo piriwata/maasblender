@@ -30,7 +30,9 @@ def startup():
     class MultilineLogFormatter(logging.Formatter):
         def format(self, record: logging.LogRecord) -> str:
             message = super().format(record)
-            return message.replace("\n", "\t\n")  # indicate continuation line by trailing tab
+            return message.replace(
+                "\n", "\t\n"
+            )  # indicate continuation line by trailing tab
 
     formatter = MultilineLogFormatter(env.log_format)
     handler = logging.StreamHandler()
@@ -47,6 +49,7 @@ def startup():
 @app.exception_handler(Exception)
 def exception_callback(request: fastapi.Request, exc: Exception):
     from fastapi.responses import PlainTextResponse
+
     # omitted traceback here, because uvicorn outputs traceback as ASGI Exception
     logger.error("failed process called at %s", request.url)
     return PlainTextResponse(str(exc), status_code=500)
@@ -62,16 +65,16 @@ def upload(upload_file: fastapi.UploadFile = fastapi.File(...)):
         file_table.put(upload_file)
     finally:
         upload_file.file.close()
-    return {
-        "message": f"successfully uploaded. {upload_file.filename}"
-    }
+    return {"message": f"successfully uploaded. {upload_file.filename}"}
 
 
 @app.post("/setup", response_model=response.Message)
 async def setup(settings: query.Setup):
     async with aiohttp.ClientSession() as session:
         ref = settings.input_files[0]
-        filename, data = await file_table.pop(session, filename=ref.filename, url=ref.fetch_url)
+        filename, data = await file_table.pop(
+            session, filename=ref.filename, url=ref.fetch_url
+        )
         with zipfile.ZipFile(io.BytesIO(data)) as archive:
             gbfs_files = GbfsFiles(archive)
 
@@ -80,40 +83,37 @@ async def setup(settings: query.Setup):
     sim.setup(
         station_information=gbfs_files.station_information["data"]["stations"],
         free_bike_status=gbfs_files.free_bike_status["data"]["bikes"],
-        scooter_params=ScooterParameter(settings.mobility_speed, settings.charging_speed, settings.discharging_speed),
+        scooter_params=ScooterParameter(
+            settings.mobility_speed, settings.charging_speed, settings.discharging_speed
+        ),
         operator_params=OperatorParameter(
-            settings.operator_start_time, settings.operator_end_time, settings.operator_interval,
-            settings.operator_speed, settings.operator_loading_time, settings.operator_capacity,
+            settings.operator_start_time,
+            settings.operator_end_time,
+            settings.operator_interval,
+            settings.operator_speed,
+            settings.operator_loading_time,
+            settings.operator_capacity,
         ),
     )
-    return {
-        "message": "successfully configured."
-    }
+    return {"message": "successfully configured."}
 
 
 @app.post("/start", response_model=response.Message)
 def start():
     sim.start()
-    return {
-        "message": "successfully started."
-    }
+    return {"message": "successfully started."}
 
 
 @app.get("/peek", response_model=response.Peek)
 def peek():
     peek_time = sim.peek()
-    return {
-        "next": peek_time if peek_time < float('inf') else -1
-    }
+    return {"next": peek_time if peek_time < float("inf") else -1}
 
 
 @app.post("/step", response_model=response.Step)
 def step():
     now, events = sim.step()
-    return {
-        "now": now,
-        "events": events
-    }
+    return {"now": now, "events": events}
 
 
 @app.post("/triggered")
@@ -138,9 +138,7 @@ def triggered(event: query.TriggeredEvent):
 
 @app.get("/reservable", response_model=response.ReservableStatus)
 def reservable(org: str, dst: str):
-    return {
-        "reservable": sim.reservable(org, dst)
-    }
+    return {"reservable": sim.reservable(org, dst)}
 
 
 @app.post("/finish", response_model=response.Message)
@@ -148,6 +146,4 @@ def finish():
     global sim
     sim = None
     file_table.clear()
-    return {
-        "message": "successfully finished."
-    }
+    return {"message": "successfully finished."}

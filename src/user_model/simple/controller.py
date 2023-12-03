@@ -25,7 +25,9 @@ def startup():
     class MultilineLogFormatter(logging.Formatter):
         def format(self, record: logging.LogRecord) -> str:
             message = super().format(record)
-            return message.replace("\n", "\t\n")  # indicate continuation line by trailing tab
+            return message.replace(
+                "\n", "\t\n"
+            )  # indicate continuation line by trailing tab
 
     formatter = MultilineLogFormatter(env.log_format)
     handler = logging.StreamHandler()
@@ -42,6 +44,7 @@ def startup():
 @app.exception_handler(Exception)
 def exception_callback(request: fastapi.Request, exc: Exception):
     from fastapi.responses import PlainTextResponse
+
     # omitted traceback here, because uvicorn outputs traceback as ASGI Exception
     logger.error("failed process called at %s", request.url)
     return PlainTextResponse(str(exc), status_code=500)
@@ -62,9 +65,7 @@ async def setup(settings: query.Setup):
     manager = UserManager(confirmed_services=settings.confirmed_services)
     manager.setup_planer(endpoint=settings.planner.endpoint)
 
-    return {
-        "message": "successfully configured."
-    }
+    return {"message": "successfully configured."}
 
 
 @app.post("/start", response_model=response.Message)
@@ -72,9 +73,7 @@ def start():
     global manager
 
     manager.start()
-    return {
-        "message": "successfully started."
-    }
+    return {"message": "successfully started."}
 
 
 @app.get("/peek", response_model=response.Peek)
@@ -83,19 +82,14 @@ def peek():
 
     peek_time = manager.peek()
 
-    return {
-        "next": peek_time if peek_time < float('inf') else -1
-    }
+    return {"next": peek_time if peek_time < float("inf") else -1}
 
 
 @app.post("/step", response_model=response.Step)
 def step():
     now = manager.step()
     events = [event.dumps() for event in manager.triggered_events]
-    return {
-        "now": now,
-        "events": events
-    }
+    return {"now": now, "events": events}
 
 
 @app.post("/triggered")
@@ -111,52 +105,69 @@ async def triggered(event: query.TriggeredEvent):
                 org=Location(
                     id_=event.details.org.locationId,
                     lat=event.details.org.lat,
-                    lng=event.details.org.lng
+                    lng=event.details.org.lng,
                 ),
                 dst=Location(
                     id_=event.details.dst.locationId,
                     lat=event.details.dst.lat,
-                    lng=event.details.dst.lng
+                    lng=event.details.dst.lng,
                 ),
                 dept=event.details.dept,
-                fixed_service=event.details.service
+                fixed_service=event.details.service,
             )
         case query.ReservedEvent():
-            manager.trigger(ReservedEvent(
-                source=event.source,
-                success=event.details.success,
-                user_id=event.details.userId,
-                route=Route([
-                    Trip(
-                        org=Location(id_=trip.org.locationId, lat=trip.org.lat, lng=trip.org.lng),
-                        dst=Location(id_=trip.dst.locationId, lat=trip.dst.lat, lng=trip.dst.lng),
-                        dept=trip.dept,
-                        arrv=trip.arrv,
-                        # reserved mobility trip if service is None
-                        service=trip.service if trip.service else event.source,
-                    ) for trip in event.details.route
-                ])
-            ))
+            manager.trigger(
+                ReservedEvent(
+                    source=event.source,
+                    success=event.details.success,
+                    user_id=event.details.userId,
+                    route=Route(
+                        [
+                            Trip(
+                                org=Location(
+                                    id_=trip.org.locationId,
+                                    lat=trip.org.lat,
+                                    lng=trip.org.lng,
+                                ),
+                                dst=Location(
+                                    id_=trip.dst.locationId,
+                                    lat=trip.dst.lat,
+                                    lng=trip.dst.lng,
+                                ),
+                                dept=trip.dept,
+                                arrv=trip.arrv,
+                                # reserved mobility trip if service is None
+                                service=trip.service if trip.service else event.source,
+                            )
+                            for trip in event.details.route
+                        ]
+                    ),
+                )
+            )
         case query.DepartedEvent():
-            manager.trigger(DepartedEvent(
-                source=event.source,
-                user_id=event.details.userId,
-                location=Location(
-                    id_=event.details.location.locationId,
-                    lat=event.details.location.lat,
-                    lng=event.details.location.lng
+            manager.trigger(
+                DepartedEvent(
+                    source=event.source,
+                    user_id=event.details.userId,
+                    location=Location(
+                        id_=event.details.location.locationId,
+                        lat=event.details.location.lat,
+                        lng=event.details.location.lng,
+                    ),
                 )
-            ))
+            )
         case query.ArrivedEvent():
-            manager.trigger(ArrivedEvent(
-                source=event.source,
-                user_id=event.details.userId,
-                location=Location(
-                    id_=event.details.location.locationId,
-                    lat=event.details.location.lat,
-                    lng=event.details.location.lng
+            manager.trigger(
+                ArrivedEvent(
+                    source=event.source,
+                    user_id=event.details.userId,
+                    location=Location(
+                        id_=event.details.location.locationId,
+                        lat=event.details.location.lat,
+                        lng=event.details.location.lng,
+                    ),
                 )
-            ))
+            )
 
 
 @app.post("/finish", response_model=response.Message)
@@ -166,6 +177,4 @@ async def finish():
     if manager:
         await manager.close()
         manager = None
-    return {
-        "message": "successfully finished."
-    }
+    return {"message": "successfully finished."}

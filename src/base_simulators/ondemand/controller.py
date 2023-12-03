@@ -31,7 +31,9 @@ def startup():
     class MultilineLogFormatter(logging.Formatter):
         def format(self, record: logging.LogRecord) -> str:
             message = super().format(record)
-            return message.replace("\n", "\t\n")  # indicate continuation line by trailing tab
+            return message.replace(
+                "\n", "\t\n"
+            )  # indicate continuation line by trailing tab
 
     formatter = MultilineLogFormatter(env.log_format)
     handler = logging.StreamHandler()
@@ -48,6 +50,7 @@ def startup():
 @app.exception_handler(Exception)
 def exception_callback(request: fastapi.Request, exc: Exception):
     from fastapi.responses import PlainTextResponse
+
     # omitted traceback here, because uvicorn outputs traceback as ASGI Exception
     logger.error("failed process called at %s", request.url)
     return PlainTextResponse(str(exc), status_code=500)
@@ -63,16 +66,16 @@ def upload(upload_file: fastapi.UploadFile = fastapi.File(...)):
         file_table.put(upload_file)
     finally:
         upload_file.file.close()
-    return {
-        "message": f"successfully uploaded. {upload_file.filename}"
-    }
+    return {"message": f"successfully uploaded. {upload_file.filename}"}
 
 
 @app.post("/setup", response_model=response.Message)
 async def setup(settings: query.Setup):
     async with aiohttp.ClientSession() as session:
         ref = settings.input_files[0]
-        filename, data = await file_table.pop(session, filename=ref.filename, url=ref.fetch_url)
+        filename, data = await file_table.pop(
+            session, filename=ref.filename, url=ref.fetch_url
+        )
         with zipfile.ZipFile(io.BytesIO(data)) as archive:
             reader = GtfsFlexFilesReader().read(archive)
         trips = reader.trips
@@ -80,7 +83,9 @@ async def setup(settings: query.Setup):
 
         if network_url := settings.network.fetch_url:
             stops_req = [
-                jschema.events.Location(locationId=e.stop_id, lat=e.lat, lng=e.lng).dict()
+                jschema.events.Location(
+                    locationId=e.stop_id, lat=e.lat, lng=e.lng
+                ).dict()
                 for e in sorted(stops.values(), key=lambda e: e.stop_id)
             ]
             async with session.post(network_url, json=stops_req) as resp:
@@ -91,17 +96,19 @@ async def setup(settings: query.Setup):
                 for stop_b, distance in zip(matrix["stops"], row):
                     if stop_a == stop_b:
                         continue
-                    assert distance >= 0, f"distance must not negative: {distance}, {stop_a} -> {stop_b}"
+                    assert (
+                        distance >= 0
+                    ), f"distance must not negative: {distance}, {stop_a} -> {stop_b}"
                     network.add_edge(stop_a, stop_b, distance / settings.mobility_speed)
         else:
             raise fastapi.HTTPException(
                 status_code=fastapi.status.HTTP_400_BAD_REQUEST,
-                detail="Stop-Stop Network was not properly configured."
+                detail="Stop-Stop Network was not properly configured.",
             )
 
     global sim
     sim = Simulation(
-        start_time=datetime.datetime.strptime(settings.reference_time, '%Y%m%d'),
+        start_time=datetime.datetime.strptime(settings.reference_time, "%Y%m%d"),
         network=network,
         trips=trips,
         board_time=settings.board_time,
@@ -111,38 +118,30 @@ async def setup(settings: query.Setup):
                 mobility_id=mobility.mobility_id,
                 capacity=mobility.capacity,
                 trip=trips[mobility.trip_id],
-                stop=stops[mobility.stop]
-            ) for mobility in settings.mobilities
+                stop=stops[mobility.stop],
+            )
+            for mobility in settings.mobilities
         ],
     )
 
-    return {
-        "message": "successfully configured."
-    }
+    return {"message": "successfully configured."}
 
 
 @app.post("/start", response_model=response.Message)
 def start():
     sim.start()
-    return {
-        "message": "successfully started."
-    }
+    return {"message": "successfully started."}
 
 
 @app.get("/peek", response_model=response.Peek)
 def peek():
     peek_time = sim.peek()
-    return {
-        "next": peek_time if peek_time < float('inf') else -1
-    }
+    return {"next": peek_time if peek_time < float("inf") else -1}
 
 
 @app.post("/step", response_model=response.Step)
 def step():
-    return {
-        "now": sim.step(),
-        "events": sim.event_queue.events
-    }
+    return {"now": sim.step(), "events": sim.event_queue.events}
 
 
 @app.post("/triggered")
@@ -157,19 +156,15 @@ def triggered(event: query.TriggeredEvent):
                 user_id=event.details.userId,
                 org=event.details.org.locationId,
                 dst=event.details.dst.locationId,
-                dept=event.details.dept
+                dept=event.details.dept,
             )
         case query.DepartEvent():
-            sim.ready_to_depart(
-                user_id=event.details.userId
-            )
+            sim.ready_to_depart(user_id=event.details.userId)
 
 
 @app.get("/reservable", response_model=response.ReservableStatus)
 def reservable(org: str, dst: str):
-    return {
-        "reservable": sim.reservable(org, dst)
-    }
+    return {"reservable": sim.reservable(org, dst)}
 
 
 @app.post("/finish", response_model=response.Message)
@@ -177,6 +172,4 @@ def finish():
     global sim
     sim = None
     file_table.clear()
-    return {
-        "message": "successfully finished."
-    }
+    return {"message": "successfully finished."}

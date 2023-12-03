@@ -14,7 +14,7 @@ logger = getLogger(__name__)
 
 
 class Dock:
-    """ Entity that stores a mobility """
+    """Entity that stores a mobility"""
 
     def __init__(self, mobility: Scooter = None):
         self.reserved: typing.Optional[Scooter] = None
@@ -39,26 +39,34 @@ class Dock:
 
 
 class Station(Location):
-    """ Entity that stores docks """
+    """Entity that stores docks"""
 
     def __init__(
-            self, id_: str, name: str, lat: float, lng: float, mobilities: typing.Iterable[Scooter],
-            capacity=0, is_charging=False
+        self,
+        id_: str,
+        name: str,
+        lat: float,
+        lng: float,
+        mobilities: typing.Iterable[Scooter],
+        capacity=0,
+        is_charging=False,
     ):
         mobilities = list(mobilities)
         assert len(mobilities) <= capacity
         super().__init__(id_, lat=lat, lng=lng)
         self.name = name
         self.is_charging = is_charging
-        self._docks = [
-            Dock(mobility) for mobility in mobilities
-        ] + [
+        self._docks = [Dock(mobility) for mobility in mobilities] + [
             Dock() for _ in range(capacity - len(mobilities))
         ]
 
     @property
     def reservable_mobilities(self):
-        return [dock.mobility for dock in self._docks if dock.mobility and not dock.mobility.reserved]
+        return [
+            dock.mobility
+            for dock in self._docks
+            if dock.mobility and not dock.mobility.reserved
+        ]
 
     @property
     def any_reservable_mobility(self):
@@ -69,7 +77,11 @@ class Station(Location):
         return any(dock.is_available for dock in self._docks)
 
     def reserve_mobility(self):
-        mobilities_available = [dock.mobility for dock in self._docks if dock.mobility and not dock.mobility.reserved]
+        mobilities_available = [
+            dock.mobility
+            for dock in self._docks
+            if dock.mobility and not dock.mobility.reserved
+        ]
         if not len(mobilities_available):
             assert False
 
@@ -88,14 +100,14 @@ class Station(Location):
         assert False
 
     def pick(self, mobility: Scooter):
-        """ pick the reserved mobility """
+        """pick the reserved mobility"""
         for dock in self._docks:
             if dock.mobility == mobility:
                 return dock.pick()
         assert False
 
     def park(self, mobility: Scooter):
-        """ park the mobility at the reserved dock """
+        """park the mobility at the reserved dock"""
 
         for dock in self._docks:
             if dock.reserved == mobility:

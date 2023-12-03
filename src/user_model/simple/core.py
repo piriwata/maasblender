@@ -48,13 +48,15 @@ class Task:
 
 
 class User:
-    """ A moving object that travels between locations using multiple mobility services """
+    """A moving object that travels between locations using multiple mobility services"""
 
-    def __init__(self, id_: str, org: Location, dst: Location, dept: float, tasks: list[Task]):
+    def __init__(
+        self, id_: str, org: Location, dst: Location, dept: float, tasks: list[Task]
+    ):
         self.user_id = id_
         self.org = org  # （旅程全体の）出発地
         self.dst = dst  # （旅程全体の）目的地
-        self.dept = dept # departure time
+        self.dept = dept  # departure time
         self.task: Task | None = None  # 移動中の旅程
         self.tasks: list[Task] = tasks  # 未来の旅程
 

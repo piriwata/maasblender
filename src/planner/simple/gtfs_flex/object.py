@@ -7,14 +7,15 @@ from core import Location
 
 
 class Stop(Location):
-    """ Stops where vehicles pick up or drop off riders. """
+    """Stops where vehicles pick up or drop off riders."""
+
     def __init__(self, id_: str, lat: float, lng: float, name=None):
         super().__init__(id_, lat, lng)
-        self.name = name if name else id_ 
+        self.name = name if name else id_
 
 
 class Group:
-    """ Group of stops """
+    """Group of stops"""
 
     def __init__(self, group_id: str, name: str, locations: list[Stop] = None):
         self.group_id = group_id
@@ -23,14 +24,23 @@ class Group:
 
 
 class Service:
-    """ A set of dates when service is available for one or more routes.
+    """A set of dates when service is available for one or more routes.
 
     Indicates whether the service operates for each day of the week in the date range specified in the start_date and
-    end_date fields. Exceptions for particular dates can be explicitly activated or deactivated by date. """
+    end_date fields. Exceptions for particular dates can be explicitly activated or deactivated by date."""
 
-    def __init__(self, start_date: date, end_date: date,
-                 monday=False, tuesday=False, wednesday=False, thursday=False, friday=False,
-                 saturday=False, sunday=False):
+    def __init__(
+        self,
+        start_date: date,
+        end_date: date,
+        monday=False,
+        tuesday=False,
+        wednesday=False,
+        thursday=False,
+        friday=False,
+        saturday=False,
+        sunday=False,
+    ):
         self._start_day = start_date
         self._end_day = end_date
         self._weekday = [monday, tuesday, wednesday, thursday, friday, saturday, sunday]
@@ -58,7 +68,7 @@ class Service:
 
 
 class StopTime(typing.NamedTuple):
-    """ Times that a vehicle arrives at and departs from stops for each trip."""
+    """Times that a vehicle arrives at and departs from stops for each trip."""
 
     group: Group
     start_window: timedelta
@@ -66,7 +76,7 @@ class StopTime(typing.NamedTuple):
 
 
 class Trip:
-    """ Sequence of two or more stops that occur during a specific time period. """
+    """Sequence of two or more stops that occur during a specific time period."""
 
     def __init__(self, service: Service, stop_time: StopTime):
         self.service = service

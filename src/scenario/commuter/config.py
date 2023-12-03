@@ -11,6 +11,7 @@ class LogConfiguration(BaseSettings, frozen=True):
     @property
     def log_level(self):
         import logging
+
         return logging.DEBUG if self.DEBUG else logging.INFO
 
     @property

@@ -15,14 +15,22 @@ logger = getLogger(__name__)
 
 
 class Car(Mobility):
-    def __init__(self, env: Environment, queue: EventQueue,
-                 mobility_id: str, capacity: int, trip: Trip):
+    def __init__(
+        self,
+        env: Environment,
+        queue: EventQueue,
+        mobility_id: str,
+        capacity: int,
+        trip: Trip,
+    ):
         super().__init__(mobility_id=mobility_id, trip=trip)
         self.env = env
         self.events = queue
         self._capacity = capacity
         self._stop: typing.Optional[Stop] = None
-        self.users: typing.Dict[str, User] = {}  # 車両を予約している/停車駅に待機している/車両に乗車している すべての利用者
+        self.users: typing.Dict[
+            str, User
+        ] = {}  # 車両を予約している/停車駅に待機している/車両に乗車している すべての利用者
 
     @property
     def stop(self):
@@ -34,21 +42,36 @@ class Car(Mobility):
 
     @property
     def reserved_users(self):
-        return [user for user in self.users.values() if user.status == UserStatus.RESERVED]
+        return [
+            user for user in self.users.values() if user.status == UserStatus.RESERVED
+        ]
 
     @property
     def waiting_users(self):
-        return [user for user in self.users.values() if user.status == UserStatus.WAITING]
+        return [
+            user for user in self.users.values() if user.status == UserStatus.WAITING
+        ]
 
     @property
     def passengers(self):
-        return [user for user in self.users.values() if user.status == UserStatus.RIDING]
+        return [
+            user for user in self.users.values() if user.status == UserStatus.RIDING
+        ]
 
     def is_reservable(self, reservation: Path):
         paths = [user.path for user in self.users.values()] + [reservation]
         for path in paths:
             departure = path.departure
-            if len([path for path in paths if path.departure <= departure < path.arrival]) > self._capacity:
+            if (
+                len(
+                    [
+                        path
+                        for path in paths
+                        if path.departure <= departure < path.arrival
+                    ]
+                )
+                > self._capacity
+            ):
                 return False
         return True
 
@@ -57,12 +80,13 @@ class Car(Mobility):
 
         for user in self.waiting_users:
             # 現在地が予定とおりの乗車駅である場合、乗客を乗車させる。
-            if user.path.org == self.stop and user.path.departure == self.current_datetime:
-                self.events.enqueue(DepartedEvent(
-                    env=self.env,
-                    mobility=self,
-                    user=user
-                ))
+            if (
+                user.path.org == self.stop
+                and user.path.departure == self.current_datetime
+            ):
+                self.events.enqueue(
+                    DepartedEvent(env=self.env, mobility=self, user=user)
+                )
                 user.ride()
 
         assert len(self.passengers) <= self._capacity
@@ -74,11 +98,9 @@ class Car(Mobility):
             # 現在地が予定とおりの降車駅である場合、乗客を降車させる。
             if user.path.dst == self.stop:
                 assert user.path.arrival == self.current_datetime
-                self.events.enqueue(ArrivedEvent(
-                    env=self.env,
-                    mobility=self,
-                    user=user
-                ))
+                self.events.enqueue(
+                    ArrivedEvent(env=self.env, mobility=self, user=user)
+                )
                 self.users.pop(user.user_id)
 
     def _arrive(self, stop: Stop):
@@ -94,7 +116,6 @@ class Car(Mobility):
     def run(self):
         while True:
             if trip := self.trip():
-
                 # 時刻表に従って順番に停車駅に移動する。
                 for plan in trip.stop_times_at(self.operation_date):
                     yield self.env.timeout_until(plan.arrival)
@@ -107,7 +128,9 @@ class Car(Mobility):
             else:
                 # If there is no operation for the day, wait until the next day.
                 yield self.env.timeout_until(
-                    datetime.combine(self.current_datetime.date() + timedelta(days=1), time())
+                    datetime.combine(
+                        self.current_datetime.date() + timedelta(days=1), time()
+                    )
                 )
 
     def __str__(self):
@@ -127,14 +150,16 @@ class Car(Mobility):
 
     def _reserved(self, user: User):
         yield self.env.timeout(0)
-        self.events.enqueue(ReservedEvent(
-            env=self.env,
-            mobility=self,
-            user=user,
-        ))
+        self.events.enqueue(
+            ReservedEvent(
+                env=self.env,
+                mobility=self,
+                user=user,
+            )
+        )
 
     def earliest_path(self, org: Stop, dst: Stop, dept: float):
-        """ Returns the shortest path from the `org` point to the `dst` point
+        """Returns the shortest path from the `org` point to the `dst` point
 
         Returns `None` if no route can be found"""
 
@@ -144,7 +169,7 @@ class Car(Mobility):
         for path in chain(
             self.paths(org, dst, at=dept_datetime.date() - timedelta(days=1)),
             self.paths(org, dst, at=dept_datetime.date()),
-            self.paths(org, dst, at=dept_datetime.date() + timedelta(days=1))
+            self.paths(org, dst, at=dept_datetime.date() + timedelta(days=1)),
         ):
             # This route is available for boarding.
             if dept_datetime < path.departure:
@@ -159,9 +184,14 @@ class CarSetting(typing.NamedTuple):
 
 
 class CarManager:
-    """ Manage multiple transit buses """
+    """Manage multiple transit buses"""
 
-    def __init__(self, env: Environment, event_queue: EventQueue, settings: typing.Collection[CarSetting]):
+    def __init__(
+        self,
+        env: Environment,
+        event_queue: EventQueue,
+        settings: typing.Collection[CarSetting],
+    ):
         self.env = env
         self.event_queue = event_queue
         self.mobilities: typing.Dict[str, Car] = {
@@ -170,8 +200,9 @@ class CarManager:
                 queue=self.event_queue,
                 mobility_id=setting.mobility_id,
                 capacity=setting.capacity,
-                trip=setting.trip
-            ) for setting in settings
+                trip=setting.trip,
+            )
+            for setting in settings
         }
 
     def find_user(self, user_id: str):
@@ -184,16 +215,20 @@ class CarManager:
         for car in self.mobilities.values():
             self.env.process(car.run())
 
-    def earliest_mobility(self, org: Stop, dst: Stop, dept: float) -> typing.Optional[Car]:
-        """ Return the vehicle that arrives at the destination earliest.
+    def earliest_mobility(
+        self, org: Stop, dst: Stop, dept: float
+    ) -> typing.Optional[Car]:
+        """Return the vehicle that arrives at the destination earliest.
 
-        Returns `None` If there is no vehicle available """
+        Returns `None` If there is no vehicle available"""
 
         car_arrivals = {
-            k: v.arrival for k, v in {
+            k: v.arrival
+            for k, v in {
                 car: car.earliest_path(org, dst, dept)
                 for car in self.mobilities.values()
-            }.items() if v
+            }.items()
+            if v
         }
 
         if not len(car_arrivals):

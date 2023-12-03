@@ -25,20 +25,26 @@ class ScooterParameter:
 
 
 class Battery:
-    def __init__(self, env: simpy.Environment, params: ScooterParameter, fuel_percent: float):
+    def __init__(
+        self, env: simpy.Environment, params: ScooterParameter, fuel_percent: float
+    ):
         self.env = env
         self._soc = fuel_percent
         self._last_checked = env.now
         self._standby: typing.Callable[[float], float] = lambda duration: 0.0
-        self._charging: typing.Callable[[float], float] = lambda duration: params.charging_speed * duration
-        self._running: typing.Callable[[float], float] = lambda duration: params.discharging_speed * duration
+        self._charging: typing.Callable[[float], float] = (
+            lambda duration: params.charging_speed * duration
+        )
+        self._running: typing.Callable[[float], float] = (
+            lambda duration: params.discharging_speed * duration
+        )
         self._status = self._standby
 
     @property
     def soc(self):
-        """ The current charge state
+        """The current charge state
 
-         ranges from 0 (empty) - 100 (full) """
+        ranges from 0 (empty) - 100 (full)"""
 
         self._update()
         return self._soc
@@ -62,13 +68,21 @@ class Battery:
 
 
 class Scooter(Mobility):
-    """ Rechargeable Mobility """
+    """Rechargeable Mobility"""
 
-    def __init__(self, env: simpy.Environment, id_: str, params: ScooterParameter, current_range_meters: float):
+    def __init__(
+        self,
+        env: simpy.Environment,
+        id_: str,
+        params: ScooterParameter,
+        current_range_meters: float,
+    ):
         super().__init__(id_, params.mobility_speed)
         self.env = env
         self._max_range_meters = params.max_range_meters
-        self.battery = Battery(env, params, fuel_percent=current_range_meters / self._max_range_meters)
+        self.battery = Battery(
+            env, params, fuel_percent=current_range_meters / self._max_range_meters
+        )
 
     @property
     def current_range_meters(self):

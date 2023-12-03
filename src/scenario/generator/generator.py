@@ -48,7 +48,7 @@ class SenDemand(typing.NamedTuple):
 
     @property
     def probability(self):
-        """ Return the probability of an event occurring in a unit of time
+        """Return the probability of an event occurring in a unit of time
 
         UNIT_TIME defined at the top level of the module is used as the unit time.
         The frequency of the number of times an event occurs between begin and end follows a Poisson distribution.
@@ -70,27 +70,27 @@ class SenDemand(typing.NamedTuple):
 
 def make_demands(setting: jschema.query.Setup):
     sen = (
-            SenDemand(
-                begin=sen.begin,
-                end=sen.end,
-                expected_demands=sen.expected_demands,
-                time=sen.resv,
-                info=DemandInfo(
-                    org=Location(
-                        location_id=sen.org.locationId,
-                        lat=sen.org.lat,
-                        lng=sen.org.lng,
-                    ),
-                    dst=Location(
-                        location_id=sen.dst.locationId,
-                        lat=sen.dst.lat,
-                        lng=sen.dst.lng,
-                    ),
-                    user_type=sen.user_type,
-                    service=sen.service,
+        SenDemand(
+            begin=sen.begin,
+            end=sen.end,
+            expected_demands=sen.expected_demands,
+            time=sen.resv,
+            info=DemandInfo(
+                org=Location(
+                    location_id=sen.org.locationId,
+                    lat=sen.org.lat,
+                    lng=sen.org.lng,
                 ),
-            )
-            for sen in setting.demands
+                dst=Location(
+                    location_id=sen.dst.locationId,
+                    lat=sen.dst.lat,
+                    lng=sen.dst.lng,
+                ),
+                user_type=sen.user_type,
+                service=sen.service,
+            ),
+        )
+        for sen in setting.demands
     )
     ten = sorted(
         (e for sen in sen for e in sen.generate_demands()),
@@ -134,14 +134,17 @@ class DemandGenerator:
         self.env.step()
         events, self._events = self._events, []
         return self.env.now, [
-            {"time": self.env.now} | event.dumps()
-            for event in events
+            {"time": self.env.now} | event.dumps() for event in events
         ]
 
     def _demand(self, demand: Demand):
         if demand.time is None:  # immediate reservation
             yield self.env.timeout(demand.dept)  # wait for departure time
-            self._events.append(DemandEvent(user_id=demand.user_id, dept=None, info=demand.info))
+            self._events.append(
+                DemandEvent(user_id=demand.user_id, dept=None, info=demand.info)
+            )
         else:  # advance reservation
             yield self.env.timeout(demand.time)  # wait for reservation time
-            self._events.append(DemandEvent(user_id=demand.user_id, dept=demand.dept, info=demand.info))
+            self._events.append(
+                DemandEvent(user_id=demand.user_id, dept=demand.dept, info=demand.info)
+            )

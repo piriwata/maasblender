@@ -22,7 +22,13 @@ class AsyncClient:
         self._session = aiohttp.ClientSession()
         self._semaphore = asyncio.Semaphore(8)
 
-    async def get(self, method: str, params: typing.Mapping[str, str] = None, *, suppress_log=False):
+    async def get(
+        self,
+        method: str,
+        params: typing.Mapping[str, str] = None,
+        *,
+        suppress_log=False,
+    ):
         url = self._endpoint + "/" + method
         async with self._semaphore:
             async with self._session.get(url, params=params) as response:
@@ -52,9 +58,14 @@ def get_id_from_dict(raw: typing.Mapping, key: str, *keys: str) -> str:
 
 
 class OpenTripPlanner:
-    def __init__(self, endpoint: str, ref_datetime: datetime.datetime,
-                 walking_meters_per_minute: float, modes: list[str],
-                 services: typing.Mapping[str, str]):
+    def __init__(
+        self,
+        endpoint: str,
+        ref_datetime: datetime.datetime,
+        walking_meters_per_minute: float,
+        modes: list[str],
+        services: typing.Mapping[str, str],
+    ):
         super().__init__()
         self.client = AsyncClient(endpoint)
         self.ref_datetime = ref_datetime
@@ -68,8 +79,10 @@ class OpenTripPlanner:
         await self.client.close()
 
     def _elapsed(self, timestamp: str):
-        return (datetime.datetime.fromtimestamp(int(timestamp) / 1000).astimezone() - self.ref_datetime) \
-               / datetime.timedelta(minutes=1)
+        return (
+            datetime.datetime.fromtimestamp(int(timestamp) / 1000).astimezone()
+            - self.ref_datetime
+        ) / datetime.timedelta(minutes=1)
 
     async def health(self):
         try:
@@ -78,7 +91,9 @@ class OpenTripPlanner:
         except aiohttp.ClientConnectionError:
             return False
 
-    async def meters_for_all_stops_combinations(self, stops: list[str], base: datetime.datetime):
+    async def meters_for_all_stops_combinations(
+        self, stops: list[str], base: datetime.datetime
+    ):
         failed_stops = set()
         stop_id_map = {
             get_id_from_dict(e, "id"): e["id"]
@@ -99,7 +114,7 @@ class OpenTripPlanner:
                 response = await self.client.get(
                     method="otp/routers/default/plan",
                     params={
-                        "mode": 'CAR',
+                        "mode": "CAR",
                         "fromPlace": org_id,
                         "toPlace": dst_id,
                         "time": f"{base.time()}",
@@ -113,19 +128,22 @@ class OpenTripPlanner:
                 distance = response["plan"]["itineraries"][0]["walkDistance"]
                 if distance < 0:
                     logger.error("illegal response from OTP: %s", response)
-                    raise ValueError("illegal response from OTP, distance = %s", distance)
+                    raise ValueError(
+                        "illegal response from OTP, distance = %s", distance
+                    )
                 return distance
             except Exception as e:
-                logger.warning(f"failed to calculate the distance between {org} and {dst}. Error: {e}.")
+                logger.warning(
+                    f"failed to calculate the distance between {org} and {dst}. Error: {e}."
+                )
                 failed_stops.add(dst)
                 return -1
 
         matrix: list[list[float]] = []
         for stop_a in stops:
-            vals = await asyncio.gather(*[
-                _distance(org=stop_a, dst=stop_b)
-                for stop_b in stops
-            ])
+            vals = await asyncio.gather(
+                *[_distance(org=stop_a, dst=stop_b) for stop_b in stops]
+            )
             matrix.append(list(vals))
         return DistanceMatrix(stops=stops, matrix=matrix)
 
@@ -136,7 +154,9 @@ class OpenTripPlanner:
                 if path not in paths:  # ignore duplicated walking path
                     paths.append(path)
         paths.sort(key=lambda e: e.arrv)
-        if not any(all(trip.service == "walking" for trip in path.trips) for path in paths):
+        if not any(
+            all(trip.service == "walking" for trip in path.trips) for path in paths
+        ):
             # ToDo: Discuss again who should determine the means of transit if no route can be found.
             # If any routes are not found, return the walking route.
             walk_path = self.get_walk_path(org, dst, dept)
@@ -145,15 +165,18 @@ class OpenTripPlanner:
         return paths
 
     def get_walk_path(self, org: Location, dst: Location, dept: float) -> Path:
-        return Path([
-            Trip(
-                org=org,
-                dst=dst,
-                dept=dept,
-                arrv=dept + calc_distance(org, dst) / self.walking_velocity,
-                service="walking",
-            )],
-            walking_time_minutes=calc_distance(org, dst) / self.walking_velocity)
+        return Path(
+            [
+                Trip(
+                    org=org,
+                    dst=dst,
+                    dept=dept,
+                    arrv=dept + calc_distance(org, dst) / self.walking_velocity,
+                    service="walking",
+                )
+            ],
+            walking_time_minutes=calc_distance(org, dst) / self.walking_velocity,
+        )
 
     async def _plan(self, mode: str, org: Location, dst: Location, dept: float):
         dept_datetime = self.ref_datetime + datetime.timedelta(minutes=dept)
@@ -165,8 +188,8 @@ class OpenTripPlanner:
                 "fromPlace": f"{org.lat},{org.lng}",
                 "toPlace": f"{dst.lat},{dst.lng}",
                 "time": f"{dept_datetime.time()}",
-                "date": f"{dept_datetime.date()}"
-            }
+                "date": f"{dept_datetime.date()}",
+            },
         )
 
         # return shortest route
@@ -182,7 +205,8 @@ class OpenTripPlanner:
             logger.debug(pprint.pformat(itinerary))
             yield Path(
                 trips=[self._leg_to_trip(leg) for leg in itinerary["legs"]],
-                walking_time_minutes=itinerary["walkTime"] / 60)
+                walking_time_minutes=itinerary["walkTime"] / 60,
+            )
         # else:
         #     return []
 
@@ -200,7 +224,9 @@ class OpenTripPlanner:
                 if service := self.services.get(agency):
                     break
             else:
-                raise KeyError(f"unknown service with rentedBike: {networks} (not in {list(self.services)})")
+                raise KeyError(
+                    f"unknown service with rentedBike: {networks} (not in {list(self.services)})"
+                )
         else:
             agency = get_id_from_dict(leg, "agencyId", "agencyName")
             service = self.services.get(agency)
@@ -214,12 +240,12 @@ class OpenTripPlanner:
             org=Location(
                 id_=get_id_from_dict(leg["from"], "stopId", "bikeShareId", "name"),
                 lat=leg["from"]["lat"],
-                lng=leg["from"]["lon"]
+                lng=leg["from"]["lon"],
             ),
             dst=Location(
                 id_=get_id_from_dict(leg["to"], "stopId", "bikeShareId", "name"),
                 lat=leg["to"]["lat"],
-                lng=leg["to"]["lon"]
+                lng=leg["to"]["lon"],
             ),
             dept=self._elapsed(leg["from"]["departure"]),
             arrv=self._elapsed(leg["to"]["arrival"]),

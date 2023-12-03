@@ -23,41 +23,44 @@ class HistoricalScenarioTestCase(unittest.TestCase):
         self.scenario = HistoricalScenario()
 
     def test_one_trip(self):
-        self.scenario.setup([
-            jschema.query.HistoricalDemandSetting(
-                org=jschema.query.LocationSetting(
-                    locationId=org["locationId"],
-                    lat=org["lat"],
-                    lng=org["lng"],
-                ),
-                dst=jschema.query.LocationSetting(
-                    locationId=dst["locationId"],
-                    lat=dst["lat"],
-                    lng=dst["lng"]
-                ),
-                dept=400.0,
-                service="mobility",
-                user_type="user-xyz",
-            )
-        ], "U_%d")
+        self.scenario.setup(
+            [
+                jschema.query.HistoricalDemandSetting(
+                    org=jschema.query.LocationSetting(
+                        locationId=org["locationId"],
+                        lat=org["lat"],
+                        lng=org["lng"],
+                    ),
+                    dst=jschema.query.LocationSetting(
+                        locationId=dst["locationId"], lat=dst["lat"], lng=dst["lng"]
+                    ),
+                    dept=400.0,
+                    service="mobility",
+                    user_type="user-xyz",
+                )
+            ],
+            "U_%d",
+        )
 
         expected_events = [
             {
-                'time': 400,
-                'eventType': 'DEMAND',
-                'details': {
-                    'userId': 'U_1',
-                    'org': org,
-                    'dst': dst,
-                    "service": "mobility"
-                }
+                "time": 400,
+                "eventType": "DEMAND",
+                "details": {
+                    "userId": "U_1",
+                    "org": org,
+                    "dst": dst,
+                    "service": "mobility",
+                },
             },
         ]
 
-        assert self.scenario.users() == [{
-            "userId": "U_1",
-            "userType": "user-xyz",
-        }]
+        assert self.scenario.users() == [
+            {
+                "userId": "U_1",
+                "userType": "user-xyz",
+            }
+        ]
         self.scenario.start()
         actual_events = []
         while self.scenario.peek() < 2880:
@@ -71,5 +74,5 @@ class HistoricalScenarioTestCase(unittest.TestCase):
             )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

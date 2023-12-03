@@ -12,7 +12,10 @@ class SetupParserTestCase(unittest.TestCase):
     settings: query.Setup
 
     def setUp(self) -> None:
-        self.settings = pydantic.parse_obj_as(query.Setup, yaml.safe_load("""
+        self.settings = pydantic.parse_obj_as(
+            query.Setup,
+            yaml.safe_load(
+                """
 broker:
   type: broker
   details:
@@ -50,14 +53,19 @@ dummy_ondemand:
   type: http
   endpoint: http://localhost:8008
   details: {}
-"""))
+"""
+            ),
+        )
         self.parser = SetupParser(self.settings)
 
     def test_broker(self):
         name, settings = self.parser.broker
         self.assertEqual(name, "broker")
         self.assertEqual(settings.type, "broker")
-        self.assertEqual(settings.details.writer.endpoint, self.settings["broker"].details.writer.endpoint)
+        self.assertEqual(
+            settings.details.writer.endpoint,
+            self.settings["broker"].details.writer.endpoint,
+        )
 
     def test_planners(self):
         for name, settings in self.parser.planners:
@@ -71,11 +79,19 @@ dummy_ondemand:
             random.shuffle(part)
             temp[:-3] = part
             parser = SetupParser(dict(temp))
-            self.assertEqual([name for name, _ in parser.externals], [
-                "generator", "walking", "evaluation", "user",
-                "toyama_dummy_bike_id", "dummy_transit", "dummy_ondemand",
-            ])
+            self.assertEqual(
+                [name for name, _ in parser.externals],
+                [
+                    "generator",
+                    "walking",
+                    "evaluation",
+                    "user",
+                    "toyama_dummy_bike_id",
+                    "dummy_transit",
+                    "dummy_ondemand",
+                ],
+            )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

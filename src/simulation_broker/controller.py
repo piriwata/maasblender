@@ -31,7 +31,9 @@ def startup():
     class MultilineLogFormatter(logging.Formatter):
         def format(self, record: logging.LogRecord) -> str:
             message = super().format(record)
-            return message.replace("\n", "\t\n")  # indicate continuation line by trailing tab
+            return message.replace(
+                "\n", "\t\n"
+            )  # indicate continuation line by trailing tab
 
     formatter = MultilineLogFormatter(env.log_format)
     handler = logging.StreamHandler()
@@ -48,6 +50,7 @@ def startup():
 @app.exception_handler(Exception)
 def exception_callback(request: fastapi.Request, exc: Exception):
     from fastapi.responses import PlainTextResponse
+
     # omitted traceback here, because uvicorn outputs traceback as ASGI Exception
     logger.error("failed process called at %s", request.url)
     return PlainTextResponse(str(exc), status_code=500)
@@ -72,7 +75,15 @@ class SetupParser:
 
     @staticmethod
     def _order(name: str):
-        keys = ["historical", "generator", "commuter", "scenario", "walk", "evaluat", "user"]
+        keys = [
+            "historical",
+            "generator",
+            "commuter",
+            "scenario",
+            "walk",
+            "evaluat",
+            "user",
+        ]
         for i, key in enumerate(keys):
             if name.startswith(key):
                 return i
@@ -120,9 +131,7 @@ class Manager:
         self.running = True
         background_tasks.add_task(self._run, until)
         # asyncio.create_task(_run(until))
-        return {
-            "message": "successfully run."
-        }
+        return {"message": "successfully run."}
 
     async def _run(self, until: int | float):
         now = 0.0
@@ -167,19 +176,17 @@ async def setup(settings: query.Setup):
     for _, planner_setting in parser.planners:
         await manager.setup_planner(planner_setting.endpoint, planner_setting.details)
     for name, external_setting in parser.externals:
-        await manager.setup_external(name, external_setting.endpoint, external_setting.details)
+        await manager.setup_external(
+            name, external_setting.endpoint, external_setting.details
+        )
 
-    return {
-        "message": "successfully configured."
-    }
+    return {"message": "successfully configured."}
 
 
 @app.post("/start", response_model=response.Message)
 async def start():
     await manager.engine.start()
-    return {
-        "message": "successfully started."
-    }
+    return {"message": "successfully started."}
 
 
 @app.get("/peek", response_model=response.Peek)
@@ -205,30 +212,26 @@ async def step():
 @app.post("/run", response_model=response.Message)
 def run(until: int | float | None, background_tasks: fastapi.BackgroundTasks):
     manager.run(until, background_tasks)
-    return {
-        "message": "successfully run."
-    }
+    return {"message": "successfully run."}
 
 
 @app.post("/plan", response_model=list[Path])
 async def plan(org: query.LocationSetting, dst: query.LocationSetting, dept: float):
-    plans = await asyncio.gather(*[planner.plan(org, dst, dept) for planner in manager.planners])
+    plans = await asyncio.gather(
+        *[planner.plan(org, dst, dept) for planner in manager.planners]
+    )
     return [path for plan_ in plans for path in plan_]  # flatten
 
 
 @app.get("/reservable", response_model=response.ReservableStatus)
 async def reservable(service: str, org: str, dst: str):
-    return {
-        "reservable": await manager.engine.reservable(service, org, dst)
-    }
+    return {"reservable": await manager.engine.reservable(service, org, dst)}
 
 
 @app.post("/finish", response_model=response.Message)
 async def finish():
     await manager.finish()
-    return {
-        "message": "successfully finished."
-    }
+    return {"message": "successfully finished."}
 
 
 @app.get("/events")

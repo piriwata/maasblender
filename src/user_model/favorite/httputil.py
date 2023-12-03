@@ -57,5 +57,9 @@ async def check_response(response: aiohttp.ClientResponse, *, limit=0):
 def check_upload_filename(upload_file: fastapi.UploadFile):
     filename = urllib.parse.unquote(upload_file.filename)
     if filename != upload_file.filename:
-        logger.warning("upload file with urlencoded filename: %s, raw: %s", filename, upload_file.filename)
+        logger.warning(
+            "upload file with urlencoded filename: %s, raw: %s",
+            filename,
+            upload_file.filename,
+        )
     return filename

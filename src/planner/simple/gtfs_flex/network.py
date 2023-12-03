@@ -22,12 +22,12 @@ class Node(typing.NamedTuple):
 
 class Network(MobilityNetwork):
     def __init__(
-            self,
-            service: str,
-            start_time: datetime.datetime,
-            mobility_meters_per_minute: float,
-            walking_meters_per_minute: float,
-            expected_waiting_time: float,
+        self,
+        service: str,
+        start_time: datetime.datetime,
+        mobility_meters_per_minute: float,
+        walking_meters_per_minute: float,
+        expected_waiting_time: float,
     ):
         self.service = service
         self.start_time = start_time
@@ -49,8 +49,8 @@ class Network(MobilityNetwork):
     def graph_from_stops(self, stops: typing.List[Stop]):
         graph = nx.DiGraph()
         for u, v in itertools.product(
-                [Node(stop=stop, side="org") for stop in stops],
-                [Node(stop=stop, side="dst") for stop in stops]
+            [Node(stop=stop, side="org") for stop in stops],
+            [Node(stop=stop, side="dst") for stop in stops],
         ):
             u: Node
             v: Node
@@ -66,7 +66,7 @@ class Network(MobilityNetwork):
             graph.add_edge(
                 u_of_edge=u,
                 v_of_edge=v,
-                cost=u.stop.distance(v.stop) / self.mobility_velocity
+                cost=u.stop.distance(v.stop) / self.mobility_velocity,
             )
         return graph
 
@@ -86,39 +86,44 @@ class Network(MobilityNetwork):
             assert stop_time.start_window < stop_time.end_window
             if trip.service.is_operation(at):
                 graph[stop_time] = self.graph_from_stops(stops)
-            if trip.service.is_operation(prev) and trip.stop_time.end_window > datetime.timedelta(days=1):
+            if trip.service.is_operation(
+                prev
+            ) and trip.stop_time.end_window > datetime.timedelta(days=1):
                 # add nodes for after midnight trip
                 stop_time = StopTime(
                     group=stop_time.group,
                     start_window=datetime.timedelta(minutes=0),
-                    end_window=stop_time.end_window - datetime.timedelta(days=1))
+                    end_window=stop_time.end_window - datetime.timedelta(days=1),
+                )
                 graph[stop_time] = self.graph_from_stops(stops)
             if trip.service.is_operation(next_):
                 stop_time = StopTime(
                     group=stop_time.group,
-                    start_window=stop_time.start_window +
-                    datetime.timedelta(days=1),
-                    end_window=stop_time.end_window + datetime.timedelta(days=1))
+                    start_window=stop_time.start_window + datetime.timedelta(days=1),
+                    end_window=stop_time.end_window + datetime.timedelta(days=1),
+                )
                 graph[stop_time] = self.graph_from_stops(stops)
         return graph
 
-    def _nodes_on_shortest_path(self, graph: nx.DiGraph, org: Location, dst: Location) -> typing.Tuple[typing.List[Node], typing.List[float]]:
+    def _nodes_on_shortest_path(
+        self, graph: nx.DiGraph, org: Location, dst: Location
+    ) -> typing.Tuple[typing.List[Node], typing.List[float]]:
         # Add temporary nodes, indicating org/ dst location.
         for node in list(graph.nodes):
             node: Node
             if node.side == "org":
-                graph.add_edge(org, node,
-                               cost=org.distance(node.stop) / self.walking_velocity)
+                graph.add_edge(
+                    org, node, cost=org.distance(node.stop) / self.walking_velocity
+                )
             else:
-                graph.add_edge(node, dst,
-                               cost=node.stop.distance(dst) / self.walking_velocity)
+                graph.add_edge(
+                    node, dst, cost=node.stop.distance(dst) / self.walking_velocity
+                )
 
         # a list of nodes in the shortest path
         try:
-            path = nx.shortest_path(
-                graph, source=org, target=dst, weight="cost"
-            )
-            costs = [graph.edges[u, v]['cost'] for u, v in zip(path, path[1:])]
+            path = nx.shortest_path(graph, source=org, target=dst, weight="cost")
+            costs = [graph.edges[u, v]["cost"] for u, v in zip(path, path[1:])]
             return path[1:-1], costs
         except NetworkXNoPath:
             return [], []
@@ -126,7 +131,14 @@ class Network(MobilityNetwork):
             # remove temporary nodes.
             graph.remove_nodes_from([org, dst])
 
-    def expected_arrival(self, path: typing.List[Node], costs: typing.List[float], dept: float, today: datetime.datetime, stop_time: StopTime) -> typing.List[float]:
+    def expected_arrival(
+        self,
+        path: typing.List[Node],
+        costs: typing.List[float],
+        dept: float,
+        today: datetime.datetime,
+        stop_time: StopTime,
+    ) -> typing.List[float]:
         assert len(path) == 2
         assert len(costs) == 3
         arrv0 = dept + costs[0]
@@ -147,57 +159,78 @@ class Network(MobilityNetwork):
         if self.datetime_from(arrv1) < end_window:
             dept2 = arrv1
             arrv2 = dept2 + costs[2]
-            return [dept, arrv0,
-                    dept1, arrv1,
-                    dept2, arrv2]
+            return [dept, arrv0, dept1, arrv1, dept2, arrv2]
         else:
             # arrival after service end
             return []
 
-    def nodes_on_shortest_path(self, org: Location, dst: Location, dept: float) -> typing.Tuple[typing.List[Node], typing.List[float]]:
+    def nodes_on_shortest_path(
+        self, org: Location, dst: Location, dept: float
+    ) -> typing.Tuple[typing.List[Node], typing.List[float]]:
         today = self.datetime_from(dept).replace(
-            hour=0, minute=0, second=0, microsecond=0)
+            hour=0, minute=0, second=0, microsecond=0
+        )
         opt_dept_arrv = None
         opt_nodes = None
         for stop_time, graph in self.graph(today.date()).items():
             stop_time: StopTime
             graph: nx.DiGraph
             # search per trip
-            if graph and graph.nodes and today + stop_time.end_window > self.datetime_from(dept):
+            if (
+                graph
+                and graph.nodes
+                and today + stop_time.end_window > self.datetime_from(dept)
+            ):
                 path, costs = self._nodes_on_shortest_path(graph, org, dst)
                 if path:
                     dept_arrv = self.expected_arrival(
-                        path, costs, dept, today, stop_time)
-                    if dept_arrv and (opt_dept_arrv is None or dept_arrv[-1] < opt_dept_arrv[-1]):
+                        path, costs, dept, today, stop_time
+                    )
+                    if dept_arrv and (
+                        opt_dept_arrv is None or dept_arrv[-1] < opt_dept_arrv[-1]
+                    ):
                         opt_dept_arrv = dept_arrv
                         opt_nodes = path
         return opt_nodes, opt_dept_arrv
 
     def shortest_path(self, org: Location, dst: Location, dept: float):
-        path, dept_arrv = self.nodes_on_shortest_path(
-            org=org, dst=dst, dept=dept)
+        path, dept_arrv = self.nodes_on_shortest_path(org=org, dst=dst, dept=dept)
         if not path:
-            return Path(trips=[Trip(org=org, dst=dst, dept=dept, arrv=float('inf'), service="not_found")])
+            return Path(
+                trips=[
+                    Trip(
+                        org=org,
+                        dst=dst,
+                        dept=dept,
+                        arrv=float("inf"),
+                        service="not_found",
+                    )
+                ]
+            )
         assert len(path) == 2
         assert len(dept_arrv) == 6
 
-        trips = [Trip(
-            org=org,
-            dst=path[0].stop,
-            dept=dept,
-            arrv=dept_arrv[1],
-            service="walking"
-        ), Trip(
-            org=path[0].stop,
-            dst=path[1].stop,
-            dept=dept_arrv[2],
-            arrv=dept_arrv[3],
-            service=self.service
-        ), Trip(
-            org=path[1].stop,
-            dst=dst,
-            dept=dept_arrv[4],
-            arrv=dept_arrv[5],
-            service="walking"
-        )]
+        trips = [
+            Trip(
+                org=org,
+                dst=path[0].stop,
+                dept=dept,
+                arrv=dept_arrv[1],
+                service="walking",
+            ),
+            Trip(
+                org=path[0].stop,
+                dst=path[1].stop,
+                dept=dept_arrv[2],
+                arrv=dept_arrv[3],
+                service=self.service,
+            ),
+            Trip(
+                org=path[1].stop,
+                dst=dst,
+                dept=dept_arrv[4],
+                arrv=dept_arrv[5],
+                service="walking",
+            ),
+        ]
         return Path(trips)

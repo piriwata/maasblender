@@ -51,10 +51,24 @@ class Simulation:
         if self.env.now < until:
             self.env.run(until=until)
 
-    def reserve(self, user_id: str, org: Location, dst: Location, dept: float, arrv: float | None):
+    def reserve(
+        self,
+        user_id: str,
+        org: Location,
+        dst: Location,
+        dept: float,
+        arrv: float | None,
+    ):
         self.env.process(self._reserve(user_id, org, dst, dept, arrv))
 
-    def _reserve(self, user_id: str, org: Location, dst: Location, dept: float, arrv: float | None):
+    def _reserve(
+        self,
+        user_id: str,
+        org: Location,
+        dst: Location,
+        dept: float,
+        arrv: float | None,
+    ):
         # This user only needs to reserve a vehicle just before departure, so it must not be reserved at this time.
         assert user_id not in self._reservations, user_id
 
@@ -62,13 +76,15 @@ class Simulation:
 
         yield self.env.timeout(0)
         self._reservations[user_id] = Reservation(user_id, org, dst, dept, arrv)
-        self.queue.enqueue(ReservedEvent(
-            user_id=user_id,
-            org=org,
-            dst=dst,
-            dept=dept,
-            arrv=arrv,
-        ))
+        self.queue.enqueue(
+            ReservedEvent(
+                user_id=user_id,
+                org=org,
+                dst=dst,
+                dept=dept,
+                arrv=arrv,
+            )
+        )
 
     def _duration(self, org: Location, dst: Location):
         duration = calc_distance(org, dst) / self.velocity
@@ -79,22 +95,29 @@ class Simulation:
 
     def _depart(self, user_id: str):
         # This user only needs to reserve a vehicle just before departure, so it must not be reserved at this time.
-        assert user_id in self._reservations, \
-            f"departing user must be reserved: {user_id=}, {self._reservations=}"
+        assert (
+            user_id in self._reservations
+        ), f"departing user must be reserved: {user_id=}, {self._reservations=}"
         reservation = self._reservations.pop(user_id)
-        assert reservation.dept >= self.env.now  # Always fulfill if the vehicle is reserved just before departure.
+        assert (
+            reservation.dept >= self.env.now
+        )  # Always fulfill if the vehicle is reserved just before departure.
 
         yield self.env.timeout(reservation.dept - self.env.now)
-        self.queue.enqueue(DepartedEvent(
-            user_id=user_id,
-            location=reservation.org,
-        ))
+        self.queue.enqueue(
+            DepartedEvent(
+                user_id=user_id,
+                location=reservation.org,
+            )
+        )
 
         yield self.env.timeout(reservation.arrv - self.env.now)
-        self.queue.enqueue(ArrivedEvent(
-            user_id=user_id,
-            location=reservation.dst,
-        ))
+        self.queue.enqueue(
+            ArrivedEvent(
+                user_id=user_id,
+                location=reservation.dst,
+            )
+        )
 
 
 class EventQueue:

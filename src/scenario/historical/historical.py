@@ -25,8 +25,12 @@ class HistoricalScenario:
         self._demands: list[HistoricalDemand] = []
         self._events: list[DemandEvent] = []
 
-    def setup(self, settings: typing.Collection[jschema.query.HistoricalDemandSetting],
-              user_id_format: str, offset_time=0.0):
+    def setup(
+        self,
+        settings: typing.Collection[jschema.query.HistoricalDemandSetting],
+        user_id_format: str,
+        offset_time=0.0,
+    ):
         if offset_time:
             logger.info("offset time: %s", offset_time)
         self._demands = [
@@ -34,8 +38,12 @@ class HistoricalScenario:
                 dept=setting.dept - offset_time,
                 user_id=user_id_format % i,
                 info=DemandInfo(
-                    org=Location(setting.org.locationId, setting.org.lat, setting.org.lng),
-                    dst=Location(setting.dst.locationId, setting.dst.lat, setting.dst.lng),
+                    org=Location(
+                        setting.org.locationId, setting.org.lat, setting.org.lng
+                    ),
+                    dst=Location(
+                        setting.dst.locationId, setting.dst.lat, setting.dst.lng
+                    ),
                     service=setting.service,
                     user_type=setting.user_type,
                 ),
@@ -64,8 +72,7 @@ class HistoricalScenario:
         self.env.step()
         events, self._events = self._events, []
         return self.env.now, [
-            {"time": self.env.now} | event.dumps()
-            for event in events
+            {"time": self.env.now} | event.dumps() for event in events
         ]
 
     def _demand(self, demand: HistoricalDemand):
