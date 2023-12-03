@@ -1772,9 +1772,7 @@ class OneMobilityTestCase(unittest.TestCase):
         self.assertEqual(  # moving to stop2
             self.simulation.car_manager.mobilities["trip"].stop, None
         )
-        run(
-            self.simulation, until=1440.0 + 50.1
-        )  # arrive at stop2 and wait for User2
+        run(self.simulation, until=1440.0 + 50.1)  # arrive at stop2 and wait for User2
         self.assertEqual(  # at stop2
             self.simulation.car_manager.mobilities["trip"].stop, self.stop2
         )
