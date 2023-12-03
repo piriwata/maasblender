@@ -21,11 +21,11 @@ async def error_log(response: aiohttp.ClientResponse, logger_: LoggerType = logg
             case _:
                 text = pformat(content, width=200)
         logger_.error("%s:\n%s", message, text)
-    except:
+    except Exception:
         try:
             text = await response.text()
             logger_.error("%s: %s", message, text)
-        except:  # ignore error
+        except Exception:  # ignore error
             logger_.error("%s: cannot read response", message)
     return message
 

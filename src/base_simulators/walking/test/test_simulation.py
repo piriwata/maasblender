@@ -3,8 +3,8 @@
 import math
 import unittest
 
-from core import EventType
-from simulation import *
+from core import EventType, Location
+from simulation import Simulation
 
 
 class TestSimulation(unittest.TestCase):

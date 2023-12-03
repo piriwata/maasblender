@@ -1723,7 +1723,7 @@ class OneMobilityTestCase(unittest.TestCase):
         run(self.simulation, until=490.0)
         self.simulation.ready_to_depart(user_id="User1")
 
-        e = run(self.simulation, until=1440.0 - 60)  # end_window
+        run(self.simulation, until=1440.0 - 60)  # end_window
 
         # at stop2 before end window
         self.assertEqual(
@@ -1754,7 +1754,7 @@ class OneMobilityTestCase(unittest.TestCase):
         run(self.simulation, until=490.0)
         self.simulation.ready_to_depart(user_id="User1")
 
-        e = run(self.simulation, until=1440.0 - 60)  # end_window
+        run(self.simulation, until=1440.0 - 60)  # end_window
 
         # at stop2 before end window
         self.assertEqual(
@@ -1768,11 +1768,11 @@ class OneMobilityTestCase(unittest.TestCase):
             dst="Stop3",
             dept=1440.0 + 70.0,
         )
-        e = run(self.simulation, until=1440.0 + 20.1)
+        run(self.simulation, until=1440.0 + 20.1)
         self.assertEqual(  # moving to stop2
             self.simulation.car_manager.mobilities["trip"].stop, None
         )
-        e = run(
+        run(
             self.simulation, until=1440.0 + 50.1
         )  # arrive at stop2 and wait for User2
         self.assertEqual(  # at stop2
