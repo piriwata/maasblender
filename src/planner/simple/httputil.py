@@ -96,7 +96,7 @@ class FileManager:
         else:
             raise fastapi.HTTPException(
                 status_code=fastapi.status.HTTP_400_BAD_REQUEST,
-                detail=f"exists directory in GBFS zip file",
+                detail="exists directory in GBFS zip file",
             )
 
     def clear(self):

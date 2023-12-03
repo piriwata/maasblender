@@ -140,7 +140,7 @@ def update_config_files_for_gbfs(url_base: str):
                     break
             else:
                 logger.warning(
-                    f"fill in updater element in router-config.json with default values"
+                    "fill in updater element in router-config.json with default values"
                 )
                 # If there is no URL, add a new one.
                 updater = deepcopy(default_updater)

@@ -65,7 +65,7 @@ class SetupParser:
         for name, setting in self.settings.items():
             if setting.type == query.ModuleType.broker:
                 return name, setting
-        raise KeyError(f"no broker setting")
+        raise KeyError("no broker setting")
 
     @property
     def planners(self) -> typing.Iterator[tuple[str, query.PlannerSetting]]:

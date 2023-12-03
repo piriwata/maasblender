@@ -7,7 +7,6 @@ import io
 import zipfile
 import re
 
-from core import Location
 from gtfs_flex.object import Stop, Group, StopTime, Service, Trip
 
 

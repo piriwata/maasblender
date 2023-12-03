@@ -6,7 +6,6 @@ from enum import Enum
 import simpy
 
 from core import Location, Route
-from jschema.events import Trip
 
 logger = logging.getLogger(__name__)
 

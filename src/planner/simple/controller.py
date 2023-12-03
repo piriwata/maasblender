@@ -95,7 +95,7 @@ async def setup(settings: query.Setup):
                     if any(info.is_dir() for info in archive.infolist()):
                         raise fastapi.HTTPException(
                             status_code=fastapi.status.HTTP_400_BAD_REQUEST,
-                            detail=f"exists directory in GBFS zip file",
+                            detail="exists directory in GBFS zip file",
                         )
                     gbfs_files = GbfsFiles(archive)
                 network = GbfsNetwork(
@@ -113,7 +113,7 @@ async def setup(settings: query.Setup):
                     if any(info.is_dir() for info in archive.infolist()):
                         raise fastapi.HTTPException(
                             status_code=fastapi.status.HTTP_400_BAD_REQUEST,
-                            detail=f"exists directory in GTFS zip file",
+                            detail="exists directory in GTFS zip file",
                         )
                     gtfs_files = GtfsFiles(archive)
                 network = GtfsNetwork(
@@ -132,7 +132,7 @@ async def setup(settings: query.Setup):
                     if any(info.is_dir() for info in archive.infolist()):
                         raise fastapi.HTTPException(
                             status_code=fastapi.status.HTTP_400_BAD_REQUEST,
-                            detail=f"exists directory in GTFS FLEX zip file",
+                            detail="exists directory in GTFS FLEX zip file",
                         )
                     gtfs_flex_files = GtfsFlexFiles(archive)
                 network = GtfsFlexNetwork(
@@ -152,7 +152,7 @@ async def setup(settings: query.Setup):
                     if any(info.is_dir() for info in archive.infolist()):
                         raise fastapi.HTTPException(
                             status_code=fastapi.status.HTTP_400_BAD_REQUEST,
-                            detail=f"exists directory in MaaSSim zip file",
+                            detail="exists directory in MaaSSim zip file",
                         )
                     maassim_files = MaaSSimFiles(archive)
                 network = MaaSSimNetwork(
