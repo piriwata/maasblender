@@ -4,8 +4,8 @@ import unittest
 import logging
 from datetime import datetime, date, time, timedelta
 
-from ..simulation import Simulation, CarSetting
-from ..core import EventType, Stop, StopTime, Service, Trip, Group, Network
+from simulation import Simulation, CarSetting
+from core import EventType, Stop, StopTime, Service, Trip, Group, Network
 
 logger = logging.getLogger(__name__)
 

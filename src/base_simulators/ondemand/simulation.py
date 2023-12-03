@@ -4,10 +4,10 @@ import typing
 from datetime import datetime, timedelta
 from logging import getLogger
 
-from .environment import Environment
-from .core import Network, User, Trip
-from .event import EventQueue
-from .mobility import CarManager, CarSetting
+from environment import Environment
+from core import Network, User, Trip
+from event import EventQueue
+from mobility import CarManager, CarSetting
 
 logger = getLogger(__name__)
 
