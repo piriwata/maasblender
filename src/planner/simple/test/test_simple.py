@@ -3,7 +3,7 @@
 import unittest
 
 
-class OtpTestCase(unittest.IsolatedAsyncioTestCase):
+class SimpleTripPlannerTestCase(unittest.IsolatedAsyncioTestCase):
     async def test_foolproof(self):
         self.assertTrue(True)
 
