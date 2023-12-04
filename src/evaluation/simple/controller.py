@@ -27,7 +27,9 @@ def startup():
     class MultilineLogFormatter(logging.Formatter):
         def format(self, record: logging.LogRecord) -> str:
             message = super().format(record)
-            return message.replace("\n", "\t\n")  # indicate continuation line by trailing tab
+            return message.replace(
+                "\n", "\t\n"
+            )  # indicate continuation line by trailing tab
 
     formatter = MultilineLogFormatter(env.log_format)
     handler = logging.StreamHandler()
@@ -44,6 +46,7 @@ def startup():
 @app.exception_handler(Exception)
 def exception_callback(request: fastapi.Request, exc: Exception):
     from fastapi.responses import PlainTextResponse
+
     # omitted traceback here, because uvicorn outputs traceback as ASGI Exception
     logger.error("failed process called at %s", request.url)
     return PlainTextResponse(str(exc), status_code=500)

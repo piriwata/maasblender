@@ -15,9 +15,9 @@ from user_manager import UserManager
 # まいどはやバスGTFS-JP、富山市、クリエイティブ・コモンズ・ライセンス　表示4.0国際
 # （http://creativecommons.org/licenses/by/4.0/deed.ja）
 locations = {
-    "1_1":  Location(id_="1_1", lat=36.699941, lng=137.212183),
-    "5_1":  Location(id_="5_1", lat=36.692495, lng=137.223181),
-    "9_1":  Location(id_="9_1", lat=36.693708, lng=137.231302),
+    "1_1": Location(id_="1_1", lat=36.699941, lng=137.212183),
+    "5_1": Location(id_="5_1", lat=36.692495, lng=137.223181),
+    "9_1": Location(id_="9_1", lat=36.693708, lng=137.231302),
     "13_1": Location(id_="13_1", lat=36.686913, lng=137.228431),
     "17_1": Location(id_="17_1", lat=36.686592, lng=137.221622),
     "21_1": Location(id_="21_1", lat=36.689415, lng=137.218713),
@@ -38,14 +38,19 @@ class ReservationFlowTestCase(unittest.TestCase):
         user_id = "U_001"
 
         user = User(
-            id_=user_id, org=org, dst=dst,
+            id_=user_id,
+            org=org,
+            dst=dst,
             dept=0,
-            tasks=[user_manager.Trip(
-                self.event_manager,
-                org=org, dst=dst,
-                dept=0,
-                service="walking",
-            )],
+            tasks=[
+                user_manager.Trip(
+                    self.event_manager,
+                    org=org,
+                    dst=dst,
+                    dept=0,
+                    service="walking",
+                )
+            ],
         )
         self.env.process(user.run())
         self.env.run(1)
@@ -55,8 +60,10 @@ class ReservationFlowTestCase(unittest.TestCase):
             ReserveEvent(
                 service="walking",
                 user_id=user_id,
-                org=org, dst=dst,
-                dept=0, now=0,
+                org=org,
+                dst=dst,
+                dept=0,
+                now=0,
             )
         ]
         self.assertEqual(len(expected_events), len(triggered_events))
@@ -64,10 +71,12 @@ class ReservationFlowTestCase(unittest.TestCase):
             self.assertEqual(expected.dumps(), triggered.dumps())
 
         # trigger a reservation failed event for the reservation event (originally from the walking module).
-        self.event_manager.trigger(ReservedEvent(
-            source="walking",
-            user_id=user_id,
-        ))
+        self.event_manager.trigger(
+            ReservedEvent(
+                source="walking",
+                user_id=user_id,
+            )
+        )
         self.env.run(2)
         # confirm a reservation event for user's walking trip.
         triggered_events = self.event_manager.dequeue()
@@ -89,20 +98,27 @@ class ReservationFlowTestCase(unittest.TestCase):
 
         user = User(
             id_=user_id,
-            org=org, dst=dst,
+            org=org,
+            dst=dst,
             dept=0,
-            tasks=[user_manager.Trip(
-                self.event_manager,
-                org=org, dst=dst,
-                dept=0,
-                service="mobility",
-                fail=[user_manager.Trip(
+            tasks=[
+                user_manager.Trip(
                     self.event_manager,
-                    org=org, dst=dst,
+                    org=org,
+                    dst=dst,
                     dept=0,
-                    service="walking"
-                )],
-            )],
+                    service="mobility",
+                    fail=[
+                        user_manager.Trip(
+                            self.event_manager,
+                            org=org,
+                            dst=dst,
+                            dept=0,
+                            service="walking",
+                        )
+                    ],
+                )
+            ],
         )
         self.env.process(user.run())
         self.env.run(1)
@@ -110,10 +126,7 @@ class ReservationFlowTestCase(unittest.TestCase):
         triggered_events = self.event_manager.dequeue()
         expected_events = [
             ReserveEvent(
-                service="mobility",
-                user_id=user_id,
-                org=org, dst=dst,
-                dept=0, now=0
+                service="mobility", user_id=user_id, org=org, dst=dst, dept=0, now=0
             )
         ]
         self.assertEqual(len(expected_events), len(triggered_events))
@@ -121,22 +134,15 @@ class ReservationFlowTestCase(unittest.TestCase):
             self.assertEqual(expected.dumps(), triggered.dumps())
 
         # trigger a reservation failed event for the reservation event (originally from the walking module).
-        self.event_manager.trigger(ReservedEvent(
-            source="mobility",
-            user_id=user_id,
-            success=False
-        ))
+        self.event_manager.trigger(
+            ReservedEvent(source="mobility", user_id=user_id, success=False)
+        )
         self.env.run(2)
         # confirm a reservation event for user's walking trip.
         triggered_events = self.event_manager.dequeue()
         expected_events = [
             ReserveEvent(
-                service="walking",
-                user_id=user_id,
-                org=org,
-                dst=dst,
-                dept=1,
-                now=1
+                service="walking", user_id=user_id, org=org, dst=dst, dept=1, now=1
             )
         ]
         self.assertEqual(len(expected_events), len(triggered_events))
@@ -146,20 +152,18 @@ class ReservationFlowTestCase(unittest.TestCase):
 
 class ReservationFailedTripServiceTestCase(unittest.TestCase):
     def assertEqualTrips(
-            self,
-            expected_trips: list[user_manager.Trip],
-            actual_trips: list[user_manager.Trip]
+        self,
+        expected_trips: list[user_manager.Trip],
+        actual_trips: list[user_manager.Trip],
     ):
         self.assertEqual(len(expected_trips), len(actual_trips))
         for expected, actual in zip(expected_trips, actual_trips):
             self.assertEqual(
                 (expected.org, expected.dst, expected.service),
-                (actual.org, actual.dst, actual.service)
+                (actual.org, actual.dst, actual.service),
             )
             if expected.fail:
-                self.assertEqualTrips(
-                    expected.fail, actual.fail
-                )
+                self.assertEqualTrips(expected.fail, actual.fail)
 
     def setUp(self):
         self.manager = UserManager()
@@ -167,17 +171,18 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
     def test_plans_contain_only_walking(self):
         org = Location(id_="ORG", lat=0, lng=0)
         dst = Location(id_="DST", lat=0, lng=0)
-        trips = self.manager.plans_to_trips([
-            Route(trips=[
-                planner.Trip(
-                    org=org,
-                    dst=dst,
-                    dept=0,
-                    arrv=0,
-                    service="walking"
+        trips = self.manager.plans_to_trips(
+            [
+                Route(
+                    trips=[
+                        planner.Trip(
+                            org=org, dst=dst, dept=0, arrv=0, service="walking"
+                        )
+                    ]
                 )
-            ])
-        ], fixed_service=None)
+            ],
+            fixed_service=None,
+        )
 
         expected_trips = [
             user_manager.Trip(
@@ -186,7 +191,7 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
                 dst=dst,
                 dept=0,
                 service="walking",
-                fail=[]
+                fail=[],
             )
         ]
         self.assertEqualTrips(expected_trips, trips)
@@ -194,17 +199,18 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
     def test_plans_contain_only_walking_when_fixed(self):
         org = Location(id_="ORG", lat=0, lng=0)
         dst = Location(id_="DST", lat=0, lng=0)
-        trips = self.manager.plans_to_trips([
-            Route(trips=[
-                planner.Trip(
-                    org=org,
-                    dst=dst,
-                    dept=0,
-                    arrv=0,
-                    service="walking"
+        trips = self.manager.plans_to_trips(
+            [
+                Route(
+                    trips=[
+                        planner.Trip(
+                            org=org, dst=dst, dept=0, arrv=0, service="walking"
+                        )
+                    ]
                 )
-            ])
-        ], fixed_service="walking")
+            ],
+            fixed_service="walking",
+        )
 
         expected_trips = [
             user_manager.Trip(
@@ -213,7 +219,7 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
                 dst=dst,
                 dept=0,
                 service="walking",
-                fail=[]
+                fail=[],
             )
         ]
         self.assertEqualTrips(expected_trips, trips)
@@ -224,40 +230,31 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
         loc_b = Location(id_="B", lat=0, lng=0)
         dst = Location(id_="DST", lat=0, lng=0)
 
-        trips = self.manager.plans_to_trips([
-            Route(trips=[
-                planner.Trip(
-                    org=org,
-                    dst=dst,
-                    dept=0,
-                    arrv=0,
-                    service="walking"
-                )
-            ]),
-            Route(trips=[
-                planner.Trip(
-                    org=org,
-                    dst=loc_a,
-                    dept=0,
-                    arrv=0,
-                    service="walking"
+        trips = self.manager.plans_to_trips(
+            [
+                Route(
+                    trips=[
+                        planner.Trip(
+                            org=org, dst=dst, dept=0, arrv=0, service="walking"
+                        )
+                    ]
                 ),
-                planner.Trip(
-                    org=loc_a,
-                    dst=loc_b,
-                    dept=0,
-                    arrv=0,
-                    service="service"
+                Route(
+                    trips=[
+                        planner.Trip(
+                            org=org, dst=loc_a, dept=0, arrv=0, service="walking"
+                        ),
+                        planner.Trip(
+                            org=loc_a, dst=loc_b, dept=0, arrv=0, service="service"
+                        ),
+                        planner.Trip(
+                            org=loc_b, dst=dst, dept=0, arrv=0, service="walking"
+                        ),
+                    ]
                 ),
-                planner.Trip(
-                    org=loc_b,
-                    dst=dst,
-                    dept=0,
-                    arrv=0,
-                    service="walking"
-                )
-            ]),
-        ], fixed_service=None)
+            ],
+            fixed_service=None,
+        )
 
         expected_trips = [
             user_manager.Trip(
@@ -266,7 +263,7 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
                 dst=dst,
                 dept=0,
                 service="walking",
-                fail=[]
+                fail=[],
             )
         ]
         self.assertEqualTrips(expected_trips, trips)
@@ -277,40 +274,31 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
         loc_b = Location(id_="B", lat=0, lng=0)
         dst = Location(id_="DST", lat=0, lng=0)
 
-        trips = self.manager.plans_to_trips([
-            Route(trips=[
-                planner.Trip(
-                    org=org,
-                    dst=loc_a,
-                    dept=0,
-                    arrv=0,
-                    service="walking"
+        trips = self.manager.plans_to_trips(
+            [
+                Route(
+                    trips=[
+                        planner.Trip(
+                            org=org, dst=loc_a, dept=0, arrv=0, service="walking"
+                        ),
+                        planner.Trip(
+                            org=loc_a, dst=loc_b, dept=0, arrv=0, service="service"
+                        ),
+                        planner.Trip(
+                            org=loc_b, dst=dst, dept=0, arrv=0, service="walking"
+                        ),
+                    ]
                 ),
-                planner.Trip(
-                    org=loc_a,
-                    dst=loc_b,
-                    dept=0,
-                    arrv=0,
-                    service="service"
+                Route(
+                    trips=[
+                        planner.Trip(
+                            org=org, dst=dst, dept=0, arrv=0, service="walking"
+                        )
+                    ]
                 ),
-                planner.Trip(
-                    org=loc_b,
-                    dst=dst,
-                    dept=0,
-                    arrv=0,
-                    service="walking"
-                )
-            ]),
-            Route(trips=[
-                planner.Trip(
-                    org=org,
-                    dst=dst,
-                    dept=0,
-                    arrv=0,
-                    service="walking"
-                )
-            ]),
-        ], fixed_service=None)
+            ],
+            fixed_service=None,
+        )
 
         expected_trips = [
             user_manager.Trip(
@@ -319,7 +307,7 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
                 dst=loc_a,
                 dept=0,
                 service="walking",
-                fail=[]
+                fail=[],
             ),
             user_manager.Trip(
                 manager=self.manager._event_manager,
@@ -334,9 +322,9 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
                         dst=dst,
                         dept=0,
                         service="walking",
-                        fail=[]
+                        fail=[],
                     )
-                ]
+                ],
             ),
             user_manager.Trip(
                 manager=self.manager._event_manager,
@@ -344,8 +332,8 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
                 dst=dst,
                 dept=0,
                 service="walking",
-                fail=[]
-            )
+                fail=[],
+            ),
         ]
         self.assertEqualTrips(expected_trips, trips)
 
@@ -357,63 +345,44 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
         loc_d = Location(id_="D", lat=0, lng=0)
         dst = Location(id_="DST", lat=0, lng=0)
 
-        trips = self.manager.plans_to_trips([
-            Route(trips=[
-                planner.Trip(
-                    org=org,
-                    dst=loc_a,
-                    dept=0,
-                    arrv=0,
-                    service="walking"
+        trips = self.manager.plans_to_trips(
+            [
+                Route(
+                    trips=[
+                        planner.Trip(
+                            org=org, dst=loc_a, dept=0, arrv=0, service="walking"
+                        ),
+                        planner.Trip(
+                            org=loc_a, dst=loc_b, dept=0, arrv=0, service="service"
+                        ),
+                        planner.Trip(
+                            org=loc_b, dst=dst, dept=0, arrv=0, service="walking"
+                        ),
+                    ]
                 ),
-                planner.Trip(
-                    org=loc_a,
-                    dst=loc_b,
-                    dept=0,
-                    arrv=0,
-                    service="service"
+                Route(
+                    trips=[
+                        planner.Trip(
+                            org=org, dst=loc_c, dept=0, arrv=0, service="walking"
+                        ),
+                        planner.Trip(
+                            org=loc_c, dst=loc_d, dept=0, arrv=0, service="another"
+                        ),
+                        planner.Trip(
+                            org=loc_d, dst=dst, dept=0, arrv=0, service="walking"
+                        ),
+                    ]
                 ),
-                planner.Trip(
-                    org=loc_b,
-                    dst=dst,
-                    dept=0,
-                    arrv=0,
-                    service="walking"
-                )
-            ]),
-            Route(trips=[
-                planner.Trip(
-                    org=org,
-                    dst=loc_c,
-                    dept=0,
-                    arrv=0,
-                    service="walking"
+                Route(
+                    trips=[
+                        planner.Trip(
+                            org=org, dst=dst, dept=0, arrv=0, service="walking"
+                        )
+                    ]
                 ),
-                planner.Trip(
-                    org=loc_c,
-                    dst=loc_d,
-                    dept=0,
-                    arrv=0,
-                    service="another"
-                ),
-                planner.Trip(
-                    org=loc_d,
-                    dst=dst,
-                    dept=0,
-                    arrv=0,
-                    service="walking"
-                )
-            ]),
-            Route(trips=[
-                planner.Trip(
-                    org=org,
-                    dst=dst,
-                    dept=0,
-                    arrv=0,
-                    service="walking"
-                )
-            ]),
-        ], fixed_service=None)
+            ],
+            fixed_service=None,
+        )
 
         expected_trips = [
             user_manager.Trip(
@@ -422,7 +391,7 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
                 dst=loc_a,
                 dept=0,
                 service="walking",
-                fail=[]
+                fail=[],
             ),
             user_manager.Trip(
                 manager=self.manager._event_manager,
@@ -437,7 +406,7 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
                         dst=loc_c,
                         dept=0,
                         service="walking",
-                        fail=[]
+                        fail=[],
                     ),
                     user_manager.Trip(
                         manager=self.manager._event_manager,
@@ -452,9 +421,9 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
                                 dst=dst,
                                 dept=0,
                                 service="walking",
-                                fail=[]
+                                fail=[],
                             )
-                        ]
+                        ],
                     ),
                     user_manager.Trip(
                         manager=self.manager._event_manager,
@@ -462,9 +431,9 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
                         dst=dst,
                         dept=0,
                         service="walking",
-                        fail=[]
-                    )
-                ]
+                        fail=[],
+                    ),
+                ],
             ),
             user_manager.Trip(
                 manager=self.manager._event_manager,
@@ -472,8 +441,8 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
                 dst=dst,
                 dept=0,
                 service="walking",
-                fail=[]
-            )
+                fail=[],
+            ),
         ]
         self.assertEqualTrips(expected_trips, trips)
 
@@ -483,40 +452,31 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
         loc_b = Location(id_="B", lat=0, lng=0)
         dst = Location(id_="DST", lat=0, lng=0)
 
-        trips = self.manager.plans_to_trips([
-            Route(trips=[
-                planner.Trip(
-                    org=org,
-                    dst=dst,
-                    dept=0,
-                    arrv=0,
-                    service="walking"
-                )
-            ]),
-            Route(trips=[
-                planner.Trip(
-                    org=org,
-                    dst=loc_a,
-                    dept=0,
-                    arrv=0,
-                    service="walking"
+        trips = self.manager.plans_to_trips(
+            [
+                Route(
+                    trips=[
+                        planner.Trip(
+                            org=org, dst=dst, dept=0, arrv=0, service="walking"
+                        )
+                    ]
                 ),
-                planner.Trip(
-                    org=loc_a,
-                    dst=loc_b,
-                    dept=0,
-                    arrv=0,
-                    service="service"
+                Route(
+                    trips=[
+                        planner.Trip(
+                            org=org, dst=loc_a, dept=0, arrv=0, service="walking"
+                        ),
+                        planner.Trip(
+                            org=loc_a, dst=loc_b, dept=0, arrv=0, service="service"
+                        ),
+                        planner.Trip(
+                            org=loc_b, dst=dst, dept=0, arrv=0, service="walking"
+                        ),
+                    ]
                 ),
-                planner.Trip(
-                    org=loc_b,
-                    dst=dst,
-                    dept=0,
-                    arrv=0,
-                    service="walking"
-                )
-            ]),
-        ], fixed_service="service")
+            ],
+            fixed_service="service",
+        )
 
         expected_trips = [
             user_manager.Trip(
@@ -525,7 +485,7 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
                 dst=loc_a,
                 dept=0,
                 service="walking",
-                fail=[]
+                fail=[],
             ),
             user_manager.Trip(
                 manager=self.manager._event_manager,
@@ -540,9 +500,9 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
                         dst=dst,
                         dept=0,
                         service="walking",
-                        fail=[]
+                        fail=[],
                     )
-                ]
+                ],
             ),
             user_manager.Trip(
                 manager=self.manager._event_manager,
@@ -550,8 +510,8 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
                 dst=dst,
                 dept=0,
                 service="walking",
-                fail=[]
-            )
+                fail=[],
+            ),
         ]
         self.assertEqualTrips(expected_trips, trips)
 
@@ -561,40 +521,31 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
         loc_b = Location(id_="B", lat=0, lng=0)
         dst = Location(id_="DST", lat=0, lng=0)
 
-        trips = self.manager.plans_to_trips([
-            Route(trips=[
-                planner.Trip(
-                    org=org,
-                    dst=loc_a,
-                    dept=0,
-                    arrv=0,
-                    service="walking"
+        trips = self.manager.plans_to_trips(
+            [
+                Route(
+                    trips=[
+                        planner.Trip(
+                            org=org, dst=loc_a, dept=0, arrv=0, service="walking"
+                        ),
+                        planner.Trip(
+                            org=loc_a, dst=loc_b, dept=0, arrv=0, service="service"
+                        ),
+                        planner.Trip(
+                            org=loc_b, dst=dst, dept=0, arrv=0, service="walking"
+                        ),
+                    ]
                 ),
-                planner.Trip(
-                    org=loc_a,
-                    dst=loc_b,
-                    dept=0,
-                    arrv=0,
-                    service="service"
+                Route(
+                    trips=[
+                        planner.Trip(
+                            org=org, dst=dst, dept=0, arrv=0, service="walking"
+                        )
+                    ]
                 ),
-                planner.Trip(
-                    org=loc_b,
-                    dst=dst,
-                    dept=0,
-                    arrv=0,
-                    service="walking"
-                )
-            ]),
-            Route(trips=[
-                planner.Trip(
-                    org=org,
-                    dst=dst,
-                    dept=0,
-                    arrv=0,
-                    service="walking"
-                )
-            ])
-        ], fixed_service="another")
+            ],
+            fixed_service="another",
+        )
 
         expected_trips = [
             user_manager.Trip(
@@ -603,7 +554,7 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
                 dst=loc_a,
                 dept=0,
                 service="walking",
-                fail=[]
+                fail=[],
             ),
             user_manager.Trip(
                 manager=self.manager._event_manager,
@@ -618,9 +569,9 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
                         dst=dst,
                         dept=0,
                         service="walking",
-                        fail=[]
+                        fail=[],
                     )
-                ]
+                ],
             ),
             user_manager.Trip(
                 manager=self.manager._event_manager,
@@ -628,11 +579,11 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
                 dst=dst,
                 dept=0,
                 service="walking",
-                fail=[]
-            )
+                fail=[],
+            ),
         ]
         self.assertEqualTrips(expected_trips, trips)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

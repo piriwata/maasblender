@@ -19,17 +19,19 @@ class HttpRunner(Runner):
 
     async def _get(self, method: str, params: typing.Mapping = None):
         async with self._session.get(
-                self._endpoint + "/" + method,
-                params=params if params else {},
+            self._endpoint + "/" + method,
+            params=params if params else {},
         ) as response:
             await httputil.check_response(response)
             return await response.json()
 
-    async def _post(self, method: str, data: typing.Any = None, params: typing.Mapping = None):
+    async def _post(
+        self, method: str, data: typing.Any = None, params: typing.Mapping = None
+    ):
         async with self._session.post(
-                self._endpoint + "/" + method,
-                json=data,
-                params=params if params else {},
+            self._endpoint + "/" + method,
+            json=data,
+            params=params if params else {},
         ) as response:
             await httputil.check_response(response)
             return await response.json()
@@ -42,7 +44,7 @@ class HttpRunner(Runner):
 
     async def peek(self):
         response = await self._get("peek")
-        return response["next"] if response["next"] >= 0 else float('inf')
+        return response["next"] if response["next"] >= 0 else float("inf")
 
     async def step(self):
         response = await self._post("step")

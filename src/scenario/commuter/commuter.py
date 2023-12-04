@@ -8,6 +8,7 @@ import simpy
 import jschema.query
 from core import Location, DemandInfo, DemandEvent
 
+
 @dataclass(frozen=True)
 class Commuter:
     env: simpy.Environment
@@ -41,8 +42,12 @@ class CommuterScenario:
                 dept_out=setting.deptOut,
                 dept_in=setting.deptIn,
                 info=DemandInfo(
-                    org=Location(setting.org.locationId, setting.org.lat, setting.org.lng),
-                    dst=Location(setting.dst.locationId, setting.dst.lat, setting.dst.lng),
+                    org=Location(
+                        setting.org.locationId, setting.org.lat, setting.org.lng
+                    ),
+                    dst=Location(
+                        setting.dst.locationId, setting.dst.lat, setting.dst.lng
+                    ),
                     user_type=setting.user_type,
                     service=setting.service,
                 ),
@@ -70,8 +75,7 @@ class CommuterScenario:
         self.env.step()
         events, self._events = self._events, []
         return self.env.now, [
-            {"time": self.env.now} | event.dumps()
-            for event in events
+            {"time": self.env.now} | event.dumps() for event in events
         ]
 
     def _run(self):

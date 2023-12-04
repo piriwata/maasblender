@@ -13,9 +13,15 @@ logger = getLogger(__name__)
 
 
 class Simulation:
-    def __init__(self, start_time: datetime, network: Network,
-                 board_time: float, max_delay_time: float,
-                 trips: dict[str, Trip], settings: typing.Collection[CarSetting]):
+    def __init__(
+        self,
+        start_time: datetime,
+        network: Network,
+        board_time: float,
+        max_delay_time: float,
+        trips: dict[str, Trip],
+        settings: typing.Collection[CarSetting],
+    ):
         self.env = Environment(start_time=start_time)
         self.event_queue = EventQueue(self.env)
         self.network = network
@@ -30,7 +36,7 @@ class Simulation:
             event_queue=self.event_queue,
             board_time=board_time,
             max_delay_time=max_delay_time,
-            settings=settings
+            settings=settings,
         )
 
     def start(self):
@@ -46,27 +52,41 @@ class Simulation:
     def reservable(self, org: str, dst: str, dept: float = None):
         org = self.stops[org]
         dst = self.stops[dst]
-        return bool(self.car_manager.minimum_delay(User(
-            user_id=...,
-            org=org,
-            dst=dst,
-            desired=self.env.datetime_from(dept) if dept else self.env.datetime_now,
-            ideal=timedelta(minutes=self.network.duration(org.stop_id, dst.stop_id) + self.board_time * 2)
-        )))
+        return bool(
+            self.car_manager.minimum_delay(
+                User(
+                    user_id=...,
+                    org=org,
+                    dst=dst,
+                    desired=self.env.datetime_from(dept)
+                    if dept
+                    else self.env.datetime_now,
+                    ideal=timedelta(
+                        minutes=self.network.duration(org.stop_id, dst.stop_id)
+                        + self.board_time * 2
+                    ),
+                )
+            )
+        )
 
     def reserve_user(self, user_id: str, org: str, dst: str, dept: float):
         org = self.stops[org]
         dst = self.stops[dst]
-        self.car_manager.reserve(User(
-            user_id=user_id,
-            org=org,
-            dst=dst,
-            desired=self.env.datetime_from(dept),
-            ideal=timedelta(minutes=self.network.duration(org.stop_id, dst.stop_id) + self.board_time * 2)
-        ))
+        self.car_manager.reserve(
+            User(
+                user_id=user_id,
+                org=org,
+                dst=dst,
+                desired=self.env.datetime_from(dept),
+                ideal=timedelta(
+                    minutes=self.network.duration(org.stop_id, dst.stop_id)
+                    + self.board_time * 2
+                ),
+            )
+        )
 
     def ready_to_depart(self, user_id: str):
-        """ Notify the on-demand bus that the user has arrived at the departure station and is ready to get on the bus
+        """Notify the on-demand bus that the user has arrived at the departure station and is ready to get on the bus
         when the bus arrives.
 
         Without the notification, the user cannot get on the bus.

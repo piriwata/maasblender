@@ -7,11 +7,11 @@ from enum import Enum
 
 
 class EventType(str, Enum):
-    RESERVE = 'RESERVE'
-    RESERVED = 'RESERVED'
-    DEPART = 'DEPART'
-    DEPARTED = 'DEPARTED'
-    ARRIVED = 'ARRIVED'
+    RESERVE = "RESERVE"
+    RESERVED = "RESERVED"
+    DEPART = "DEPART"
+    DEPARTED = "DEPARTED"
+    ARRIVED = "ARRIVED"
 
 
 @dataclasses.dataclass(frozen=True)

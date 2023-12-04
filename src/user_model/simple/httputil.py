@@ -22,11 +22,11 @@ async def error_log(response: aiohttp.ClientResponse, logger_: LoggerType = logg
             case _:
                 text = pformat(content, width=200)
         logger_.error("%s:\n%s", message, text)
-    except:
+    except Exception:
         try:
             text = await response.text()
             logger_.error("%s: %s", message, text)
-        except:  # ignore error
+        except Exception:  # ignore error
             logger_.error("%s: cannot read response", message)
     return message
 
@@ -57,5 +57,9 @@ async def check_response(response: aiohttp.ClientResponse, *, limit=0):
 def check_upload_filename(upload_file: fastapi.UploadFile):
     filename = urllib.parse.unquote(upload_file.filename)
     if filename != upload_file.filename:
-        logger.warning("upload file with urlencoded filename: %s, raw: %s", filename, upload_file.filename)
+        logger.warning(
+            "upload file with urlencoded filename: %s, raw: %s",
+            filename,
+            upload_file.filename,
+        )
     return filename

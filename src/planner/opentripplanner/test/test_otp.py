@@ -70,5 +70,5 @@ class OtpTestCase(unittest.IsolatedAsyncioTestCase):
     #     await self.planner.client.close()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

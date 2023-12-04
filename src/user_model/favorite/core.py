@@ -24,7 +24,7 @@ class Location:
 
 
 class Runner:
-    """ イベントコントローラー """
+    """イベントコントローラー"""
 
     def __init__(self):
         self._env = simpy.Environment()
@@ -50,9 +50,11 @@ class Task:
 
 
 class User:
-    """ 地点間を複数のモビリティサービスを利用しながら移動する動体 """
+    """地点間を複数のモビリティサービスを利用しながら移動する動体"""
 
-    def __init__(self, id_: str, org: Location, dst: Location, dept: float, tasks: list[Task]):
+    def __init__(
+        self, id_: str, org: Location, dst: Location, dept: float, tasks: list[Task]
+    ):
         self.user_id = id_
         self.org = org  # （旅程全体の）出発地
         self.dst = dst  # （旅程全体の）目的地
@@ -61,7 +63,7 @@ class User:
         self.tasks: list[Task] = tasks  # 未来の旅程
 
     def run(self):
-        """ 行動プロセス """
+        """行動プロセス"""
         while True:
             if not len(self.tasks):
                 return

@@ -44,17 +44,19 @@ class Planner:
 
     async def _get(self, method: str, params: typing.Mapping = None):
         async with self._session.get(
-                self._endpoint + "/" + method,
-                params=params if params else {},
+            self._endpoint + "/" + method,
+            params=params if params else {},
         ) as response:
             await httputil.check_response(response)
             return await response.json()
 
-    async def _post(self, method: str, data: typing.Mapping = None, params: typing.Mapping = None):
+    async def _post(
+        self, method: str, data: typing.Mapping = None, params: typing.Mapping = None
+    ):
         async with self._session.post(
-                self._endpoint + "/" + method,
-                json=data if data else {},
-                params=params if params else {},
+            self._endpoint + "/" + method,
+            json=data if data else {},
+            params=params if params else {},
         ) as response:
             await httputil.check_response(response)
             return await response.json()
@@ -66,6 +68,6 @@ class Planner:
         response = await self._post(
             method="plan",
             data={"org": org.dict(), "dst": dst.dict()},
-            params={"dept": dept}
+            params={"dept": dept},
         )
         return response

@@ -46,7 +46,13 @@ class Operation:
 class Operator:
     """The entity that operates a mobility."""
 
-    def __init__(self, env: simpy.Environment, queue: EventQueue, params: OperatorParameter, location: OperatedStation):
+    def __init__(
+        self,
+        env: simpy.Environment,
+        queue: EventQueue,
+        params: OperatorParameter,
+        location: OperatedStation,
+    ):
         self.env = env
         self.queue = queue
         self.v = params.speed
@@ -66,16 +72,21 @@ class Operator:
         # pick all mobilities to be operated
         mobilities = []
         for _ in range(min((operation.number_of_mobilities, self._capacity))):
-            if self.location.station.any_reservable_mobility and dst.station.any_reservable_dock:
+            if (
+                self.location.station.any_reservable_mobility
+                and dst.station.any_reservable_dock
+            ):
                 mobility = self.location.station.reserve_mobility()
                 dst.station.reserve_dock(mobility)
                 self.location.station.pick(mobility)
                 mobilities.append(mobility)
                 # notify event
-                self.queue.enqueue(DepartedEvent(
-                    mobility=mobility,
-                    location=operation.org.station,
-                ))
+                self.queue.enqueue(
+                    DepartedEvent(
+                        mobility=mobility,
+                        location=operation.org.station,
+                    )
+                )
         yield self.env.timeout(self.loading_time * len(mobilities))
         yield self.env.process(self.move(operation.dst))
         yield self.env.timeout(self.loading_time * len(mobilities))
@@ -84,13 +95,17 @@ class Operator:
         for mobility in mobilities:
             self.location.station.park(mobility)
             # notify event
-            self.queue.enqueue(ArrivedEvent(
-                mobility=mobility,
-                location=operation.dst.station,
-            ))
+            self.queue.enqueue(
+                ArrivedEvent(
+                    mobility=mobility,
+                    location=operation.dst.station,
+                )
+            )
 
     def move(self, to: OperatedStation):
-        yield self.env.timeout(calc_distance(self.location.station, to.station) / self.v)
+        yield self.env.timeout(
+            calc_distance(self.location.station, to.station) / self.v
+        )
         self._location = to
 
 
@@ -111,26 +126,45 @@ class Manager:
         def difference_actual_between_proper(station: OperatedStation):
             return abs(num_mobilities(station) - station.proper)
 
-        org_candidates = sorted([
-            station for station in self.stations
-            if num_mobilities(station) > station.proper_upper
-        ], key=difference_actual_between_proper, reverse=True)
+        org_candidates = sorted(
+            [
+                station
+                for station in self.stations
+                if num_mobilities(station) > station.proper_upper
+            ],
+            key=difference_actual_between_proper,
+            reverse=True,
+        )
 
-        dst_candidates = sorted([
-            station for station in self.stations
-            if num_mobilities(station) < station.proper_lower
-        ], key=difference_actual_between_proper, reverse=True)
+        dst_candidates = sorted(
+            [
+                station
+                for station in self.stations
+                if num_mobilities(station) < station.proper_lower
+            ],
+            key=difference_actual_between_proper,
+            reverse=True,
+        )
 
         for org, dst in zip(org_candidates, dst_candidates):
             yield Operation(
-                org=org, dst=dst,
+                org=org,
+                dst=dst,
                 number_of_mobilities=int(
-                    (difference_actual_between_proper(org) + difference_actual_between_proper(dst)) / 2
-                )
+                    (
+                        difference_actual_between_proper(org)
+                        + difference_actual_between_proper(dst)
+                    )
+                    / 2
+                ),
             )
 
-    def setup(self, stations: typing.Iterable[OperatedStation], operators: typing.Iterable[Operator],
-              params: OperatorParameter):
+    def setup(
+        self,
+        stations: typing.Iterable[OperatedStation],
+        operators: typing.Iterable[Operator],
+        params: OperatorParameter,
+    ):
         self.stations = stations
         self.operators = operators
         self.begin_time = params.start_time
@@ -145,8 +179,7 @@ class Manager:
                     {
                         self.env.process(operator.run(operation))
                         for operator, operation in zip(self.operators, self.operations)
-                    } | {
-                        self.env.timeout(self.interval)
                     }
+                    | {self.env.timeout(self.interval)}
                 )
             yield self.env.timeout(1440 - self.end_time)

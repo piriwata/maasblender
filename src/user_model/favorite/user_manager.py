@@ -7,8 +7,15 @@ import itertools
 import logging
 
 from core import Runner, User, Task, Location, Route
-from event import Manager as EventManager, \
-    EventIdentifier, ReserveEvent, ReservedEvent, DepartEvent, DepartedEvent, ArrivedEvent
+from event import (
+    Manager as EventManager,
+    EventIdentifier,
+    ReserveEvent,
+    ReservedEvent,
+    DepartEvent,
+    DepartedEvent,
+    ArrivedEvent,
+)
 from jschema.query import SortType, UserType
 from planner import Planner
 
@@ -16,9 +23,16 @@ logger = logging.getLogger(__name__)
 
 
 class Trip(Task):
-
-    def __init__(self, manager: EventManager, org: Location, dst: Location, service: str,
-                 dept: float, arrv: float | None = None, fail: list[Task] = None):
+    def __init__(
+        self,
+        manager: EventManager,
+        org: Location,
+        dst: Location,
+        service: str,
+        dept: float,
+        arrv: float | None = None,
+        fail: list[Task] = None,
+    ):
         self.event_manager = manager
         self.service = service
         self.org = org
@@ -34,20 +48,20 @@ class Trip(Task):
         dept = self.event_manager.env.now
         # modify expected arrival if the departure is changed
         arrv = dept + (self.arrv - self.dept) if self.arrv else None
-        self.event_manager.enqueue(ReserveEvent(
-            service=self.service,
-            user_id=user.user_id,
-            org=self.org,
-            dst=self.dst,
-
-            dept=dept,
-            arrv=arrv,
-            now=dept
-        ))
-        event: ReservedEvent = yield self.event_manager.event(ReservedEvent(
-            source=self.service,
-            user_id=user.user_id
-        ))
+        self.event_manager.enqueue(
+            ReserveEvent(
+                service=self.service,
+                user_id=user.user_id,
+                org=self.org,
+                dst=self.dst,
+                dept=dept,
+                arrv=arrv,
+                now=dept,
+            )
+        )
+        event: ReservedEvent = yield self.event_manager.event(
+            ReservedEvent(source=self.service, user_id=user.user_id)
+        )
         if not event.success:
             if not self.fail:
                 logger.warning(
@@ -56,23 +70,21 @@ class Trip(Task):
                 )
             return self.fail
 
-        self.event_manager.enqueue(DepartEvent(
-            service=self.service,
-            user_id=user.user_id,
-            now=self.event_manager.env.now
-        ))
+        self.event_manager.enqueue(
+            DepartEvent(
+                service=self.service,
+                user_id=user.user_id,
+                now=self.event_manager.env.now,
+            )
+        )
         # not yield, only wait arrived event here.
-        self.event_manager.event(DepartedEvent(
-            source=self.service,
-            user_id=user.user_id,
-            location=self.org
-        ))
+        self.event_manager.event(
+            DepartedEvent(source=self.service, user_id=user.user_id, location=self.org)
+        )
 
-        yield self.event_manager.event(ArrivedEvent(
-            source=self.service,
-            user_id=user.user_id,
-            location=self.dst
-        ))
+        yield self.event_manager.event(
+            ArrivedEvent(source=self.service, user_id=user.user_id, location=self.dst)
+        )
 
 
 @dataclasses.dataclass(frozen=True)
@@ -133,7 +145,9 @@ class FavoriteRouteFilter(RouteFilter):
         return bool(self.favorite_service & services)
 
     def _check_walking_limit(self, plan: Route) -> bool:
-        walking_time = sum(t.arrv - t.dept for t in plan.trips if t.service == "walking")
+        walking_time = sum(
+            t.arrv - t.dept for t in plan.trips if t.service == "walking"
+        )
         return walking_time <= self.walking_time_limit_min
 
 
@@ -146,6 +160,7 @@ class Wait(Task):
     """
     waiting for departure
     """
+
     def __init__(self, manager: EventManager, dept: float):
         self.event_manager = manager
         self.dept = dept
@@ -162,8 +177,9 @@ class Reserve(Task):
     """
     (pre)reserve mobility before trip
     """
+
     def __init__(self, manager: EventManager, route: Route, fail: list[Task] = None):
-        assert(len(route.trips) == 3)
+        assert len(route.trips) == 3
         self.event_manager = manager
         self.route = route
         self.service = route.trips[1].service
@@ -175,21 +191,24 @@ class Reserve(Task):
         return self.event_manager.env.process(self._process(user))
 
     def _process(self, user: User):
-        self.event_manager.enqueue(ReserveEvent(
-            service=self.service,
-            user_id=user.user_id,
-            org=self.route.trips[1].org,
-            dst=self.route.trips[1].dst,
-            dept=self.route.trips[1].dept,
-            now=self.event_manager.env.now
-        ))
-        event: ReservedEvent = yield self.event_manager.event(ReservedEvent(
-            source=self.service,
-            user_id=user.user_id
-        ))
+        self.event_manager.enqueue(
+            ReserveEvent(
+                service=self.service,
+                user_id=user.user_id,
+                org=self.route.trips[1].org,
+                dst=self.route.trips[1].dst,
+                dept=self.route.trips[1].dept,
+                now=self.event_manager.env.now,
+            )
+        )
+        event: ReservedEvent = yield self.event_manager.event(
+            ReservedEvent(source=self.service, user_id=user.user_id)
+        )
         # wait for departure from pre-reserve time
         if self.route.trips[0].dept > self.event_manager.env.now:
-            yield self.event_manager.env.timeout(self.route.trips[0].dept - self.event_manager.env.now)
+            yield self.event_manager.env.timeout(
+                self.route.trips[0].dept - self.event_manager.env.now
+            )
         if not event.success:
             if not self.fail:
                 logger.warning(
@@ -249,7 +268,15 @@ class ReservedTrip(Task):
     """
     (pre)Reserved trip
     """
-    def __init__(self, manager: EventManager, org: Location, dst: Location, service: str, dept: float):
+
+    def __init__(
+        self,
+        manager: EventManager,
+        org: Location,
+        dst: Location,
+        service: str,
+        dept: float,
+    ):
         self.event_manager = manager
         self.service = service
         self.org = org
@@ -261,31 +288,35 @@ class ReservedTrip(Task):
 
     def _process(self, user: User):
         # do not wait (dept is for mobility, not for user)
-        self.event_manager.enqueue(DepartEvent(
-            service=self.service,
-            user_id=user.user_id,
-            now=self.event_manager.env.now
-        ))
+        self.event_manager.enqueue(
+            DepartEvent(
+                service=self.service,
+                user_id=user.user_id,
+                now=self.event_manager.env.now,
+            )
+        )
 
         # not yield, only wait arrived event here.
-        self.event_manager.event(DepartedEvent(
-            source=self.service,
-            user_id=user.user_id,
-            location=self.org
-        ))
+        self.event_manager.event(
+            DepartedEvent(source=self.service, user_id=user.user_id, location=self.org)
+        )
 
-        yield self.event_manager.event(ArrivedEvent(
-            source=self.service,
-            user_id=user.user_id,
-            location=self.dst
-        ))
+        yield self.event_manager.event(
+            ArrivedEvent(source=self.service, user_id=user.user_id, location=self.dst)
+        )
 
 
-def filter_plans_by_fixed_service(plans: list[Route], fixed_service: str) -> list[Route]:
+def filter_plans_by_fixed_service(
+    plans: list[Route], fixed_service: str
+) -> list[Route]:
     if fixed_service == "walking":  # select walk-only route
         return [plan for plan in plans if plan.is_walking_only()]
     else:  # select route containing the service
-        result = [plan for plan in plans if fixed_service in {trip.service for trip in plan.trips}]
+        result = [
+            plan
+            for plan in plans
+            if fixed_service in {trip.service for trip in plan.trips}
+        ]
         if result:
             return result
         else:
@@ -294,7 +325,9 @@ def filter_plans_by_fixed_service(plans: list[Route], fixed_service: str) -> lis
                 f"from the origin '{plans[0].org}' to the destination '{plans[0].dst}'."
                 f"This is independent of the reservation conditions."
             )
-            logger.warning(f"ignore fixed service, because of no plan using {fixed_service=}")
+            logger.warning(
+                f"ignore fixed service, because of no plan using {fixed_service=}"
+            )
             return plans
 
 
@@ -304,7 +337,11 @@ class UserManager(Runner):
     route_planner: Planner | None
     confirmed_services: list[str]
 
-    def __init__(self, user_params: dict[str, UserType | None], confirmed_services: list[str] = None):
+    def __init__(
+        self,
+        user_params: dict[str, UserType | None],
+        confirmed_services: list[str] = None,
+    ):
         super().__init__()
         self._event_manager = EventManager(env=self.env)
         self._route_filter = {
@@ -312,7 +349,9 @@ class UserManager(Runner):
                 favorite_service=v.favorite_service,
                 walking_time_limit_min=v.walking_time_limit_min,
                 sort_type=v.sort_type,
-            ) if v else RouteFilter()
+            )
+            if v
+            else RouteFilter()
             for k, v in user_params.items()
         }
         self.route_planner = None
@@ -330,8 +369,15 @@ class UserManager(Runner):
     def setup_planer(self, endpoint: str):
         self.route_planner = Planner(endpoint=endpoint)
 
-    async def demand(self, user_id: str, org: Location, dst: Location, dept: float | None, fixed_service: str | None):
-        """ Add the mobility demand of the user.
+    async def demand(
+        self,
+        user_id: str,
+        org: Location,
+        dst: Location,
+        dept: float | None,
+        fixed_service: str | None,
+    ):
+        """Add the mobility demand of the user.
 
         Select a route where fixed_service is used.
         If fixed_service is not specified, select the first result of the route search.
@@ -341,6 +387,7 @@ class UserManager(Runner):
         route_plans = await self.route_planner.plan(org, dst, dept)
 
         import pprint
+
         logger.debug(f"plans_from_otp_planner num={len(route_plans)}")
         for rp in route_plans:
             logger.debug(pprint.pformat(rp))
@@ -353,7 +400,7 @@ class UserManager(Runner):
             org=org,
             dst=dst,
             dept=dept,
-            tasks=self.wait_for_departure(dept, tasks)  # add waiting task
+            tasks=self.wait_for_departure(dept, tasks),  # add waiting task
         )
         self.env.process(user.run())
 
@@ -370,7 +417,9 @@ class UserManager(Runner):
         else:
             return tasks
 
-    def plans_to_trips(self, plans: list[Route], fixed_service: str | None, route_filter: RouteFilter):
+    def plans_to_trips(
+        self, plans: list[Route], fixed_service: str | None, route_filter: RouteFilter
+    ):
         if fixed_service:  # check for each DEMAND event
             plans = filter_plans_by_fixed_service(plans, fixed_service)
         else:  # check for each user
@@ -379,7 +428,9 @@ class UserManager(Runner):
         # ToDo: Unclear criteria for determining walking plan
         # No alternative plan
         if len(plans) == 1:
-            return self.trips_with_walking_in_case_of_failure(self._plan_to_trips(plans[0]))
+            return self.trips_with_walking_in_case_of_failure(
+                self._plan_to_trips(plans[0])
+            )
 
         # ToDo: Consider whether the planner is responsible for returning the walking route.
         return self.trips_with_subsequent_in_case_of_failure(
@@ -391,28 +442,35 @@ class UserManager(Runner):
         for trip in trips:
             if len(trip.fail) == 0:
                 if isinstance(trip, Reserve):
-                    trip.fail = [Trip(
-                        self._event_manager,
-                        org=trip.org,
-                        dst=trip.dst,
-                        dept=trip.route.dept,
-                        service="walking"
-                    )]
+                    trip.fail = [
+                        Trip(
+                            self._event_manager,
+                            org=trip.org,
+                            dst=trip.dst,
+                            dept=trip.route.dept,
+                            service="walking",
+                        )
+                    ]
                 else:
                     assert isinstance(trip, Trip)
                     # never fail to reservation walking
                     if trip.service != "walking":
-                        trip.fail = [Trip(
-                            self._event_manager,
-                            org=trip.org,
-                            dst=trips[-1].dst,
-                            dept=trip.dept,
-                            service="walking"
-                        )]
+                        trip.fail = [
+                            Trip(
+                                self._event_manager,
+                                org=trip.org,
+                                dst=trips[-1].dst,
+                                dept=trip.dept,
+                                service="walking",
+                            )
+                        ]
         return trips
 
-    def trips_with_subsequent_in_case_of_failure(self, primary_trips: list[Reserve] | list[Trip],
-                                                 secondary_trips: list[Reserve] | list[Trip]):
+    def trips_with_subsequent_in_case_of_failure(
+        self,
+        primary_trips: list[Reserve] | list[Trip],
+        secondary_trips: list[Reserve] | list[Trip],
+    ):
         # If the primary plan is on foot
         if all(trip.service == "walking" for trip in primary_trips):
             return primary_trips
@@ -428,18 +486,24 @@ class UserManager(Runner):
         # Set up second plan, as recovery plan for the (first) mobility trip
         # ToDo: secondary trips on might not always be suitable.
         if isinstance(primary_trips[0], Reserve):
-            primary_trips[0].fail = self.trips_with_walking_in_case_of_failure(secondary_trips)
+            primary_trips[0].fail = self.trips_with_walking_in_case_of_failure(
+                secondary_trips
+            )
         else:
             assert isinstance(secondary_trips[0], Trip)
-            mobility_trip = next(itertools.dropwhile(lambda e: e.service == "walking", primary_trips))
-            recovery_trips = list(itertools.dropwhile(lambda e: e.service == "walking", secondary_trips))
+            mobility_trip = next(
+                itertools.dropwhile(lambda e: e.service == "walking", primary_trips)
+            )
+            recovery_trips = list(
+                itertools.dropwhile(lambda e: e.service == "walking", secondary_trips)
+            )
             mobility_trip.fail = [
                 Trip(
                     self._event_manager,
                     org=mobility_trip.org,
                     dst=recovery_trips[0].org,
                     dept=recovery_trips[0].dept,
-                    service="walking"
+                    service="walking",
                 ),
                 *self.trips_with_walking_in_case_of_failure(recovery_trips),
             ]
@@ -447,11 +511,15 @@ class UserManager(Runner):
 
     def _plan_to_trips(self, route: Route):
         if len(route.trips) == 3 and route.trips[1].service in self.confirmed_services:
-            return [
-                Reserve(self._event_manager, route)
-            ]
+            return [Reserve(self._event_manager, route)]
         else:
             return [
-                Trip(self._event_manager, org=trip.org, dst=trip.dst, dept=trip.dept, service=trip.service)
+                Trip(
+                    self._event_manager,
+                    org=trip.org,
+                    dst=trip.dst,
+                    dept=trip.dept,
+                    service=trip.service,
+                )
                 for trip in route
             ]

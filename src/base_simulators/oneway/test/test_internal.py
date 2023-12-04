@@ -26,8 +26,8 @@ def run(simulation: Simulation, until: float):
 # まいどはやバスGTFS-JP、富山市、クリエイティブ・コモンズ・ライセンス　表示4.0国際
 # （http://creativecommons.org/licenses/by/4.0/deed.ja）
 gbfs_stations = {
-    "2_1":  {"station_id": "2_1",  "lat": 36.697688, "lon": 137.214331},
-    "6_1":  {"station_id": "6_1",  "lat": 36.694054, "lon": 137.226118},
+    "2_1": {"station_id": "2_1", "lat": 36.697688, "lon": 137.214331},
+    "6_1": {"station_id": "6_1", "lat": 36.694054, "lon": 137.226118},
     "10_1": {"station_id": "10_1", "lat": 36.691690, "lon": 137.231652},
     "14_1": {"station_id": "14_1", "lat": 36.686273, "lon": 137.227487},
     "18_1": {"station_id": "18_1", "lat": 36.689785, "lon": 137.221128},
@@ -56,7 +56,7 @@ class SimpleUserFlowCase(unittest.TestCase):
             ],
             free_bike_status=[
                 {"bike_id": "M_001", "current_range_meters": 1200, "station_id": "2_1"},
-                {"bike_id": "M_002", "current_range_meters": 800, "station_id": "2_1"}
+                {"bike_id": "M_002", "current_range_meters": 800, "station_id": "2_1"},
             ],
             scooter_params=ScooterParameter(
                 mobility_speed=200.0,  # [m/min] (200 m/min = 12km/h)
@@ -110,19 +110,21 @@ class SimpleUserFlowCase(unittest.TestCase):
         triggered_events = run(simulation=self.simulation, until=31)
         expected_events = [
             {
-                'eventType': EventType.RESERVED,
-                'time': self.dept,
-                'details': {
-                    'userId': self.user["user_id"],
-                    'success': True,
-                    'mobilityId': 'M_001',
-                    'route': [{
-                        'org': self.org,
-                        'dst': self.dst,
-                        'dept': self.dept,
-                        'arrv': 36.78891746782812
-                    }]
-                }
+                "eventType": EventType.RESERVED,
+                "time": self.dept,
+                "details": {
+                    "userId": self.user["user_id"],
+                    "success": True,
+                    "mobilityId": "M_001",
+                    "route": [
+                        {
+                            "org": self.org,
+                            "dst": self.dst,
+                            "dept": self.dept,
+                            "arrv": 36.78891746782812,
+                        }
+                    ],
+                },
             },
         ]
         self.assertEqual(expected_events, triggered_events)
@@ -144,13 +146,13 @@ class SimpleUserFlowCase(unittest.TestCase):
         triggered_events = run(simulation=self.simulation, until=32)
         expected_events = [
             {
-                'eventType': EventType.DEPARTED,
-                'time': 31,
-                'details': {
-                    'userId': 'U_001',
-                    'mobilityId': 'M_001',
-                    'location': self.org,
-                }
+                "eventType": EventType.DEPARTED,
+                "time": 31,
+                "details": {
+                    "userId": "U_001",
+                    "mobilityId": "M_001",
+                    "location": self.org,
+                },
             },
         ]
         self.assertEqual(expected_events, triggered_events)
@@ -171,13 +173,13 @@ class SimpleUserFlowCase(unittest.TestCase):
         triggered_events = run(simulation=self.simulation, until=38)
         expected_events = [
             {
-                'eventType': EventType.ARRIVED,
-                'time': 36.78891746782812,
-                'details': {
-                    'userId': 'U_001',
-                    'mobilityId': 'M_001',
-                    'location': self.dst,
-                }
+                "eventType": EventType.ARRIVED,
+                "time": 36.78891746782812,
+                "details": {
+                    "userId": "U_001",
+                    "mobilityId": "M_001",
+                    "location": self.dst,
+                },
             },
         ]
         self.assertEqual(expected_events, triggered_events)
@@ -222,5 +224,5 @@ class SimpleUserFlowCase(unittest.TestCase):
         self.assertEqual(0, len(dst.reservable_mobilities))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

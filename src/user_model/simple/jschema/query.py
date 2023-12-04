@@ -2,7 +2,13 @@
 # SPDX-License-Identifier: Apache-2.0
 from pydantic import BaseModel, AnyHttpUrl
 
-from jschema.events import DemandEvent, ReservedEvent, DepartedEvent, ArrivedEvent, Event as OtherEvent
+from jschema.events import (
+    DemandEvent,
+    ReservedEvent,
+    DepartedEvent,
+    ArrivedEvent,
+    Event as OtherEvent,
+)
 
 
 class PlannerSetting(BaseModel):

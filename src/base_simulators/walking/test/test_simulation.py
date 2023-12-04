@@ -3,8 +3,8 @@
 import math
 import unittest
 
-from core import EventType
-from simulation import *
+from core import EventType, Location
+from simulation import Simulation
 
 
 class TestSimulation(unittest.TestCase):
@@ -22,20 +22,27 @@ class TestSimulation(unittest.TestCase):
         # After reservation
         expected = [
             (0, []),
-            (0, [{
-                'time': 0,
-                'eventType': EventType.RESERVED,
-                'details': {
-                    'success': True,
-                    'userId': user_id,
-                    'route': [{
-                        'org': org.dumps(),
-                        'dst': dst.dumps(),
-                        'dept': dept,
-                        'arrv': arrv,
-                    }]
-                }
-            }]),
+            (
+                0,
+                [
+                    {
+                        "time": 0,
+                        "eventType": EventType.RESERVED,
+                        "details": {
+                            "success": True,
+                            "userId": user_id,
+                            "route": [
+                                {
+                                    "org": org.dumps(),
+                                    "dst": dst.dumps(),
+                                    "dept": dept,
+                                    "arrv": arrv,
+                                }
+                            ],
+                        },
+                    }
+                ],
+            ),
             (0, []),
         ]
         for s, e in expected:
@@ -50,14 +57,36 @@ class TestSimulation(unittest.TestCase):
         # After departure
         expected = [
             (0, []),
-            (dept, [{
-                'time': dept, 'eventType': EventType.DEPARTED,
-                'details': {'subjectId': user_id, 'userId': user_id, 'mobilityId': None, 'location': org.dumps()}
-            }]),
-            (arrv, [{
-                'time': arrv, 'eventType': EventType.ARRIVED,
-                'details': {'subjectId': user_id, 'userId': user_id, 'mobilityId': None, 'location': dst.dumps()}
-            }]),
+            (
+                dept,
+                [
+                    {
+                        "time": dept,
+                        "eventType": EventType.DEPARTED,
+                        "details": {
+                            "subjectId": user_id,
+                            "userId": user_id,
+                            "mobilityId": None,
+                            "location": org.dumps(),
+                        },
+                    }
+                ],
+            ),
+            (
+                arrv,
+                [
+                    {
+                        "time": arrv,
+                        "eventType": EventType.ARRIVED,
+                        "details": {
+                            "subjectId": user_id,
+                            "userId": user_id,
+                            "mobilityId": None,
+                            "location": dst.dumps(),
+                        },
+                    }
+                ],
+            ),
             (arrv, []),
         ]
         for s, e in expected:

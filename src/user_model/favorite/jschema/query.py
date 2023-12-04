@@ -5,7 +5,13 @@ import math
 from pydantic import BaseModel, AnyHttpUrl, root_validator
 from enum import Enum
 
-from jschema.events import DemandEvent, ReservedEvent, DepartedEvent, ArrivedEvent, Event as OtherEvent
+from jschema.events import (
+    DemandEvent,
+    ReservedEvent,
+    DepartedEvent,
+    ArrivedEvent,
+    Event as OtherEvent,
+)
 
 
 class PlannerSetting(BaseModel):

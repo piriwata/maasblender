@@ -45,7 +45,9 @@ class FileResultWriter(ResultWriter):
 @dataclasses.dataclass
 class HTTPResultWriter(ResultWriter):
     url: str
-    _session: aiohttp.ClientSession = dataclasses.field(default_factory=aiohttp.ClientSession)
+    _session: aiohttp.ClientSession = dataclasses.field(
+        default_factory=aiohttp.ClientSession
+    )
     _count: itertools.count = dataclasses.field(default_factory=itertools.count)
     _records: asyncio.Queue[dict] = dataclasses.field(default_factory=asyncio.Queue)
     _task: asyncio.Task | None = None
@@ -70,12 +72,15 @@ class HTTPResultWriter(ResultWriter):
 
     async def _wait_over(self):
         while self._records.qsize() > env.RESULT_WRITER_QUEUE_SIZE:
-            logger.warning("wait_queue_size: queue_size=%s > %s",
-                           self._records.qsize(), env.RESULT_WRITER_QUEUE_SIZE)
+            logger.warning(
+                "wait_queue_size: queue_size=%s > %s",
+                self._records.qsize(),
+                env.RESULT_WRITER_QUEUE_SIZE,
+            )
             await asyncio.sleep(env.RESULT_WRITER_OVER_INTERVAL)
 
     async def _polling(self):
-        """ Monitor the queue and log output immediately. """
+        """Monitor the queue and log output immediately."""
         while not self._closed:
             await self._send_records()
         # until the queue is empty after close()

@@ -37,7 +37,9 @@ def startup():
     class MultilineLogFormatter(logging.Formatter):
         def format(self, record: logging.LogRecord) -> str:
             message = super().format(record)
-            return message.replace("\n", "\t\n")  # indicate continuation line by trailing tab
+            return message.replace(
+                "\n", "\t\n"
+            )  # indicate continuation line by trailing tab
 
     formatter = MultilineLogFormatter(env.log_format)
     handler = logging.StreamHandler()
@@ -54,12 +56,15 @@ def startup():
 @app.exception_handler(Exception)
 def exception_callback(request: fastapi.Request, exc: Exception):
     from fastapi.responses import PlainTextResponse
+
     # omitted traceback here, because uvicorn outputs traceback as ASGI Exception
     logger.error("failed process called at %s", request.url)
     return PlainTextResponse(str(exc), status_code=500)
 
 
-file_table = httputil.FileManager(limit=env.FILE_SIZE_LIMIT)  # osm.pbf ファイル対応として大きめのlimit
+file_table = httputil.FileManager(
+    limit=env.FILE_SIZE_LIMIT
+)  # osm.pbf ファイル対応として大きめのlimit
 planner: OpenTripPlanner | None = None
 proc: subprocess.Popen | None = None
 
@@ -87,9 +92,7 @@ def upload(upload_file: fastapi.UploadFile = fastapi.File(...)):
         file_table.put(upload_file)
     finally:
         upload_file.file.close()
-    return {
-        "message": f"successfully uploaded. {upload_file.filename}"
-    }
+    return {"message": f"successfully uploaded. {upload_file.filename}"}
 
 
 @contextlib.contextmanager
@@ -136,7 +139,9 @@ def update_config_files_for_gbfs(url_base: str):
                     updater["url"] = url
                     break
             else:
-                logger.warning(f"fill in updater element in router-config.json with default values")
+                logger.warning(
+                    "fill in updater element in router-config.json with default values"
+                )
                 # If there is no URL, add a new one.
                 updater = deepcopy(default_updater)
                 updater["url"] = url
@@ -150,7 +155,9 @@ def update_config_files_for_gbfs(url_base: str):
                         path_json = dir_gbfs / f"{name}.json"
                         if not path_json.is_file():
                             msg = f"not exist {path_json} pointed by {path_gbfs_json}"
-                            raise fastapi.HTTPException(fastapi.status.HTTP_500_INTERNAL_SERVER_ERROR, msg)
+                            raise fastapi.HTTPException(
+                                fastapi.status.HTTP_500_INTERNAL_SERVER_ERROR, msg
+                            )
                         url = urljoin(url_base, f"/gbfs/{gbfsname}/{name}.json")
                         feed["url"] = url
 
@@ -163,8 +170,10 @@ async def get_walking_speed(setting: query.Setup):
             with open(env.OPENTRIPPLANNER_VOLUME_DIR / "router-config.json", "r") as fd:
                 config = json.load(fd)
             walk_speed = config.get("routingDefaults", {}).get("walkSpeed", walk_speed)
-        except:  # Default value if the file cannot be read
-            logger.warning(f"failed to read {env.OPENTRIPPLANNER_VOLUME_DIR}/router-config.json")
+        except Exception:  # Default value if the file cannot be read
+            logger.warning(
+                f"failed to read {env.OPENTRIPPLANNER_VOLUME_DIR}/router-config.json"
+            )
         walking_meters_per_minute = walk_speed * 60  # [m/秒] -> [m/分]
     return walking_meters_per_minute
 
@@ -174,24 +183,32 @@ async def setup(request: fastapi.Request, setting: query.Setup):
     network_types = set()
     async with aiohttp.ClientSession() as session:
         for ref in setting.otp_config.input_files:
-            filename, data = await file_table.pop(session, filename=ref.filename, url=ref.fetch_url)
+            filename, data = await file_table.pop(
+                session, filename=ref.filename, url=ref.fetch_url
+            )
             with zipfile.ZipFile(io.BytesIO(data)) as archive:
                 archive.extractall(env.OPENTRIPPLANNER_VOLUME_DIR)
         for service, network in setting.networks.items():
             for ref in network.input_files:
                 network_types.add(network.type)
                 if network.type in ["gtfs", "gtfs_flex"]:
-                    filename, data = await file_table.pop(session, filename=ref.filename, url=ref.fetch_url)
+                    filename, data = await file_table.pop(
+                        session, filename=ref.filename, url=ref.fetch_url
+                    )
                     (env.OPENTRIPPLANNER_VOLUME_DIR / filename).write_bytes(data)
                 elif network.type in ["gbfs"]:
-                    filename, data = await file_table.pop(session, filename=ref.filename, url=ref.fetch_url)
+                    filename, data = await file_table.pop(
+                        session, filename=ref.filename, url=ref.fetch_url
+                    )
                     # Place the unzipped file in the Static folder for GBFS
                     # Separate the files from other GBFS files by using a zip file name.
                     with zipfile.ZipFile(io.BytesIO(data)) as archive:
                         archive.extractall(env.OPENTRIPPLANNER_GBFS_DIR / filename)
                 else:
                     msg = f"not supported network type: {network.type}"
-                    raise fastapi.HTTPException(fastapi.status.HTTP_501_NOT_IMPLEMENTED, msg)
+                    raise fastapi.HTTPException(
+                        fastapi.status.HTTP_501_NOT_IMPLEMENTED, msg
+                    )
     if not (network_types & {"gtfs", "gtfs_flex"}):
         msg = "OTP requires at least one GTFS (or GTFS FLEX) file"
         raise fastapi.HTTPException(fastapi.status.HTTP_501_NOT_IMPLEMENTED, msg)
@@ -205,7 +222,9 @@ async def setup(request: fastapi.Request, setting: query.Setup):
     global planner
     planner = OpenTripPlanner(
         endpoint=f"http://localhost:{env.OPENTRIPPLANNER_PORT}",
-        ref_datetime=datetime.datetime.strptime(setting.reference_time, "%Y%m%d").replace(
+        ref_datetime=datetime.datetime.strptime(
+            setting.reference_time, "%Y%m%d"
+        ).replace(
             # ToDo: Consider the proper handling of time zone
             tzinfo=datetime.timezone(datetime.timedelta(hours=setting.timezone))
         ),
@@ -219,18 +238,25 @@ async def setup(request: fastapi.Request, setting: query.Setup):
 
     global proc
     command = [
-        "java", "-Xmx5G", "-jar", "/root/otp/otp-2.2.0-shaded.jar", "--build",
-        "--port", str(env.OPENTRIPPLANNER_PORT), "--serve", env.OPENTRIPPLANNER_VOLUME_DIR,
+        "java",
+        "-Xmx5G",
+        "-jar",
+        "/root/otp/otp-2.2.0-shaded.jar",
+        "--build",
+        "--port",
+        str(env.OPENTRIPPLANNER_PORT),
+        "--serve",
+        env.OPENTRIPPLANNER_VOLUME_DIR,
     ]
     proc = subprocess.Popen(command)
     try:
-        await asyncio.wait_for(planner_up(interval=5), timeout=env.OPENTRIPPLANNER_STARTUP_TIMEOUT)
+        await asyncio.wait_for(
+            planner_up(interval=5), timeout=env.OPENTRIPPLANNER_STARTUP_TIMEOUT
+        )
     except asyncio.TimeoutError:
         msg = "Failed to configure; unable to start OTP process."
         raise fastapi.HTTPException(fastapi.status.HTTP_408_REQUEST_TIMEOUT, msg)
-    return {
-        "message": "successfully configured."
-    }
+    return {"message": "successfully configured."}
 
 
 async def planner_up(interval: float):

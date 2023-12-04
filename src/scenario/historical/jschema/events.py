@@ -17,7 +17,9 @@ class EventType(str, Enum):
 
 class Event(BaseModel):
     eventType: EventType
-    source: str | None = None  # not included within API response '/step', and set by broker
+    source: str | None = (
+        None  # not included within API response '/step', and set by broker
+    )
     time: float
 
 

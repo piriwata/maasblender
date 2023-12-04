@@ -38,7 +38,9 @@ def startup():
     class MultilineLogFormatter(logging.Formatter):
         def format(self, record: logging.LogRecord) -> str:
             message = super().format(record)
-            return message.replace("\n", "\t\n")  # indicate continuation line by trailing tab
+            return message.replace(
+                "\n", "\t\n"
+            )  # indicate continuation line by trailing tab
 
     formatter = MultilineLogFormatter(env.log_format)
     handler = logging.StreamHandler()
@@ -55,6 +57,7 @@ def startup():
 @app.exception_handler(Exception)
 def exception_callback(request: fastapi.Request, exc: Exception):
     from fastapi.responses import PlainTextResponse
+
     # omitted traceback here, because uvicorn outputs traceback as ASGI Exception
     logger.error("failed process called at %s", request.url)
     return PlainTextResponse(str(exc), status_code=500)
@@ -70,55 +73,67 @@ async def upload(upload_file: fastapi.UploadFile = fastapi.File(...)):
         file_table.put(upload_file)
     finally:
         upload_file.file.close()
-    return {
-        "message": f"successfully uploaded. {upload_file.filename}"
-    }
+    return {"message": f"successfully uploaded. {upload_file.filename}"}
 
 
 @app.post("/setup", response_model=response.Message)
 async def setup(settings: query.Setup):
     networks: typing.List[MobilityNetwork] = [
-        WalkingNetwork("walking", walking_meters_per_minute=settings.walking_meters_per_minute)
+        WalkingNetwork(
+            "walking", walking_meters_per_minute=settings.walking_meters_per_minute
+        )
     ]
-    start_time = datetime.datetime.strptime(settings.reference_time, '%Y%m%d')
+    start_time = datetime.datetime.strptime(settings.reference_time, "%Y%m%d")
     async with aiohttp.ClientSession() as session:
         for name, setting in settings.networks.items():
             if setting.type == "gbfs":
                 ref = setting.input_files[0]
-                filename, data = await file_table.pop(session, filename=ref.filename, url=ref.fetch_url)
+                filename, data = await file_table.pop(
+                    session, filename=ref.filename, url=ref.fetch_url
+                )
                 with zipfile.ZipFile(io.BytesIO(data)) as archive:
                     if any(info.is_dir() for info in archive.infolist()):
-                        raise fastapi.HTTPException(status_code=fastapi.status.HTTP_400_BAD_REQUEST,
-                                                    detail=f"exists directory in GBFS zip file")
+                        raise fastapi.HTTPException(
+                            status_code=fastapi.status.HTTP_400_BAD_REQUEST,
+                            detail="exists directory in GBFS zip file",
+                        )
                     gbfs_files = GbfsFiles(archive)
                 network = GbfsNetwork(
                     service=name,
                     walking_meters_per_minute=settings.walking_meters_per_minute,
-                    mobility_meters_per_minute=setting.mobility_meters_per_minute
+                    mobility_meters_per_minute=setting.mobility_meters_per_minute,
                 )
                 network.setup(gbfs_files.stations.values())
             elif setting.type == "gtfs":
                 ref = setting.input_files[0]
-                filename, data = await file_table.pop(session, filename=ref.filename, url=ref.fetch_url)
+                filename, data = await file_table.pop(
+                    session, filename=ref.filename, url=ref.fetch_url
+                )
                 with zipfile.ZipFile(io.BytesIO(data)) as archive:
                     if any(info.is_dir() for info in archive.infolist()):
-                        raise fastapi.HTTPException(status_code=fastapi.status.HTTP_400_BAD_REQUEST,
-                                                    detail=f"exists directory in GTFS zip file")
+                        raise fastapi.HTTPException(
+                            status_code=fastapi.status.HTTP_400_BAD_REQUEST,
+                            detail="exists directory in GTFS zip file",
+                        )
                     gtfs_files = GtfsFiles(archive)
                 network = GtfsNetwork(
                     service=name,
                     start_time=start_time,
                     walking_meters_per_minute=settings.walking_meters_per_minute,
-                    max_waiting_bus_time=setting.max_waiting_time
+                    max_waiting_bus_time=setting.max_waiting_time,
                 )
                 network.setup(gtfs_files.trips.values())
             elif setting.type == "gtfs_flex":
                 ref = setting.input_files[0]
-                filename, data = await file_table.pop(session, filename=ref.filename, url=ref.fetch_url)
+                filename, data = await file_table.pop(
+                    session, filename=ref.filename, url=ref.fetch_url
+                )
                 with zipfile.ZipFile(io.BytesIO(data)) as archive:
                     if any(info.is_dir() for info in archive.infolist()):
-                        raise fastapi.HTTPException(status_code=fastapi.status.HTTP_400_BAD_REQUEST,
-                                                    detail=f"exists directory in GTFS FLEX zip file")
+                        raise fastapi.HTTPException(
+                            status_code=fastapi.status.HTTP_400_BAD_REQUEST,
+                            detail="exists directory in GTFS FLEX zip file",
+                        )
                     gtfs_flex_files = GtfsFlexFiles(archive)
                 network = GtfsFlexNetwork(
                     service=name,
@@ -130,11 +145,15 @@ async def setup(settings: query.Setup):
                 network.setup(gtfs_flex_files.trips.values())
             elif setting.type == "maassim":
                 ref = setting.input_files[0]
-                filename, data = await file_table.pop(session, filename=ref.filename, url=ref.fetch_url)
+                filename, data = await file_table.pop(
+                    session, filename=ref.filename, url=ref.fetch_url
+                )
                 with zipfile.ZipFile(io.BytesIO(data)) as archive:
                     if any(info.is_dir() for info in archive.infolist()):
-                        raise fastapi.HTTPException(status_code=fastapi.status.HTTP_400_BAD_REQUEST,
-                                                    detail=f"exists directory in MaaSSim zip file")
+                        raise fastapi.HTTPException(
+                            status_code=fastapi.status.HTTP_400_BAD_REQUEST,
+                            detail="exists directory in MaaSSim zip file",
+                        )
                     maassim_files = MaaSSimFiles(archive)
                 network = MaaSSimNetwork(
                     service=name,
@@ -153,16 +172,14 @@ async def setup(settings: query.Setup):
     global planner
     planner = DirectPathPlanner(networks)
 
-    return {
-        "message": "successfully configured."
-    }
+    return {"message": "successfully configured."}
 
 
 @app.post("/matrix", response_model=response.DistanceMatrix)
 async def meters_for_all_stops_combinations(stops: list[query.LocationSetting]):
-    return planner.meters_for_all_stops_combinations([
-        Location(e.locationId, e.lat, e.lng) for e in stops
-    ])
+    return planner.meters_for_all_stops_combinations(
+        [Location(e.locationId, e.lat, e.lng) for e in stops]
+    )
 
 
 @app.post("/plan", response_model=list[Path])
@@ -170,5 +187,5 @@ async def plan(org: query.LocationSetting, dst: query.LocationSetting, dept: flo
     return planner.plan(
         org=Location(id_=org.locationId, lat=org.lat, lng=org.lng),
         dst=Location(id_=dst.locationId, lat=dst.lat, lng=dst.lng),
-        dept=dept
+        dept=dept,
     )

@@ -5,11 +5,13 @@ from pydantic import BaseSettings
 
 class LogConfiguration(BaseSettings, frozen=True):
     """environment variable for logger"""
+
     DEBUG: bool = False  # debug log flag
 
     @property
     def log_level(self):
         import logging
+
         return logging.DEBUG if self.DEBUG else logging.INFO
 
     @property

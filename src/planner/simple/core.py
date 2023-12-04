@@ -14,7 +14,7 @@ class Location:
     lng: float
 
     @cache
-    def distance(self, other: 'Location'):
+    def distance(self, other: "Location"):
         # Remarks: self.distance(other) may not equal other.distance(self)
         return great_circle([self.lat, self.lng], [other.lat, other.lng]).meters
 
@@ -61,10 +61,14 @@ class WalkingNetwork(MobilityNetwork):
         self.walking_velocity = walking_meters_per_minute
 
     def shortest_path(self, org: Location, dst: Location, dept: float) -> Path:
-        return Path(trips=[Trip(
-            org=org,
-            dst=dst,
-            dept=dept,
-            arrv=dept + org.distance(dst) / self.walking_velocity,
-            service=self.service
-        )])
+        return Path(
+            trips=[
+                Trip(
+                    org=org,
+                    dst=dst,
+                    dept=dept,
+                    arrv=dept + org.distance(dst) / self.walking_velocity,
+                    service=self.service,
+                )
+            ]
+        )

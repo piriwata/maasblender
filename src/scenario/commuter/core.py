@@ -22,6 +22,7 @@ class EventType(str, Enum):
 @dataclass(frozen=True)
 class DemandInfo:
     """parameters for demand event by setting"""
+
     org: Location
     dst: Location
     service: str | None
@@ -30,7 +31,9 @@ class DemandInfo:
     @cached_property
     def reverse(self):
         """return path"""
-        return DemandInfo(org=self.dst, dst=self.org, service=self.service, user_type=self.user_type)
+        return DemandInfo(
+            org=self.dst, dst=self.org, service=self.service, user_type=self.user_type
+        )
 
 
 @dataclass(frozen=True)
@@ -47,13 +50,13 @@ class DemandEvent:
                 "org": {
                     "locationId": info.org.location_id,
                     "lat": info.org.lat,
-                    "lng": info.org.lng
+                    "lng": info.org.lng,
                 },
                 "dst": {
                     "locationId": info.dst.location_id,
                     "lat": info.dst.lat,
-                    "lng": info.dst.lng
+                    "lng": info.dst.lng,
                 },
                 "service": info.service,
-            }
+            },
         }

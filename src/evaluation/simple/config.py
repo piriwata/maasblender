@@ -11,6 +11,7 @@ class LogConfiguration(BaseSettings, frozen=True):
     @property
     def log_level(self):
         import logging
+
         return logging.DEBUG if self.DEBUG else logging.INFO
 
     @property
@@ -24,8 +25,11 @@ class LogConfiguration(BaseSettings, frozen=True):
 
 class Configuration(LogConfiguration, frozen=True):
     """environment variable"""
+
     RESULT_WRITER_QUEUE_SIZE: int = 500  # queue size limit for result writer buffer
-    RESULT_WRITER_OVER_INTERVAL: int = 1  # check interval time (seconds) over queue size limit
+    RESULT_WRITER_OVER_INTERVAL: int = (
+        1  # check interval time (seconds) over queue size limit
+    )
 
 
 env = Configuration()

@@ -37,7 +37,9 @@ class AsyncHttpSeqnoHandler(logging.Handler):
     @classmethod
     async def wait_queue_size(cls, qsize: int, interval: int):
         while cls.get_queue_size() > qsize:
-            logger.warning("wait_queue_size: queue_size=%s > %s", cls.get_queue_size(), qsize)
+            logger.warning(
+                "wait_queue_size: queue_size=%s > %s", cls.get_queue_size(), qsize
+            )
             await asyncio.sleep(interval)
 
     def __init__(self, url: str):
@@ -89,7 +91,7 @@ class AsyncHttpSeqnoHandler(logging.Handler):
             await self._post(data=data)
 
     async def _polling(self):
-        """ Monitor the queue and log output immediately. """
+        """Monitor the queue and log output immediately."""
         while not self._closed:
             await self._send_records()
         # until the queue is empty after close()

@@ -5,11 +5,13 @@ from pydantic import BaseSettings
 
 class LogConfiguration(BaseSettings, frozen=True):
     """environment variable for logger"""
+
     DEBUG: bool = False  # debug log flag
 
     @property
     def log_level(self):
         import logging
+
         return logging.DEBUG if self.DEBUG else logging.INFO
 
     @property
@@ -23,6 +25,7 @@ class LogConfiguration(BaseSettings, frozen=True):
 
 class Configuration(LogConfiguration, frozen=True):
     """environment variable"""
+
     FILE_SIZE_LIMIT: int = 0  # file size limit for each input file
 
 

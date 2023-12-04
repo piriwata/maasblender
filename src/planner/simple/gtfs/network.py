@@ -25,23 +25,23 @@ def add_nodes(graph: nx.DiGraph, stop_times: typing.Sequence[StopTime]):
         graph.add_edge(
             u_of_edge=SchedulePoint(source.stop, source.departure, side="org"),
             v_of_edge=SchedulePoint(target.stop, target.departure, side="org"),
-            weight=(target.departure - source.departure).total_seconds() / 60
+            weight=(target.departure - source.departure).total_seconds() / 60,
         )
         # The "dst" side is interested in arrival times.
         graph.add_edge(
             u_of_edge=SchedulePoint(source.stop, source.departure, side="org"),
             v_of_edge=SchedulePoint(target.stop, target.departure, side="dst"),
-            weight=(target.arrival - source.departure).total_seconds() / 60
+            weight=(target.arrival - source.departure).total_seconds() / 60,
         )
 
 
 class Network(MobilityNetwork):
     def __init__(
-            self,
-            service: str,
-            walking_meters_per_minute: float,
-            start_time: datetime.datetime,
-            max_waiting_bus_time: float = 0
+        self,
+        service: str,
+        walking_meters_per_minute: float,
+        start_time: datetime.datetime,
+        max_waiting_bus_time: float = 0,
     ):
         self.service = service
         self.start_time = start_time
@@ -74,7 +74,7 @@ class Network(MobilityNetwork):
         # ToDo: Allow transfer to another Trip
 
     def _nodes_on_shortest_path(
-            self, graph: nx.DiGraph, org: Location, dst: Location, dept: datetime.datetime
+        self, graph: nx.DiGraph, org: Location, dst: Location, dept: datetime.datetime
     ) -> typing.List[SchedulePoint]:
         # Add temporary nodes, indicating org/ dst location.
         # Nodes on the "org" side are only connected to org location.
@@ -98,7 +98,10 @@ class Network(MobilityNetwork):
                 weight = (node.time - dept).total_seconds() / 60.0
 
                 # Ignore nodes whose waiting time at the stop exceeds "max_waiting_bus_time"
-                if self.max_waiting_bus_time and weight - walking_duration > self.max_waiting_bus_time:
+                if (
+                    self.max_waiting_bus_time
+                    and weight - walking_duration > self.max_waiting_bus_time
+                ):
                     continue
 
                 # weight = waiting time at the stop + walking duration
@@ -112,13 +115,8 @@ class Network(MobilityNetwork):
         # Actually, a single list of nodes in the shortest path.
         try:
             return sorted(
-                nx.all_shortest_paths(
-                    graph,
-                    source=org,
-                    target=dst,
-                    weight="weight"
-                ),
-                key=lambda path: path[1].stop.distance(org)
+                nx.all_shortest_paths(graph, source=org, target=dst, weight="weight"),
+                key=lambda path: path[1].stop.distance(org),
             )[0][1:-1]
         except NetworkXNoPath:
             return []
@@ -127,15 +125,14 @@ class Network(MobilityNetwork):
             graph.remove_nodes_from([org, dst])
 
     def nodes_on_shortest_path(
-            self, org: Location, dst: Location, dept: float
+        self, org: Location, dst: Location, dept: float
     ) -> typing.List[SchedulePoint]:
-
         dept = self.datetime_from(dept)
         # graphs in the other day may contain more appropriate paths
         for graph in [
             self.graph(dept.date() - datetime.timedelta(days=1)),
             self.graph(dept.date()),
-            self.graph(dept.date() + datetime.timedelta(days=1))
+            self.graph(dept.date() + datetime.timedelta(days=1)),
         ]:
             nodes_on_path = self._nodes_on_shortest_path(graph, org, dst, dept)
             if nodes_on_path:
@@ -145,29 +142,53 @@ class Network(MobilityNetwork):
 
     def shortest_path(self, org: Location, dst: Location, dept: float):
         if not (nodes_on_path := self.nodes_on_shortest_path(org, dst, dept)):
-            return Path(trips=[Trip(org=org, dst=dst, dept=dept, arrv=float('inf'), service="not_found")])
+            return Path(
+                trips=[
+                    Trip(
+                        org=org,
+                        dst=dst,
+                        dept=dept,
+                        arrv=float("inf"),
+                        service="not_found",
+                    )
+                ]
+            )
 
-        dept_stop, dept_time = nodes_on_path[0].stop, self.elapsed_until(nodes_on_path[0].time)
-        arrv_stop, arrv_time = nodes_on_path[-1].stop, self.elapsed_until(nodes_on_path[-1].time)
+        dept_stop, dept_time = (
+            nodes_on_path[0].stop,
+            self.elapsed_until(nodes_on_path[0].time),
+        )
+        arrv_stop, arrv_time = (
+            nodes_on_path[-1].stop,
+            self.elapsed_until(nodes_on_path[-1].time),
+        )
 
         return Path(
-            [Trip(
-                org=org,
-                dst=dept_stop,
-                dept=dept,
-                arrv=dept + org.distance(dept_stop) / self.walking_velocity,
-                service="walking"
-            )] + [Trip(
-                org=dept_stop,
-                dst=arrv_stop,
-                dept=dept_time,
-                arrv=arrv_time,
-                service=self.service
-            )] + [Trip(
-                org=arrv_stop,
-                dst=dst,
-                dept=arrv_time,
-                arrv=arrv_time + arrv_stop.distance(dst) / self.walking_velocity,
-                service="walking"
-            )]
+            [
+                Trip(
+                    org=org,
+                    dst=dept_stop,
+                    dept=dept,
+                    arrv=dept + org.distance(dept_stop) / self.walking_velocity,
+                    service="walking",
+                )
+            ]
+            + [
+                Trip(
+                    org=dept_stop,
+                    dst=arrv_stop,
+                    dept=dept_time,
+                    arrv=arrv_time,
+                    service=self.service,
+                )
+            ]
+            + [
+                Trip(
+                    org=arrv_stop,
+                    dst=dst,
+                    dept=arrv_time,
+                    arrv=arrv_time + arrv_stop.distance(dst) / self.walking_velocity,
+                    service="walking",
+                )
+            ]
         )

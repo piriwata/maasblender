@@ -22,11 +22,11 @@ async def error_log(response: aiohttp.ClientResponse, logger_: LoggerType = logg
             case _:
                 text = pformat(content, width=200)
         logger_.error("%s:\n%s", message, text)
-    except:
+    except Exception:
         try:
             text = await response.text()
             logger_.error("%s: %s", message, text)
-        except:  # ignore error
+        except Exception:  # ignore error
             logger_.error("%s: cannot read response", message)
     return message
 
@@ -57,7 +57,11 @@ async def check_response(response: aiohttp.ClientResponse, *, limit=0):
 def check_upload_filename(upload_file: fastapi.UploadFile):
     filename = urllib.parse.unquote(upload_file.filename)
     if filename != upload_file.filename:
-        logger.warning("upload file with urlencoded filename: %s, raw: %s", filename, upload_file.filename)
+        logger.warning(
+            "upload file with urlencoded filename: %s, raw: %s",
+            filename,
+            upload_file.filename,
+        )
     return filename
 
 
@@ -81,15 +85,19 @@ class FileManager:
             data = await resp.read()
             return resp.content_disposition.filename, data
 
-    async def pop(self, session: aiohttp.ClientSession, *, url: str = None, filename: str = None) -> tuple[str, bytes]:
+    async def pop(
+        self, session: aiohttp.ClientSession, *, url: str = None, filename: str = None
+    ) -> tuple[str, bytes]:
         if url:
             return await self._fetch(session, url)
         elif filename:
             data = self.table.pop(filename)
             return filename, data
         else:
-            raise fastapi.HTTPException(status_code=fastapi.status.HTTP_400_BAD_REQUEST,
-                                        detail=f"exists directory in GBFS zip file")
+            raise fastapi.HTTPException(
+                status_code=fastapi.status.HTTP_400_BAD_REQUEST,
+                detail="exists directory in GBFS zip file",
+            )
 
     def clear(self):
         self.table.clear()

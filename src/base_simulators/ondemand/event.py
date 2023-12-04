@@ -13,20 +13,17 @@ class TriggerEvent:
         self.env = env
 
     def dumps(self) -> typing.Dict:
-        return {
-            "eventType": self.event_type,
-            "time": self.env.now
-        }
+        return {"eventType": self.event_type, "time": self.env.now}
 
 
 class ReservedEvent(TriggerEvent):
     def __init__(
-            self,
-            env: Environment,
-            user: User,
-            mobility: Mobility,
-            departure: datetime.datetime,
-            arrival: datetime.datetime
+        self,
+        env: Environment,
+        user: User,
+        mobility: Mobility,
+        departure: datetime.datetime,
+        arrival: datetime.datetime,
     ):
         super().__init__(env, EventType.RESERVED)
         self.user = user
@@ -40,20 +37,22 @@ class ReservedEvent(TriggerEvent):
                 "success": True,
                 "userId": self.user.user_id,
                 "mobilityId": self.mobility.mobility_id if self.mobility else None,
-                "route": [{
-                    "org": {
-                        "locationId": self.user.org.stop_id,
-                        "lat": self.user.org.lat,
-                        "lng": self.user.org.lng,
-                    },
-                    "dst": {
-                        "locationId": self.user.dst.stop_id,
-                        "lat": self.user.dst.lat,
-                        "lng": self.user.dst.lng,
-                    },
-                    "dept": self.env.elapsed(self.departure),
-                    "arrv": self.env.elapsed(self.arrival)
-                }],
+                "route": [
+                    {
+                        "org": {
+                            "locationId": self.user.org.stop_id,
+                            "lat": self.user.org.lat,
+                            "lng": self.user.org.lng,
+                        },
+                        "dst": {
+                            "locationId": self.user.dst.stop_id,
+                            "lat": self.user.dst.lat,
+                            "lng": self.user.dst.lng,
+                        },
+                        "dept": self.env.elapsed(self.departure),
+                        "arrv": self.env.elapsed(self.arrival),
+                    }
+                ],
             }
         }
 
@@ -64,16 +63,17 @@ class ReserveFailedEvent(TriggerEvent):
         self.user_id = user_id
 
     def dumps(self):
-        return super().dumps() | {
-            "details": {
-                "success": False,
-                "userId": self.user_id
-            }
-        }
+        return super().dumps() | {"details": {"success": False, "userId": self.user_id}}
 
 
 class DepartedArrivedEvent(TriggerEvent):
-    def __init__(self, env: Environment, event_type: EventType, mobility: Mobility, user: User = None):
+    def __init__(
+        self,
+        env: Environment,
+        event_type: EventType,
+        mobility: Mobility,
+        user: User = None,
+    ):
         super().__init__(env, event_type)
         self.user = user
         self.mobility = mobility
@@ -87,28 +87,18 @@ class DepartedArrivedEvent(TriggerEvent):
                     "locationId": self.mobility.stop.stop_id,
                     "lat": self.mobility.stop.lat,
                     "lng": self.mobility.stop.lng,
-                }
+                },
             }
         }
 
 
 class DepartedEvent(DepartedArrivedEvent):
-    def __init__(
-            self,
-            env: Environment,
-            mobility: Mobility,
-            user: User = None
-    ):
+    def __init__(self, env: Environment, mobility: Mobility, user: User = None):
         super().__init__(env, EventType.DEPARTED, mobility, user)
 
 
 class ArrivedEvent(DepartedArrivedEvent):
-    def __init__(
-            self,
-            env: Environment,
-            mobility: Mobility,
-            user: User = None
-    ):
+    def __init__(self, env: Environment, mobility: Mobility, user: User = None):
         super().__init__(env, EventType.ARRIVED, mobility, user)
 
 
@@ -134,36 +124,27 @@ class EventQueue:
         self._events.append(event.dumps())
 
     def departed(self, mobility: Mobility, user: User = None):
-        self._enqueue(DepartedEvent(
-            env=self._env,
-            mobility=mobility,
-            user=user
-        ))
+        self._enqueue(DepartedEvent(env=self._env, mobility=mobility, user=user))
 
     def arrived(self, mobility: Mobility, user: User = None):
-        self._enqueue(ArrivedEvent(
-            env=self._env,
-            mobility=mobility,
-            user=user
-        ))
+        self._enqueue(ArrivedEvent(env=self._env, mobility=mobility, user=user))
 
     def reserved(
         self,
         user: User,
         mobility: Mobility,
         departure: datetime.datetime,
-        arrival: datetime.datetime
+        arrival: datetime.datetime,
     ):
-        self._enqueue(ReservedEvent(
-            env=self._env,
-            user=user,
-            mobility=mobility,
-            departure=departure,
-            arrival=arrival
-        ))
+        self._enqueue(
+            ReservedEvent(
+                env=self._env,
+                user=user,
+                mobility=mobility,
+                departure=departure,
+                arrival=arrival,
+            )
+        )
 
     def reserve_failed(self, user_id: str):
-        self._enqueue(ReserveFailedEvent(
-            env=self._env,
-            user_id=user_id
-        ))
+        self._enqueue(ReserveFailedEvent(env=self._env, user_id=user_id))

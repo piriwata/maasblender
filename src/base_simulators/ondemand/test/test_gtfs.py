@@ -15,28 +15,32 @@ class ReadFlexTestCase(unittest.TestCase):
                 "stop_id": "S001",
                 "stop_name": "Stop1",
                 "stop_lat": 154.1,
-                "stop_lon": 27.1
-            }, {
+                "stop_lon": 27.1,
+            },
+            {
                 "stop_id": "S002",
                 "stop_name": "Stop2",
                 "stop_lat": 154.2,
-                "stop_lon": 27.4
-            }, {
+                "stop_lon": 27.4,
+            },
+            {
                 "stop_id": "S003",
                 "stop_name": "Stop3",
                 "stop_lat": 154.3,
-                "stop_lon": 27.9
-            }
+                "stop_lon": 27.9,
+            },
         ]
         self.location_groups = [  # location_groups.txt
             {
                 "location_group_id": "G001",
                 "location_id": "S001",
-                "location_group_name": "Group1"
-            }, {
+                "location_group_name": "Group1",
+            },
+            {
                 "location_group_id": "G001",
                 "location_id": "S002",
-            }, {
+            },
+            {
                 "location_group_id": "G001",
                 "location_id": "S003",
             },
@@ -52,7 +56,7 @@ class ReadFlexTestCase(unittest.TestCase):
                 "saturday": "1",
                 "sunday": "1",
                 "start_date": "20200101",
-                "end_date": "20241231"
+                "end_date": "20241231",
             },
             {
                 "service_id": "E002",
@@ -64,37 +68,40 @@ class ReadFlexTestCase(unittest.TestCase):
                 "saturday": "0",
                 "sunday": "0",
                 "start_date": "20220101",
-                "end_date": "20221231"
-            }
+                "end_date": "20221231",
+            },
         ]
         self.calender_dates = [  # calender_dates.txt
             {
-                "service_id": "E001", "date": "20200102", "exception_type": "0",
-            }, {
-                "service_id": "E002", "date": "20220102", "exception_type": "1"
-            }
+                "service_id": "E001",
+                "date": "20200102",
+                "exception_type": "0",
+            },
+            {"service_id": "E002", "date": "20220102", "exception_type": "1"},
         ]
         self.stop_times = [  # stop_times.txt
             {
                 "trip_id": "T001",
                 "stop_id": "G001",
                 "start_pickup_dropoff_window": "7:00:00",
-                "end_pickup_dropoff_window": "22:00:00"
-            }, {
+                "end_pickup_dropoff_window": "22:00:00",
+            },
+            {
                 "trip_id": "T002",
                 "stop_id": "G001",
                 "start_pickup_dropoff_window": "9:00:00",
-                "end_pickup_dropoff_window": "13:00:00"
-            }
+                "end_pickup_dropoff_window": "13:00:00",
+            },
         ]
         self.trips = [  # trips.txt
             {
                 "trip_id": "T001",
                 "service_id": "E001",
-            }, {
+            },
+            {
                 "trip_id": "T002",
                 "service_id": "E002",
-            }
+            },
         ]
 
     def test_successfully_parse_stops(self):
@@ -102,24 +109,9 @@ class ReadFlexTestCase(unittest.TestCase):
             self.reader._parse_stop(row)
 
         expected = {
-            "S001": Stop(
-                stop_id="S001",
-                name="Stop1",
-                lat=154.1,
-                lng=27.1
-            ),
-            "S002": Stop(
-                stop_id="S002",
-                name="Stop2",
-                lat=154.2,
-                lng=27.4
-            ),
-            "S003": Stop(
-                stop_id="S003",
-                name="Stop3",
-                lat=154.3,
-                lng=27.9
-            )
+            "S001": Stop(stop_id="S001", name="Stop1", lat=154.1, lng=27.1),
+            "S002": Stop(stop_id="S002", name="Stop2", lat=154.2, lng=27.4),
+            "S003": Stop(stop_id="S003", name="Stop3", lat=154.3, lng=27.9),
         }
         self.assertEqual(expected, self.reader.stops)
 
@@ -134,25 +126,10 @@ class ReadFlexTestCase(unittest.TestCase):
                 group_id="G001",
                 name="Group1",
                 locations=[
-                    Stop(
-                        stop_id="S001",
-                        name="Stop1",
-                        lat=154.1,
-                        lng=27.1
-                    ),
-                    Stop(
-                        stop_id="S002",
-                        name="Stop2",
-                        lat=154.2,
-                        lng=27.4
-                    ),
-                    Stop(
-                        stop_id="S003",
-                        name="Stop3",
-                        lat=154.3,
-                        lng=27.9
-                    )
-                ]
+                    Stop(stop_id="S001", name="Stop1", lat=154.1, lng=27.1),
+                    Stop(stop_id="S002", name="Stop2", lat=154.2, lng=27.4),
+                    Stop(stop_id="S003", name="Stop3", lat=154.3, lng=27.9),
+                ],
             )
         }
         self.assertEqual(len(expected), len(self.reader.location_groups))
@@ -174,12 +151,12 @@ class ReadFlexTestCase(unittest.TestCase):
             "T001": StopTime(
                 group=self.reader.location_groups["G001"],
                 start_window=datetime.timedelta(hours=7),
-                end_window=datetime.timedelta(hours=22)
+                end_window=datetime.timedelta(hours=22),
             ),
             "T002": StopTime(
                 group=self.reader.location_groups["G001"],
                 start_window=datetime.timedelta(hours=9),
-                end_window=datetime.timedelta(hours=13)
+                end_window=datetime.timedelta(hours=13),
             ),
         }
         self.assertEqual(expected, self.reader._stop_times)
@@ -196,14 +173,14 @@ class ReadFlexTestCase(unittest.TestCase):
                 thursday=True,
                 friday=True,
                 saturday=True,
-                sunday=True
+                sunday=True,
             ),
             "E002": Service(
                 start_date=datetime.date(year=2022, month=1, day=1),
                 end_date=datetime.date(year=2022, month=12, day=31),
                 tuesday=True,
-                wednesday=True
-            )
+                wednesday=True,
+            ),
         }
         self.assertEqual(len(expected), len(self.reader._services))
         for expected_service_id, expected_service in expected.items():
@@ -226,23 +203,31 @@ class ReadFlexTestCase(unittest.TestCase):
                 thursday=True,
                 friday=True,
                 saturday=True,
-                sunday=True
+                sunday=True,
             ),
             "E002": Service(
                 start_date=datetime.date(year=2022, month=1, day=1),
                 end_date=datetime.date(year=2022, month=12, day=31),
                 tuesday=True,
-                wednesday=True
-            )
+                wednesday=True,
+            ),
         }
 
-        expected["E001"].append_exception(datetime.date(year=2020, month=1, day=2), added=False)
-        expected["E002"].append_exception(datetime.date(year=2022, month=1, day=2), added=True)
+        expected["E001"].append_exception(
+            datetime.date(year=2020, month=1, day=2), added=False
+        )
+        expected["E002"].append_exception(
+            datetime.date(year=2022, month=1, day=2), added=True
+        )
 
         for expected_service_id, expected_service in expected.items():
             actual_service = self.reader._services[expected_service_id]
-            self.assertEqual(expected_service._added_exceptions, actual_service._added_exceptions)
-            self.assertEqual(expected_service._removed_exceptions, actual_service._removed_exceptions)
+            self.assertEqual(
+                expected_service._added_exceptions, actual_service._added_exceptions
+            )
+            self.assertEqual(
+                expected_service._removed_exceptions, actual_service._removed_exceptions
+            )
 
     def test_successfully_parse_trip(self):
         for row in self.stops:
@@ -261,11 +246,11 @@ class ReadFlexTestCase(unittest.TestCase):
         expected = {
             "T001": Trip(
                 service=self.reader._services["E001"],
-                stop_time=self.reader._stop_times["T001"]
+                stop_time=self.reader._stop_times["T001"],
             ),
             "T002": Trip(
                 service=self.reader._services["E002"],
-                stop_time=self.reader._stop_times["T002"]
+                stop_time=self.reader._stop_times["T002"],
             ),
         }
         actual = self.reader.trips
@@ -276,5 +261,5 @@ class ReadFlexTestCase(unittest.TestCase):
             self.assertEqual(expected_trip.stop_time, actual_trip.stop_time)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

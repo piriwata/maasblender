@@ -16,18 +16,18 @@ class Event:
         self.event_type = event_type
 
     def dumps(self) -> typing.Dict:
-        return {
-            "eventType": self.event_type
-        }
+        return {"eventType": self.event_type}
 
 
 class ReservedEvent(Event):
     def __init__(
-            self,
-            user_id: str,
-            mobility: Mobility,
-            org: Location, dst: Location,
-            dept: float, arrv: float,
+        self,
+        user_id: str,
+        mobility: Mobility,
+        org: Location,
+        dst: Location,
+        dept: float,
+        arrv: float,
     ):
         super().__init__(EventType.RESERVED)
         self.user_id = user_id
@@ -43,21 +43,24 @@ class ReservedEvent(Event):
                 "userId": self.user_id,
                 "mobilityId": self.mobility.id,
                 "success": True,
-                "route": [{
-                    "org": {
-                        "locationId": self.org.location_id,
-                        "lat": self.org.lat,
-                        "lng": self.org.lng
-                    },
-                    "dst": {
-                        "locationId": self.dst.location_id,
-                        "lat": self.dst.lat,
-                        "lng": self.dst.lng
-                    },
-                    "dept": self.dept,
-                    "arrv": self.arrv
-                }]
-            }}
+                "route": [
+                    {
+                        "org": {
+                            "locationId": self.org.location_id,
+                            "lat": self.org.lat,
+                            "lng": self.org.lng,
+                        },
+                        "dst": {
+                            "locationId": self.dst.location_id,
+                            "lat": self.dst.lat,
+                            "lng": self.dst.lng,
+                        },
+                        "dept": self.dept,
+                        "arrv": self.arrv,
+                    }
+                ],
+            }
+        }
 
 
 class ReserveFailedEvent(Event):
@@ -66,17 +69,17 @@ class ReserveFailedEvent(Event):
         self.user_id = user_id
 
     def dumps(self):
-        return super().dumps() | {
-            "details": {
-                "success": False,
-                "userId": self.user_id
-            }
-        }
+        return super().dumps() | {"details": {"success": False, "userId": self.user_id}}
 
 
 class DepartedArrivedEvent(Event):
-    def __init__(self, event_type: typing.Union[EventType.DEPARTED, EventType.ARRIVED],
-                 mobility: Mobility, location: Location, user_id: str = None):
+    def __init__(
+        self,
+        event_type: typing.Union[EventType.DEPARTED, EventType.ARRIVED],
+        mobility: Mobility,
+        location: Location,
+        user_id: str = None,
+    ):
         super().__init__(event_type=event_type)
         self.user_id = user_id
         self.mobility = mobility
@@ -90,9 +93,10 @@ class DepartedArrivedEvent(Event):
                 "location": {
                     "locationId": self.location.location_id,
                     "lat": self.location.lat,
-                    "lng": self.location.lng
-                }
-            }}
+                    "lng": self.location.lng,
+                },
+            }
+        }
 
 
 class DepartedEvent(DepartedArrivedEvent):
