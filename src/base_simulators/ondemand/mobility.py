@@ -10,8 +10,8 @@ from datetime import datetime, timedelta
 import itertools
 import functools
 
-from .core import Trip, Stop, Network, User, Mobility
-from .event import EventQueue
+from core import Trip, Stop, Network, User, Mobility
+from event import EventQueue
 
 
 logger = logging.getLogger(__name__)
