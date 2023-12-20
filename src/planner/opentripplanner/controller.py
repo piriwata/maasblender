@@ -18,7 +18,7 @@ import fastapi
 
 import httputil
 from config import env
-from core import Location, Path
+from core import Location
 from jschema import query, response
 from route_planner import OpenTripPlanner
 

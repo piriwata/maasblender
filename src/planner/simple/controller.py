@@ -11,7 +11,7 @@ import fastapi
 
 import httputil
 from config import env
-from core import Location, MobilityNetwork, WalkingNetwork, Path
+from core import Location, MobilityNetwork, WalkingNetwork
 from gbfs.network import Network as GbfsNetwork
 from gbfs.reader import FilesReader as GbfsFiles
 from gtfs.network import Network as GtfsNetwork
