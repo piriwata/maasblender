@@ -44,7 +44,7 @@ class Planner:
 
     async def _get(self, method: str, params: typing.Mapping = None):
         async with self._session.get(
-            self._endpoint + "/" + method,
+            self._endpoint + method,
             params=params if params else {},
         ) as response:
             await httputil.check_response(response)
@@ -54,7 +54,7 @@ class Planner:
         self, method: str, data: typing.Mapping = None, params: typing.Mapping = None
     ):
         async with self._session.post(
-            self._endpoint + "/" + method,
+            self._endpoint + method,
             json=data if data else {},
             params=params if params else {},
         ) as response:

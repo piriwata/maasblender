@@ -18,8 +18,6 @@ from gtfs.network import Network as GtfsNetwork
 from gtfs.reader import FilesReader as GtfsFiles
 from gtfs_flex.network import Network as GtfsFlexNetwork
 from gtfs_flex.reader import FilesReader as GtfsFlexFiles
-from maassim.network import Network as MaaSSimNetwork
-from maassim.reader import FilesReader as MaaSSimFiles
 from jschema import query, response
 from route_planner import Planner, DirectPathPlanner
 
@@ -143,28 +141,7 @@ async def setup(settings: query.Setup):
                     expected_waiting_time=setting.expected_waiting_time,
                 )
                 network.setup(gtfs_flex_files.trips.values())
-            elif setting.type == "maassim":
-                ref = setting.input_files[0]
-                filename, data = await file_table.pop(
-                    session, filename=ref.filename, url=ref.fetch_url
-                )
-                with zipfile.ZipFile(io.BytesIO(data)) as archive:
-                    if any(info.is_dir() for info in archive.infolist()):
-                        raise fastapi.HTTPException(
-                            status_code=fastapi.status.HTTP_400_BAD_REQUEST,
-                            detail="exists directory in MaaSSim zip file",
-                        )
-                    maassim_files = MaaSSimFiles(archive)
-                network = MaaSSimNetwork(
-                    service=name,
-                    start_time=start_time,
-                    walking_meters_per_minute=settings.walking_meters_per_minute,
-                    mobility_meters_per_minute=setting.mobility_meters_per_minute,
-                    expected_waiting_time=setting.expected_waiting_time,
-                    start_window=setting.start_window,
-                    end_window=setting.end_window,
-                )
-                network.setup(maassim_files.G, maassim_files.params)
+
             else:
                 raise NotImplementedError(f"{setting.type} is not implemented.")
             networks.append(network)
@@ -182,7 +159,9 @@ async def meters_for_all_stops_combinations(stops: list[query.LocationSetting]):
     )
 
 
-@app.post("/plan", response_model=list[Path])
+# `response_model=list[Path]` does not work
+# @app.post("/plan", response_model=list[Path])
+@app.post("/plan")
 async def plan(org: query.LocationSetting, dst: query.LocationSetting, dept: float):
     return planner.plan(
         org=Location(id_=org.locationId, lat=org.lat, lng=org.lng),

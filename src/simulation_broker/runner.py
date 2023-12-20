@@ -19,7 +19,7 @@ class HttpRunner(Runner):
 
     async def _get(self, method: str, params: typing.Mapping = None):
         async with self._session.get(
-            self._endpoint + "/" + method,
+            self._endpoint + method,
             params=params if params else {},
         ) as response:
             await httputil.check_response(response)
@@ -29,7 +29,7 @@ class HttpRunner(Runner):
         self, method: str, data: typing.Any = None, params: typing.Mapping = None
     ):
         async with self._session.post(
-            self._endpoint + "/" + method,
+            self._endpoint + method,
             json=data,
             params=params if params else {},
         ) as response:
