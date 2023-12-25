@@ -1,0 +1,78 @@
+{
+  "broker": {
+    "type": "broker",
+    "details": {
+      "writer": {}
+    }
+  },
+  "walking": {
+    "type": "http",
+    "endpoint": "http://walking",
+    "details": {}
+  },
+  "scenario": {
+    "type": "http",
+    "endpoint": "http://scenario",
+    "details": {
+      "trips":[
+        {
+          "org": {
+            "locationId": "toyama_station",
+            "lat": 36.7014265,
+            "lng": 137.210879
+          },
+          "dst": {
+            "locationId": "toyama_court",
+            "lat": 36.6835921,
+            "lng": 137.2044729
+          },
+          "dept": 540.0
+        }
+      ],
+      "userIDFormat": "U_%d",
+      "offset_time": 0
+    }
+  },
+  "gtfs": {
+    "type": "http",
+    "endpoint": "http://scheduled",
+    "details": {
+      "reference_time": "20230404",
+      "input_files": [
+        {
+          "filename": "gtfs.zip"
+        }
+      ],
+      "mobility": {
+        "capacity": 20
+      }
+    }
+  },
+  "planner": {
+    "type": "planner",
+    "endpoint": "http://planner",
+    "details": {
+      "networks": {
+        "gtfs": {
+          "type": "gtfs",
+          "input_files": [
+            {
+              "filename": "gtfs.zip"
+            }
+          ]
+        }
+      },
+      "reference_time": "20230404",
+      "walking_meters_per_minute": 80.0
+    }
+  },
+  "user": {
+    "type": "http",
+    "endpoint": "http://user_model",
+    "details": {
+      "planner": {
+        "endpoint":  "http://planner/plan"
+      }
+    }
+  }
+}

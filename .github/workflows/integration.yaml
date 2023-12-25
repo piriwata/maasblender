@@ -1,0 +1,116 @@
+name: Integration
+
+on:
+  push:
+    branches:
+      - "main"
+  pull_request:
+    branches:
+      - "main"
+
+jobs:
+  integration:
+    name: Run integration tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ci/simple-case
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run docker compose up
+        run: docker compose up -d
+
+      - name: Wait for service to be ready
+        run: sleep 10
+
+      - name: Setup the scheduled simulation
+        run: |
+          response=$(curl -sS -X POST -F upload_file=@./gtfs.zip http://localhost:3001/upload)
+          message=$(echo $response | jq -r '.message')
+          if [ "$message" = "successfully uploaded. gtfs.zip" ]; then
+            echo "Validation passed: $message"
+          else
+            echo "Validation failed: $response"
+            exit 1
+          fi
+
+      - name: Setup the simple planner
+        run: |
+          response=$(curl -sS -X POST -F upload_file=@./gtfs.zip http://localhost:3002/upload)
+          message=$(echo $response | jq -r '.message')
+          if [ "$message" = "successfully uploaded. gtfs.zip" ]; then
+            echo "Validation passed: $message"
+          else
+            echo "Validation failed: $response"
+            exit 1
+          fi
+
+      - name: Setup the broker
+        run: |
+          response=$(curl -sS -X POST -H "Content-Type: application/json" -d @./broker_setup.json http://localhost:3000/setup)
+          message=$(echo $response | jq -r '.message')
+          if [ "$message" = "successfully configured." ]; then
+            echo "Validation passed: $message"
+          else
+            echo "Validation failed: $response"
+            exit 1
+          fi
+
+      - name: Start the simulation
+        run: |
+          response=$(curl -sS -X POST http://localhost:3000/start)
+          message=$(echo $response | jq -r '.message')
+          if [ "$message" = "successfully started." ]; then
+            echo "Validation passed: $message"
+          else
+            echo "Validation failed: $response"
+            exit 1
+          fi
+
+      - name: Run the simulation
+        run: |
+          response=$(curl -sS -X POST -H "Content-Type: application/json" http://localhost:3000/run?until=2880)
+          message=$(echo $response | jq -r '.message')
+          if [ "$message" = "successfully run." ]; then
+            echo "Validation passed: $message"
+          else
+            echo "Validation failed: $response"
+            exit 1
+          fi
+
+      - name: Wait
+        run: sleep 10
+
+      - name: Verify the simulation is running successfully
+        run: |
+          response=$(curl -s http://localhost:3000/peek)
+          success=$(echo $response | jq '.success')
+          if [ "$success" = "true" ]; then
+            echo "Validation passed: success"
+          else
+            echo "Validation failed: success is not true"
+            exit 1
+          fi
+
+      - name: Finish the simulation
+        run: |
+          response=$(curl -s -X POST http://localhost:3000/finish)
+          message=$(echo $response | jq -r '.message')
+          if [ "$message" = "successfully finished." ]; then
+            echo "Validation passed: $message"
+          else
+            echo "Validation failed: $response"
+            exit 1
+          fi
+
+      - name: Get the result and validate
+        run: |
+          response=$(curl -sS http://localhost:3000/events)
+          line_count=$(echo "$response" | wc -l)
+          if [ "$line_count" -ge 200 ]; then
+            echo "Validation passed: Line count is $line_count"
+          else
+            echo "Validation failed: Line count is only $line_count"
+            exit 1
+          fi

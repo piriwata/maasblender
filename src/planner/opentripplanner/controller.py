@@ -18,7 +18,7 @@ import fastapi
 
 import httputil
 from config import env
-from core import Location, Path
+from core import Location
 from jschema import query, response
 from route_planner import OpenTripPlanner
 
@@ -274,7 +274,9 @@ async def meters_for_all_stops_combinations(stops: list[str]):
     return await planner.meters_for_all_stops_combinations(stops, planner.ref_datetime)
 
 
-@app.post("/plan", response_model=list[Path])
+# `response_model=list[Path]` does not work
+# @app.post("/plan", response_model=list[Path])
+@app.post("/plan")
 async def plan(org: query.LocationSetting, dst: query.LocationSetting, dept: float):
     org = Location(id_=org.locationId, lat=org.lat, lng=org.lng)
     dst = Location(id_=dst.locationId, lat=dst.lat, lng=dst.lng)
