@@ -1,14 +1,19 @@
-FROM python:3.10-slim
-USER root
-RUN apt-get -y update
+FROM python:3.11-slim
 
-WORKDIR /home
+RUN apt-get update && apt-get install -y \
+    git \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt ./
 ENV PIP_ROOT_USER_ACTION=ignore
 RUN pip install --upgrade pip \
  && pip install --upgrade setuptools \
  && pip install -r requirements.txt
 
+USER nobody
+
+WORKDIR /app
 COPY . .
 
 ENTRYPOINT ["uvicorn", "controller:app"]
