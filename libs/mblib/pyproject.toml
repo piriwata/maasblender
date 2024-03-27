@@ -1,0 +1,7 @@
+[project]
+name = "mblib"
+version = "0.1"
+description = "MaaS Blender Common Library"
+requires-python = ">=3.11"
+license = {text = "Apache-2.0"}
+authors = [{name = "TOYOTA MOTOR CORPORATION"}]
