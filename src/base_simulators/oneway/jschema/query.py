@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 from pydantic import BaseModel, AnyHttpUrl, model_validator
 
-from jschema.events import ReserveEvent, DepartEvent, Event as OtherEvent
+from mblib.jschema.events import ReserveEvent, DepartEvent
 
 
 class InputFilesItem(BaseModel):
@@ -29,4 +29,4 @@ class Setup(BaseModel):
     operator_capacity: int = 4
 
 
-TriggeredEvent = ReserveEvent | DepartEvent | OtherEvent
+TriggeredEvent = ReserveEvent | DepartEvent

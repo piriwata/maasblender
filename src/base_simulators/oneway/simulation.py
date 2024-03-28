@@ -113,19 +113,19 @@ class Simulation:
         dst = self.stations[dst]
         return org.any_reservable_mobility and dst.any_reservable_dock
 
-    def reserve(self, user_id: str, org: str, dst: str, dept: float):
+    def reserve(self, user_id: str, demand_id: str, org: str, dst: str, dept: float):
         self.env.process(
-            self._reserve(user_id, self.stations[org], self.stations[dst], dept)
+            self._reserve(user_id, demand_id, self.stations[org], self.stations[dst], dept)
         )
 
-    def depart(self, user_id: str):
-        self.env.process(self._depart(user_id))
+    def depart(self, user_id: str, demand_id: str):
+        self.env.process(self._depart(user_id, demand_id))
 
-    def _reserve(self, user_id: str, org: Station, dst: Station, dept: float):
+    def _reserve(self, user_id: str, demand_id: str, org: Station, dst: Station, dept: float):
         yield self.env.timeout(0)
         assert user_id not in self._reservations, user_id
         if not self.reservable(org.location_id, dst.location_id):
-            self.queue.enqueue(ReserveFailedEvent(user_id=user_id))
+            self.queue.enqueue(ReserveFailedEvent(user_id=user_id, demand_id=demand_id))
             return
         mobility = org.reserve_mobility()
         dst.reserve_dock(mobility)
@@ -133,6 +133,7 @@ class Simulation:
         self.queue.enqueue(
             ReservedEvent(
                 user_id=user_id,
+                demand_id=demand_id,
                 mobility=mobility,
                 org=org,
                 dst=dst,
@@ -141,7 +142,7 @@ class Simulation:
             )
         )
 
-    def _depart(self, user_id: str):
+    def _depart(self, user_id: str, demand_id: str):
         yield self.env.timeout(0)
         # ToDo: Since the same user may make multiple reservations,
         #  it is better to use the identifier of the reservation rather than the user ID.
@@ -151,7 +152,10 @@ class Simulation:
         reservation.org.pick(reservation.mobility)
         self.queue.enqueue(
             DepartedEvent(
-                user_id=user_id, mobility=reservation.mobility, location=reservation.org
+                user_id=user_id,
+                demand_id=demand_id,
+                mobility=reservation.mobility,
+                location=reservation.org,
             )
         )
 
@@ -162,6 +166,9 @@ class Simulation:
         reservation.dst.park(reservation.mobility)
         self.queue.enqueue(
             ArrivedEvent(
-                user_id=user_id, mobility=reservation.mobility, location=reservation.dst
+                user_id=user_id,
+                demand_id=demand_id,
+                mobility=reservation.mobility,
+                location=reservation.dst,
             )
         )

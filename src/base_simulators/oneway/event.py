@@ -23,6 +23,7 @@ class ReservedEvent(Event):
     def __init__(
         self,
         user_id: str,
+        demand_id: str,
         mobility: Mobility,
         org: Location,
         dst: Location,
@@ -31,6 +32,7 @@ class ReservedEvent(Event):
     ):
         super().__init__(EventType.RESERVED)
         self.user_id = user_id
+        self.demand_id = demand_id
         self.mobility = mobility
         self.org = org
         self.dst = dst
@@ -41,6 +43,7 @@ class ReservedEvent(Event):
         return super().dumps() | {
             "details": {
                 "userId": self.user_id,
+                "demandId": self.demand_id,
                 "mobilityId": self.mobility.id,
                 "success": True,
                 "route": [
@@ -64,12 +67,13 @@ class ReservedEvent(Event):
 
 
 class ReserveFailedEvent(Event):
-    def __init__(self, user_id: str):
+    def __init__(self, user_id: str, demand_id: str):
         super().__init__(EventType.RESERVED)
         self.user_id = user_id
+        self.demand_id = demand_id
 
     def dumps(self):
-        return super().dumps() | {"details": {"success": False, "userId": self.user_id}}
+        return super().dumps() | {"details": {"success": False, "userId": self.user_id, "demandId": self.demand_id}}
 
 
 class DepartedArrivedEvent(Event):
@@ -79,9 +83,11 @@ class DepartedArrivedEvent(Event):
         mobility: Mobility,
         location: Location,
         user_id: str = None,
+        demand_id: str = None,
     ):
         super().__init__(event_type=event_type)
         self.user_id = user_id
+        self.demand_id = demand_id
         self.mobility = mobility
         self.location = location
 
@@ -89,6 +95,7 @@ class DepartedArrivedEvent(Event):
         return super().dumps() | {
             "details": {
                 "userId": self.user_id,
+                "demandId": self.demand_id,
                 "mobilityId": self.mobility.id,
                 "location": {
                     "locationId": self.location.location_id,
@@ -100,13 +107,13 @@ class DepartedArrivedEvent(Event):
 
 
 class DepartedEvent(DepartedArrivedEvent):
-    def __init__(self, mobility: Mobility, location: Location, user_id: str = None):
-        super().__init__(EventType.DEPARTED, mobility, location, user_id)
+    def __init__(self, mobility: Mobility, location: Location, user_id: str = None, demand_id: str = None):
+        super().__init__(EventType.DEPARTED, mobility, location, user_id, demand_id)
 
 
 class ArrivedEvent(DepartedArrivedEvent):
-    def __init__(self, mobility: Mobility, location: Location, user_id: str = None):
-        super().__init__(EventType.ARRIVED, mobility, location, user_id)
+    def __init__(self, mobility: Mobility, location: Location, user_id: str = None, demand_id: str = None):
+        super().__init__(EventType.ARRIVED, mobility, location, user_id, demand_id)
 
 
 class EventQueue:
