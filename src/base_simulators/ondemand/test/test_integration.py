@@ -83,6 +83,7 @@ class OneMobilityTestCase(unittest.TestCase):
 
         self.simulation.reserve_user(
             user_id="User1",
+            demand_id="DemandA",
             org="Stop1",
             dst="Stop2",
             dept=490.0,
@@ -96,6 +97,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "details": {
                         "success": True,
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "route": [
                             {
@@ -120,6 +122,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 490.0,
                     "details": {
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -129,6 +132,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 500.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -138,6 +142,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 530.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -147,6 +152,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 540.0,
                     "details": {
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -156,6 +162,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 1440.0 - 60,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -165,6 +172,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 1440.0 - 60 + 30,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -178,6 +186,7 @@ class OneMobilityTestCase(unittest.TestCase):
 
         self.simulation.reserve_user(
             user_id="User1",
+            demand_id="DemandA",
             org="Stop1",
             dst="Stop2",
             dept=490.0,
@@ -191,6 +200,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "details": {
                         "success": True,
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "route": [
                             {
@@ -215,6 +225,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 490.0,
                     "details": {
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -224,6 +235,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 500.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -233,6 +245,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 530.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -242,6 +255,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 540.0,
                     "details": {
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -252,6 +266,7 @@ class OneMobilityTestCase(unittest.TestCase):
 
         self.simulation.reserve_user(
             user_id="User1",
+            demand_id="DemandA",
             org="Stop1",
             dst="Stop2",
             dept=570.0,
@@ -265,6 +280,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "details": {
                         "success": True,
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "route": [
                             {
@@ -281,6 +297,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 550.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -298,6 +315,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 580.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -307,6 +325,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 580.0,
                     "details": {
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -316,6 +335,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 590.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -325,6 +345,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 620.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -334,6 +355,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 630.0,
                     "details": {
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -347,6 +369,7 @@ class OneMobilityTestCase(unittest.TestCase):
 
         self.simulation.reserve_user(
             user_id="User1",
+            demand_id="DemandA",
             org="Stop1",
             dst="Stop2",
             dept=490.0,
@@ -360,6 +383,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "details": {
                         "success": True,
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "route": [
                             {
@@ -377,6 +401,7 @@ class OneMobilityTestCase(unittest.TestCase):
 
         self.simulation.reserve_user(
             user_id="User2",
+            demand_id="DemandB",
             org="Stop1",
             dst="Stop2",
             dept=570.0,
@@ -390,6 +415,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "details": {
                         "success": True,
                         "userId": "User2",
+                        "demandId": "DemandB",
                         "mobilityId": "trip",
                         "route": [
                             {
@@ -415,6 +441,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 490.0,
                     "details": {
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -424,6 +451,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 500.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -433,6 +461,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 530.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -442,6 +471,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 540.0,
                     "details": {
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -451,6 +481,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 540.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -460,6 +491,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 570.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -469,6 +501,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 570.0,
                     "details": {
                         "userId": "User2",
+                        "demandId": "DemandB",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -478,6 +511,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 580.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -487,6 +521,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 610.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -496,6 +531,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 620.0,
                     "details": {
                         "userId": "User2",
+                        "demandId": "DemandB",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -505,6 +541,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 1440.0 - 60,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -514,6 +551,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 1440.0 - 60 + 30,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -527,6 +565,7 @@ class OneMobilityTestCase(unittest.TestCase):
 
         self.simulation.reserve_user(
             user_id="User1",
+            demand_id="DemandA",
             org="Stop1",
             dst="Stop2",
             dept=490.0,
@@ -540,6 +579,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "details": {
                         "success": True,
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "route": [
                             {
@@ -565,6 +605,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 490.0,
                     "details": {
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -574,6 +615,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 500.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -584,6 +626,7 @@ class OneMobilityTestCase(unittest.TestCase):
 
         self.simulation.reserve_user(
             user_id="User2",
+            demand_id="DemandB",
             org="Stop2",
             dst="Stop1",
             dept=530.0,
@@ -597,6 +640,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "details": {
                         "success": True,
                         "userId": "User2",
+                        "demandId": "DemandB",
                         "mobilityId": "trip",
                         "route": [
                             {
@@ -621,6 +665,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 530.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -630,6 +675,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 540.0,
                     "details": {
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -639,6 +685,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 540.0,
                     "details": {
                         "userId": "User2",
+                        "demandId": "DemandB",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -648,6 +695,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 550.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -657,6 +705,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 580.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -666,6 +715,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 590.0,
                     "details": {
                         "userId": "User2",
+                        "demandId": "DemandB",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -679,6 +729,7 @@ class OneMobilityTestCase(unittest.TestCase):
 
         self.simulation.reserve_user(
             user_id="User1",
+            demand_id="DemandA",
             org="Stop2",
             dst="Stop3",
             dept=580.0,
@@ -692,6 +743,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "details": {
                         "success": True,
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "route": [
                             {
@@ -708,6 +760,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 480.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -721,6 +774,7 @@ class OneMobilityTestCase(unittest.TestCase):
         run(self.simulation, until=485)
         self.simulation.reserve_user(
             user_id="User2",
+            demand_id="DemandB",
             org="Stop3",
             dst="Stop2",
             dept=520.0,
@@ -734,6 +788,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "details": {
                         "success": True,
                         "userId": "User2",
+                        "demandId": "DemandB",
                         "mobilityId": "trip",
                         "route": [
                             {
@@ -758,6 +813,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 510.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -767,6 +823,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 510.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -783,6 +840,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 530.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop3", "lat": ..., "lng": ...},
                     },
@@ -792,6 +850,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 530.0,
                     "details": {
                         "userId": "User2",
+                        "demandId": "DemandB",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop3", "lat": ..., "lng": ...},
                     },
@@ -801,6 +860,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 540.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop3", "lat": ..., "lng": ...},
                     },
@@ -817,6 +877,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 560.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -826,6 +887,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 570.0,
                     "details": {
                         "userId": "User2",
+                        "demandId": "DemandB",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -841,6 +903,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 580.0,
                     "details": {
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -850,6 +913,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 590.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -859,6 +923,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 610.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop3", "lat": ..., "lng": ...},
                     },
@@ -868,6 +933,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 620.0,
                     "details": {
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop3", "lat": ..., "lng": ...},
                     },
@@ -877,6 +943,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 1440.0 - 60,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop3", "lat": ..., "lng": ...},
                     },
@@ -886,6 +953,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 1440.0 - 60 + 15,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -899,6 +967,7 @@ class OneMobilityTestCase(unittest.TestCase):
 
         self.simulation.reserve_user(
             user_id="User1",
+            demand_id="DemandA",
             org="Stop2",
             dst="Stop3",
             dept=490.0,
@@ -912,6 +981,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "details": {
                         "success": True,
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "route": [
                             {
@@ -928,6 +998,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 480.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -946,6 +1017,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 510.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -955,6 +1027,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 510.0,
                     "details": {
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -965,6 +1038,7 @@ class OneMobilityTestCase(unittest.TestCase):
 
         self.simulation.reserve_user(
             user_id="User2",
+            demand_id="DemandB",
             org="Stop2",
             dst="Stop3",
             dept=521.0,
@@ -978,6 +1052,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "details": {
                         "success": False,
                         "userId": "User2",
+                        "demandId": "DemandB",
                     },
                 }
             ],
@@ -986,6 +1061,7 @@ class OneMobilityTestCase(unittest.TestCase):
 
         self.simulation.reserve_user(
             user_id="User3",
+            demand_id="DemandC",
             org="Stop2",
             dst="Stop3",
             dept=519.0,
@@ -999,6 +1075,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "details": {
                         "success": True,
                         "userId": "User3",
+                        "demandId": "DemandC",
                         "mobilityId": "trip",
                         "route": [
                             {
@@ -1019,6 +1096,7 @@ class OneMobilityTestCase(unittest.TestCase):
 
         self.simulation.reserve_user(
             user_id="User1",
+            demand_id="DemandA",
             org="Stop2",
             dst="Stop3",
             dept=490.0,
@@ -1032,6 +1110,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "details": {
                         "success": True,
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "route": [
                             {
@@ -1048,6 +1127,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 480.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -1066,6 +1146,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 510.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -1075,6 +1156,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 510.0,
                     "details": {
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -1085,6 +1167,7 @@ class OneMobilityTestCase(unittest.TestCase):
 
         self.simulation.reserve_user(
             user_id="User2",
+            demand_id="DemandB",
             org="Stop1",
             dst="Stop2",
             dept=550.0,
@@ -1098,6 +1181,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "details": {
                         "success": True,
                         "userId": "User2",
+                        "demandId": "DemandB",
                         "mobilityId": "trip",
                         "route": [
                             {
@@ -1122,6 +1206,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 520.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -1131,6 +1216,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 540.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop3", "lat": ..., "lng": ...},
                     },
@@ -1140,6 +1226,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 550.0,
                     "details": {
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop3", "lat": ..., "lng": ...},
                     },
@@ -1149,6 +1236,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 550.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop3", "lat": ..., "lng": ...},
                     },
@@ -1165,6 +1253,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 565.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -1174,6 +1263,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 565.0,
                     "details": {
                         "userId": "User2",
+                        "demandId": "DemandB",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -1183,6 +1273,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 575.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -1199,6 +1290,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 605.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -1208,6 +1300,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 615.0,
                     "details": {
                         "userId": "User2",
+                        "demandId": "DemandB",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -1217,6 +1310,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 1440.0 - 60,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -1226,6 +1320,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 1440.0 - 60 + 30,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -1239,6 +1334,7 @@ class OneMobilityTestCase(unittest.TestCase):
 
         self.simulation.reserve_user(
             user_id="User1",
+            demand_id="DemandA",
             org="Stop2",
             dst="Stop3",
             dept=490.0,
@@ -1252,6 +1348,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "details": {
                         "success": True,
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "route": [
                             {
@@ -1268,6 +1365,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 480.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -1286,6 +1384,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 510.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -1295,6 +1394,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 510.0,
                     "details": {
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -1305,6 +1405,7 @@ class OneMobilityTestCase(unittest.TestCase):
 
         self.simulation.reserve_user(
             user_id="User2",
+            demand_id="DemandB",
             org="Stop2",
             dst="Stop3",
             dept=516.0,
@@ -1318,6 +1419,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "details": {
                         "success": True,
                         "userId": "User2",
+                        "demandId": "DemandB",
                         "mobilityId": "trip",
                         "route": [
                             {
@@ -1342,6 +1444,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 520.0,
                     "details": {
                         "userId": "User2",
+                        "demandId": "DemandB",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -1351,6 +1454,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 530.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -1360,6 +1464,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 550.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop3", "lat": ..., "lng": ...},
                     },
@@ -1369,6 +1474,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 560.0,
                     "details": {
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop3", "lat": ..., "lng": ...},
                     },
@@ -1378,6 +1484,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 560.0,
                     "details": {
                         "userId": "User2",
+                        "demandId": "DemandB",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop3", "lat": ..., "lng": ...},
                     },
@@ -1387,6 +1494,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 1440.0 - 60,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop3", "lat": ..., "lng": ...},
                     },
@@ -1396,6 +1504,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 1440.0 - 60 + 15,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -1409,6 +1518,7 @@ class OneMobilityTestCase(unittest.TestCase):
 
         self.simulation.reserve_user(
             user_id="User1",
+            demand_id="DemandA",
             org="Stop1",
             dst="Stop2",
             dept=490.0,
@@ -1422,6 +1532,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "details": {
                         "success": True,
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "route": [
                             {
@@ -1439,6 +1550,7 @@ class OneMobilityTestCase(unittest.TestCase):
 
         self.simulation.reserve_user(
             user_id="User2",
+            demand_id="DemandB",
             org="Stop3",
             dst="Stop2",
             dept=510.0,
@@ -1452,6 +1564,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "details": {
                         "success": True,
                         "userId": "User2",
+                        "demandId": "DemandB",
                         "mobilityId": "trip",
                         "route": [
                             {
@@ -1478,6 +1591,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 490.0,
                     "details": {
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -1487,6 +1601,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 500.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -1496,6 +1611,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 515.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop3", "lat": ..., "lng": ...},
                     },
@@ -1505,6 +1621,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 515.0,
                     "details": {
                         "userId": "User2",
+                        "demandId": "DemandB",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop3", "lat": ..., "lng": ...},
                     },
@@ -1514,6 +1631,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 525.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop3", "lat": ..., "lng": ...},
                     },
@@ -1523,6 +1641,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 545.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -1532,6 +1651,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 555.0,
                     "details": {
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -1541,6 +1661,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 555.0,
                     "details": {
                         "userId": "User2",
+                        "demandId": "DemandB",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -1550,6 +1671,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 1440.0 - 60,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -1559,6 +1681,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 1440.0 - 60 + 30,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -1572,6 +1695,7 @@ class OneMobilityTestCase(unittest.TestCase):
 
         self.simulation.reserve_user(
             user_id="User1",
+            demand_id="DemandA",
             org="Stop1",
             dst="Stop2",
             dept=490.0,
@@ -1585,6 +1709,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "details": {
                         "success": True,
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "route": [
                             {
@@ -1602,6 +1727,7 @@ class OneMobilityTestCase(unittest.TestCase):
 
         self.simulation.reserve_user(
             user_id="User2",
+            demand_id="DemandB",
             org="Stop2",
             dst="Stop1",
             dept=530.0,
@@ -1615,6 +1741,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "details": {
                         "success": True,
                         "userId": "User2",
+                        "demandId": "DemandB",
                         "mobilityId": "trip",
                         "route": [
                             {
@@ -1639,6 +1766,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 490.0,
                     "details": {
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -1648,6 +1776,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 500.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -1657,6 +1786,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 530.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -1666,6 +1796,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 540.0,
                     "details": {
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -1675,6 +1806,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 540.0,
                     "details": {
                         "userId": "User2",
+                        "demandId": "DemandB",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -1684,6 +1816,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 550.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -1693,6 +1826,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 580.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -1702,6 +1836,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     "time": 590.0,
                     "details": {
                         "userId": "User2",
+                        "demandId": "DemandB",
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -1715,6 +1850,7 @@ class OneMobilityTestCase(unittest.TestCase):
 
         self.simulation.reserve_user(
             user_id="User1",
+            demand_id="DemandA",
             org="Stop1",
             dst="Stop2",
             dept=490.0,
@@ -1733,6 +1869,7 @@ class OneMobilityTestCase(unittest.TestCase):
         run(self.simulation, until=1440.0 + 30.0)
         self.simulation.reserve_user(  # failed reservation (before start window)
             user_id="User2",
+            demand_id="DemandB",
             org="Stop2",
             dst="Stop3",
             dept=1440.0 + 40.0,
@@ -1746,6 +1883,7 @@ class OneMobilityTestCase(unittest.TestCase):
 
         self.simulation.reserve_user(
             user_id="User1",
+            demand_id="DemandA",
             org="Stop1",
             dst="Stop2",
             dept=490.0,
@@ -1764,6 +1902,7 @@ class OneMobilityTestCase(unittest.TestCase):
         run(self.simulation, until=1440.0 + 20.0)
         self.simulation.reserve_user(
             user_id="User2",
+            demand_id="DemandB",
             org="Stop2",
             dst="Stop3",
             dept=1440.0 + 70.0,
@@ -1871,6 +2010,7 @@ class TwoMobilityTestCase(unittest.TestCase):
 
         self.simulation.reserve_user(
             user_id="User1",
+            demand_id="DemandA",
             org="Stop1",
             dst="Stop2",
             dept=490.0,
@@ -1884,6 +2024,7 @@ class TwoMobilityTestCase(unittest.TestCase):
                     "details": {
                         "success": True,
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip1",
                         "route": [
                             {
@@ -1908,6 +2049,7 @@ class TwoMobilityTestCase(unittest.TestCase):
                     "time": 490.0,
                     "details": {
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip1",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -1917,6 +2059,7 @@ class TwoMobilityTestCase(unittest.TestCase):
                     "time": 500.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip1",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },
@@ -1926,6 +2069,7 @@ class TwoMobilityTestCase(unittest.TestCase):
                     "time": 530.0,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip1",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -1935,6 +2079,7 @@ class TwoMobilityTestCase(unittest.TestCase):
                     "time": 540.0,
                     "details": {
                         "userId": "User1",
+                        "demandId": "DemandA",
                         "mobilityId": "trip1",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -1944,6 +2089,7 @@ class TwoMobilityTestCase(unittest.TestCase):
                     "time": 1440.0 - 60,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip1",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
@@ -1953,6 +2099,7 @@ class TwoMobilityTestCase(unittest.TestCase):
                     "time": 1440.0 - 60 + 30,
                     "details": {
                         "userId": None,
+                        "demandId": None,
                         "mobilityId": "trip1",
                         "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
                     },

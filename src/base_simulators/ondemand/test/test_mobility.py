@@ -79,6 +79,7 @@ class RoutingTestCase(TestCase):
     def test_find_a_route(self):
         user = User(
             user_id="U001",
+            demand_id="D0001",
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime,
@@ -103,6 +104,7 @@ class RoutingTestCase(TestCase):
     def test_find_routes_who_have_same_org_dst(self):
         user1 = User(
             user_id="U001",
+            demand_id="D0001",
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime,
@@ -115,6 +117,7 @@ class RoutingTestCase(TestCase):
 
         user2 = User(
             user_id="U002",
+            demand_id="D0002",
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime,
@@ -158,6 +161,7 @@ class RoutingTestCase(TestCase):
     def test_find_routes_of_exceeded_capacity_bus_who_have_same_org_dst(self):
         user1 = User(
             user_id="U001",
+            demand_id="D0001",
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime,
@@ -170,6 +174,7 @@ class RoutingTestCase(TestCase):
 
         user2 = User(
             user_id="U002",
+            demand_id="D0002",
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime,
@@ -207,6 +212,7 @@ class RoutingTestCase(TestCase):
     def test_find_come_back_routes(self):
         user1 = User(
             user_id="U001",
+            demand_id="D0001",
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime,
@@ -219,6 +225,7 @@ class RoutingTestCase(TestCase):
 
         user2 = User(
             user_id="U002",
+            demand_id="D0002",
             org=stops[1],
             dst=stops[0],
             desired=self.base_datetime,
@@ -254,6 +261,7 @@ class RoutingTestCase(TestCase):
     def test_find_routes_with_a_passenger_and_a_user(self):
         passenger = User(
             user_id="Passenger",
+            demand_id="Traveler",
             org=stops[2],
             dst=stops[0],
             desired=self.base_datetime,
@@ -264,6 +272,7 @@ class RoutingTestCase(TestCase):
         )
         user1 = User(
             user_id="U001",
+            demand_id="D0001",
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime,
@@ -287,6 +296,7 @@ class RoutingTestCase(TestCase):
     def test_find_routes_with_a_passenger_and_two_users(self):
         passenger = User(
             user_id="Passenger",
+            demand_id="Traveler",
             org=stops[2],
             dst=stops[0],
             desired=self.base_datetime,
@@ -297,6 +307,7 @@ class RoutingTestCase(TestCase):
         )
         user1 = User(
             user_id="U001",
+            demand_id="D0001",
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime,
@@ -307,6 +318,7 @@ class RoutingTestCase(TestCase):
         )
         user2 = User(
             user_id="U002",
+            demand_id="D0002",
             org=stops[1],
             dst=stops[0],
             desired=self.base_datetime,
@@ -346,6 +358,7 @@ class RoutingTestCase(TestCase):
     def test_find_routes_with_two_passengers_and_two_users(self):
         passenger1 = User(
             user_id="Passenger1",
+            demand_id="TravelerA",
             org=stops[2],
             dst=stops[0],
             desired=self.base_datetime,
@@ -356,6 +369,7 @@ class RoutingTestCase(TestCase):
         )
         passenger2 = User(
             user_id="Passenger2",
+            demand_id="TravelerB",
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime,
@@ -366,6 +380,7 @@ class RoutingTestCase(TestCase):
         )
         user1 = User(
             user_id="U001",
+            demand_id="D0001",
             org=stops[0],
             dst=stops[2],
             desired=self.base_datetime,
@@ -376,6 +391,7 @@ class RoutingTestCase(TestCase):
         )
         user2 = User(
             user_id="U002",
+            demand_id="D0002",
             org=stops[1],
             dst=stops[0],
             desired=self.base_datetime,
@@ -529,6 +545,7 @@ class DelayCalculationTestCase(TestCase):
     def test_ideal_time_when_only_one_user(self):
         user = User(
             user_id="User",
+            demand_id="Demand",
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime + trips[0].stop_time.start_window,
@@ -556,6 +573,7 @@ class DelayCalculationTestCase(TestCase):
     def test_ideal_time_when_only_one_user_but_wait_for_service(self):
         user = User(
             user_id="User",
+            demand_id="Demand",
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime
@@ -588,6 +606,7 @@ class DelayCalculationTestCase(TestCase):
         )
         user = User(
             user_id="User",
+            demand_id="Demand",
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime + desired,
@@ -617,6 +636,7 @@ class DelayCalculationTestCase(TestCase):
         desired = trips[0].stop_time.end_window + timedelta(minutes=10)
         user = User(
             user_id="User",
+            demand_id="Demand",
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime + desired,
@@ -645,6 +665,7 @@ class DelayCalculationTestCase(TestCase):
         desired = timedelta(days=2) + trips[0].stop_time.start_window
         user = User(
             user_id="User",
+            demand_id="Demand",
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime + desired,
@@ -673,6 +694,7 @@ class DelayCalculationTestCase(TestCase):
     def test_delayed_by_the_time_the_buses_move_in(self):
         user = User(
             user_id="User",
+            demand_id="Demand",
             org=stops[1],
             dst=stops[0],
             desired=self.base_datetime + trips[0].stop_time.start_window,
@@ -700,6 +722,7 @@ class DelayCalculationTestCase(TestCase):
     def test_two_users_with_same_org_and_dst(self):
         user1 = User(
             user_id="User1",
+            demand_id="DemandA",
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime + trips[0].stop_time.start_window,
@@ -710,6 +733,7 @@ class DelayCalculationTestCase(TestCase):
         )
         user2 = User(
             user_id="User2",
+            demand_id="DemandB",
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime
@@ -739,6 +763,7 @@ class DelayCalculationTestCase(TestCase):
     def test_two_users(self):
         user1 = User(
             user_id="User1",
+            demand_id="DemandA",
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime
@@ -751,6 +776,7 @@ class DelayCalculationTestCase(TestCase):
         )
         user2 = User(
             user_id="User2",
+            demand_id="DemandB",
             org=stops[1],
             dst=stops[0],
             desired=self.base_datetime
@@ -801,6 +827,7 @@ class PlanningTestCase(TestCase):
         )
         user = User(
             user_id="User",
+            demand_id="Demand",
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime + trips[0].stop_time.start_window,
@@ -832,6 +859,7 @@ class PlanningTestCase(TestCase):
         desired = trips[0].stop_time.end_window
         user = User(
             user_id="User",
+            demand_id="Demand",
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime + desired,
@@ -859,6 +887,7 @@ class PlanningTestCase(TestCase):
         desired = trips[0].stop_time.start_window + timedelta(days=2)
         user = User(
             user_id="User",
+            demand_id="Demand",
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime + desired,
@@ -886,6 +915,7 @@ class PlanningTestCase(TestCase):
         desired = trips[2].stop_time.end_window - timedelta(minutes=50)
         user = User(
             user_id="User",
+            demand_id="Demand",
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime + desired,
@@ -920,6 +950,7 @@ class PlanningTestCase(TestCase):
         )
         user = User(
             user_id="User",
+            demand_id="Demand",
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime + desired,
@@ -946,6 +977,7 @@ class PlanningTestCase(TestCase):
         )
         user1 = User(
             user_id="User1",
+            demand_id="DemandA",
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime + trips[0].stop_time.start_window,
@@ -956,6 +988,7 @@ class PlanningTestCase(TestCase):
         )
         user2 = User(
             user_id="User2",
+            demand_id="DemandB",
             org=stops[1],
             dst=stops[0],
             desired=self.base_datetime
@@ -995,6 +1028,7 @@ class PlanningTestCase(TestCase):
         )
         user1 = User(
             user_id="User1",
+            demand_id="DemandA",
             org=stops[0],
             dst=stops[1],
             desired=self.base_datetime + trips[0].stop_time.start_window,
@@ -1005,6 +1039,7 @@ class PlanningTestCase(TestCase):
         )
         user2 = User(
             user_id="User2",
+            demand_id="DemandB",
             org=stops[1],
             dst=stops[0],
             desired=self.base_datetime
