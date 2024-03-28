@@ -89,6 +89,7 @@ class SimpleTestCase(unittest.TestCase):
                 "time": 543.0,
                 "details": {
                     "userId": None,
+                    "demandId": None,
                     "mobilityId": self.mobility_id,
                     "location": {
                         "locationId": self.stops["3_1"].stop_id,
@@ -102,6 +103,7 @@ class SimpleTestCase(unittest.TestCase):
                 "time": 543.0,
                 "details": {
                     "userId": None,
+                    "demandId": None,
                     "mobilityId": self.mobility_id,
                     "location": {
                         "locationId": self.stops["3_1"].stop_id,
@@ -115,6 +117,7 @@ class SimpleTestCase(unittest.TestCase):
                 "time": 548.0,
                 "details": {
                     "userId": None,
+                    "demandId": None,
                     "mobilityId": self.mobility_id,
                     "location": {
                         "locationId": self.stops["7_1"].stop_id,
@@ -128,6 +131,7 @@ class SimpleTestCase(unittest.TestCase):
                 "time": 548.0,
                 "details": {
                     "userId": None,
+                    "demandId": None,
                     "mobilityId": self.mobility_id,
                     "location": {
                         "locationId": self.stops["7_1"].stop_id,
@@ -142,6 +146,7 @@ class SimpleTestCase(unittest.TestCase):
     def test_a_user_flow(self):
         user = {
             "user_id": "U_001",
+            "demand_id": "D_0001",
             "org": "3_1",
             "dst": "23_0",
             "dept": 490,
@@ -151,6 +156,7 @@ class SimpleTestCase(unittest.TestCase):
 
         self.simulation.reserve_user(
             user_id=user["user_id"],
+            demand_id=user["demand_id"],
             org=user["org"],
             dst=user["dst"],
             dept=user["dept"],
@@ -164,6 +170,7 @@ class SimpleTestCase(unittest.TestCase):
                 "details": {
                     "success": True,
                     "userId": user["user_id"],
+                    "demandId": user["demand_id"],
                     "mobilityId": self.mobility_id,
                     "route": [
                         {
@@ -201,6 +208,7 @@ class SimpleTestCase(unittest.TestCase):
                 "time": 543.0,
                 "details": {
                     "userId": user["user_id"],
+                    "demandId": user["demand_id"],
                     "mobilityId": self.mobility_id,
                     "location": {
                         "locationId": self.stops[user["org"]].stop_id,
@@ -214,6 +222,7 @@ class SimpleTestCase(unittest.TestCase):
                 "time": 574.0,
                 "details": {
                     "userId": user["user_id"],
+                    "demandId": user["demand_id"],
                     "mobilityId": self.mobility_id,
                     "location": {
                         "locationId": self.stops[user["dst"]].stop_id,
