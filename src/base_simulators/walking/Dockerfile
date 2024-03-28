@@ -1,5 +1,9 @@
 FROM python:3.11-slim
 
+# ARG REPO_URL=git+https://github.com/maasblender/maasblender
+# ARG BRANCH=@68-introduce-common-library-and-common-schema
+# ARG REPO_ARGS=#egg=mblib&subdirectory=libs/mblib
+
 RUN apt-get update && apt-get install -y \
     git \
     && apt-get clean \
@@ -8,8 +12,9 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt ./
 ENV PIP_ROOT_USER_ACTION=ignore
 RUN pip install --upgrade pip \
- && pip install --upgrade setuptools \
  && pip install -r requirements.txt
+
+# RUN pip install $REPO_URL$BRANCH$REPO_ARGS
 
 USER nobody
 

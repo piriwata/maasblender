@@ -11,13 +11,14 @@ class TestSimulation(unittest.TestCase):
     def test_reserve(self):
         sim = Simulation(80)
         user_id = "user1"
+        demand_id = "demand-a"
         org = Location("a", 36.700860517989156, 137.21399177886272)
         dst = Location("b", 36.69283395675775, 137.21149599026634)
         dept = 1234.56
         arrv = 1246.0377760560712
 
         # Reserve
-        sim.reserve(user_id, org, dst, dept, arrv)
+        sim.reserve(user_id, demand_id, org, dst, dept, arrv)
 
         # After reservation
         expected = [
@@ -31,6 +32,7 @@ class TestSimulation(unittest.TestCase):
                         "details": {
                             "success": True,
                             "userId": user_id,
+                            "demandId": demand_id,
                             "route": [
                                 {
                                     "org": org.dumps(),
@@ -52,7 +54,7 @@ class TestSimulation(unittest.TestCase):
             self.assertEqual(e, events)
 
         # Departure
-        sim.depart("user1")
+        sim.depart("user1", "demand-a")
 
         # After departure
         expected = [
@@ -66,6 +68,7 @@ class TestSimulation(unittest.TestCase):
                         "details": {
                             "subjectId": user_id,
                             "userId": user_id,
+                            "demandId": demand_id,
                             "mobilityId": None,
                             "location": org.dumps(),
                         },
@@ -81,6 +84,7 @@ class TestSimulation(unittest.TestCase):
                         "details": {
                             "subjectId": user_id,
                             "userId": user_id,
+                            "demandId": demand_id,
                             "mobilityId": None,
                             "location": dst.dumps(),
                         },
