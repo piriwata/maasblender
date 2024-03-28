@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 from pydantic import BaseModel
 
-from jschema.events import ReservedEvent, DepartedEvent, ArrivedEvent
+from mblib.jschema import response
+from mblib.jschema.events import ReservedEvent, DepartedEvent, ArrivedEvent
 
 
 class Message(BaseModel):

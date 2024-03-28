@@ -60,7 +60,7 @@ class Simulation:
         dept: float,
         arrv: float | None,
     ):
-        self.env.process(self._reserve(user_id, org, dst, dept, arrv))
+        self.env.process(self._reserve(user_id, demand_id, org, dst, dept, arrv))
 
     def _reserve(
         self,
