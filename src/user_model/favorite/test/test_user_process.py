@@ -36,9 +36,11 @@ class ReservationFlowTestCase(unittest.TestCase):
         org = locations["1_1"]
         dst = locations["21_1"]
         user_id = "U_001"
+        demand_id = "D_0001"
 
         user = User(
-            id_=user_id,
+            user_id=user_id,
+            demand_id=demand_id,
             org=org,
             dst=dst,
             dept=0,
@@ -60,6 +62,7 @@ class ReservationFlowTestCase(unittest.TestCase):
             ReserveEvent(
                 service="walking",
                 user_id=user_id,
+                demand_id=demand_id,
                 org=org,
                 dst=dst,
                 dept=0,
@@ -84,6 +87,7 @@ class ReservationFlowTestCase(unittest.TestCase):
             DepartEvent(
                 service="walking",
                 user_id=user_id,
+                demand_id=demand_id,
                 now=1,
             )
         ]
@@ -95,9 +99,11 @@ class ReservationFlowTestCase(unittest.TestCase):
         org = locations["1_1"]
         dst = locations["21_1"]
         user_id = "U_001"
+        demand_id = "D_0001"
 
         user = User(
-            id_=user_id,
+            user_id=user_id,
+            demand_id=demand_id,
             org=org,
             dst=dst,
             dept=0,
@@ -127,7 +133,7 @@ class ReservationFlowTestCase(unittest.TestCase):
         triggered_events = self.event_manager.dequeue()
         expected_events = [
             ReserveEvent(
-                service="mobility", user_id=user_id, org=org, dst=dst, dept=0, now=0
+                service="mobility", user_id=user_id, demand_id=demand_id, org=org, dst=dst, dept=0, now=0
             )
         ]
         self.assertEqual(len(expected_events), len(triggered_events))
@@ -143,7 +149,7 @@ class ReservationFlowTestCase(unittest.TestCase):
         triggered_events = self.event_manager.dequeue()
         expected_events = [
             ReserveEvent(
-                service="walking", user_id=user_id, org=org, dst=dst, dept=1, now=1
+                service="walking", user_id=user_id, demand_id=demand_id, org=org, dst=dst, dept=1, now=1
             )
         ]
         self.assertEqual(len(expected_events), len(triggered_events))

@@ -52,6 +52,7 @@ class Trip(Task):
             ReserveEvent(
                 service=self.service,
                 user_id=user.user_id,
+                demand_id=user.demand_id,
                 org=self.org,
                 dst=self.dst,
                 dept=dept,
@@ -74,16 +75,17 @@ class Trip(Task):
             DepartEvent(
                 service=self.service,
                 user_id=user.user_id,
+                demand_id=user.demand_id,
                 now=self.event_manager.env.now,
             )
         )
         # not yield, only wait arrived event here.
         self.event_manager.event(
-            DepartedEvent(source=self.service, user_id=user.user_id, location=self.org)
+            DepartedEvent(source=self.service, user_id=user.user_id, demand_id=user.demand_id, location=self.org)
         )
 
         yield self.event_manager.event(
-            ArrivedEvent(source=self.service, user_id=user.user_id, location=self.dst)
+            ArrivedEvent(source=self.service, user_id=user.user_id, demand_id=user.demand_id, location=self.dst)
         )
 
 
