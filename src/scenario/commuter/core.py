@@ -39,6 +39,7 @@ class DemandInfo:
 @dataclass(frozen=True)
 class DemandEvent:
     user_id: str
+    demand_id: str
     info: DemandInfo
 
     def dumps(self) -> dict:
@@ -47,6 +48,8 @@ class DemandEvent:
             "eventType": EventType.Demand.value,
             "details": {
                 "userId": self.user_id,
+                "userType": self.info.user_type,
+                "demandId": self.demand_id,
                 "org": {
                     "locationId": info.org.location_id,
                     "lat": info.org.lat,
