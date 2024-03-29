@@ -1,8 +1,7 @@
 # SPDX-FileCopyrightText: 2023 TOYOTA MOTOR CORPORATION and MaaS Blender Contributors
 # SPDX-License-Identifier: Apache-2.0
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
-from jschema.events import Event
 
 
 class LocationSetting(BaseModel):
@@ -16,13 +15,19 @@ class HistoricalDemandSetting(BaseModel):
     dst: LocationSetting
     dept: float = Field(..., description="Time to start move from org to dst")
     service: str | None = None
+    user_id: str | None = None
+    demand_id: str | None = None
     user_type: str | None = None
+
+    @model_validator(mode="after")
+    def check_exist_time(self):
+        if self.dept is None and self.arrv is None:
+            raise ValueError("not specified both dept and arrv")
+        return self
 
 
 class Setup(BaseModel):
     trips: list[HistoricalDemandSetting]
     userIDFormat: str = "U_%d"
+    demandIDFormat: str = "D_%d"
     offset_time: float = 0.0
-
-
-TriggeredEvent = Event

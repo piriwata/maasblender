@@ -25,6 +25,7 @@ class DemandInfo:
     org: Location
     dst: Location
     service: str | None
+    demand_id: str
     user_type: str | None
 
 
@@ -39,6 +40,8 @@ class DemandEvent:
             "eventType": EventType.Demand.value,
             "details": {
                 "userId": self.user_id,
+                "userType": self.info.user_type,
+                "demandId": self.info.demand_id,
                 "org": {
                     "locationId": info.org.location_id,
                     "lat": info.org.lat,
