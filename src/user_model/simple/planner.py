@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 import aiohttp
 
-import httputil
+from mblib.io import httputil
 from core import Location, Route, Trip
 
 

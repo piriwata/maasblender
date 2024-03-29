@@ -51,6 +51,7 @@ class Trip(Task):
             ReserveEvent(
                 service=self.service,
                 user_id=user.user_id,
+                demand_id=user.demand_id,
                 org=self.org,
                 dst=self.dst,
                 dept=dept,
@@ -59,7 +60,7 @@ class Trip(Task):
             )
         )
         event: ReservedEvent = yield self.event_manager.event(
-            ReservedEvent(source=self.service, user_id=user.user_id)
+            ReservedEvent(source=self.service, user_id=user.user_id, demand_id=user.demand_id,)
         )
         if not event.success:
             if not self.fail:
@@ -73,16 +74,17 @@ class Trip(Task):
             DepartEvent(
                 service=self.service,
                 user_id=user.user_id,
+                demand_id=user.demand_id,
                 now=self.event_manager.env.now,
             )
         )
         # not yield, only wait arrived event here.
         self.event_manager.event(
-            DepartedEvent(source=self.service, user_id=user.user_id, location=self.org)
+            DepartedEvent(source=self.service, user_id=user.user_id, demand_id=user.demand_id, location=self.org)
         )
 
         yield self.event_manager.event(
-            ArrivedEvent(source=self.service, user_id=user.user_id, location=self.dst)
+            ArrivedEvent(source=self.service, user_id=user.user_id, demand_id=user.demand_id, location=self.dst)
         )
 
 
@@ -125,6 +127,7 @@ class Reserve(Task):
             ReserveEvent(
                 service=self.service,
                 user_id=user.user_id,
+                demand_id=user.demand_id,
                 org=self.route.trips[1].org,
                 dst=self.route.trips[1].dst,
                 dept=self.route.trips[1].dept,
@@ -132,7 +135,7 @@ class Reserve(Task):
             )
         )
         event: ReservedEvent = yield self.event_manager.event(
-            ReservedEvent(source=self.service, user_id=user.user_id)
+            ReservedEvent(source=self.service, user_id=user.user_id, demand_id=user.demand_id,)
         )
         # wait for departure from pre-reserve time
         if self.route.trips[0].dept > self.event_manager.env.now:
@@ -222,17 +225,18 @@ class ReservedTrip(Task):
             DepartEvent(
                 service=self.service,
                 user_id=user.user_id,
+                demand_id=user.demand_id,
                 now=self.event_manager.env.now,
             )
         )
 
         # not yield, only wait arrived event here.
         self.event_manager.event(
-            DepartedEvent(source=self.service, user_id=user.user_id, location=self.org)
+            DepartedEvent(source=self.service, user_id=user.user_id, demand_id=user.demand_id, location=self.org)
         )
 
         yield self.event_manager.event(
-            ArrivedEvent(source=self.service, user_id=user.user_id, location=self.dst)
+            ArrivedEvent(source=self.service, user_id=user.user_id, demand_id=user.demand_id, location=self.dst)
         )
 
 
@@ -287,6 +291,7 @@ class UserManager(Runner):
     async def demand(
         self,
         user_id: str,
+        demand_id: str,
         org: Location,
         dst: Location,
         dept: float | None,
@@ -303,7 +308,8 @@ class UserManager(Runner):
 
         tasks = self.plans_to_trips(route_plans, fixed_service)
         user = User(
-            id_=user_id,
+            user_id_=user_id,
+            demand_id=demand_id,
             org=org,
             dst=dst,
             dept=dept,

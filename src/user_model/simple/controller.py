@@ -4,10 +4,11 @@ import logging
 
 import fastapi
 
-from config import env
 from core import Location, Route, Trip
 from event import ReservedEvent, DepartedEvent, ArrivedEvent
 from jschema import query, response
+from mblib.io.log import init_logger
+from mblib.jschema import spec, events
 from user_manager import UserManager
 
 logger = logging.getLogger(__name__)
@@ -22,23 +23,7 @@ app = fastapi.FastAPI(
 
 @app.on_event("startup")
 def startup():
-    class MultilineLogFormatter(logging.Formatter):
-        def format(self, record: logging.LogRecord) -> str:
-            message = super().format(record)
-            return message.replace(
-                "\n", "\t\n"
-            )  # indicate continuation line by trailing tab
-
-    formatter = MultilineLogFormatter(env.log_format)
-    handler = logging.StreamHandler()
-    handler.setFormatter(formatter)
-    logging.basicConfig(level=env.log_level, handlers=[handler])
-
-    # replace logging formatter for uvicorn
-    for handler in logging.getLogger("uvicorn").handlers:
-        handler.setFormatter(formatter)
-
-    logger.debug("configuration: %s", env.json())
+    init_logger()
 
 
 @app.exception_handler(Exception)
@@ -56,6 +41,24 @@ manager: UserManager | None = None
 @app.on_event("shutdown")
 async def shutdown_event():
     await finish()
+
+
+@app.get("/spec", response_model=spec.SpecificationResponse, response_model_exclude_none=True)
+def get_specification():
+    builder = spec.EventSpecificationBuilder(step=response.StepEvent, triggered=query.TriggeredEvent)
+    builder.set_feature(events.EventType.DEMAND, required=["demand_id", "pre_reserve"])
+    builder.set_feature(events.EventType.RESERVE, declared=["demand_id"])
+    builder.set_feature(events.EventType.DEPART, declared=["demand_id"])
+    builder.set_feature(events.EventType.RESERVED, declared=["demand_id"], required=["pre_reserve"])
+    builder.set_feature(events.EventType.DEPARTED, declared=["demand_id"])
+    builder.set_feature(events.EventType.ARRIVED, declared=["demand_id"])
+    return builder.get_specification_response(version=events.VERSION_1)
+
+
+@app.get("/spec/schema")
+def get_event_schema_all() -> dict[str, spec.JsonSchemaValue | None]:
+    builder = spec.EventSpecificationBuilder(step=response.StepEvent, triggered=query.TriggeredEvent)
+    return builder.schemas
 
 
 @app.post("/setup", response_model=response.Message)
@@ -93,7 +96,7 @@ def step():
 
 
 @app.post("/triggered")
-async def triggered(event: query.TriggeredEvent):
+async def triggered(event: query.TriggeredEvent | events.Event)):
     # expect nothing to happen. just let time forward.
     if manager.env.now < event.time:
         manager.env.run(until=event.time)
@@ -102,6 +105,7 @@ async def triggered(event: query.TriggeredEvent):
         case query.DemandEvent():
             await manager.demand(
                 user_id=event.details.userId,
+                demand_id=event.details.demandId,
                 org=Location(
                     id_=event.details.org.locationId,
                     lat=event.details.org.lat,
@@ -121,6 +125,7 @@ async def triggered(event: query.TriggeredEvent):
                     source=event.source,
                     success=event.details.success,
                     user_id=event.details.userId,
+                    demand_id=event.details.demandId,
                     route=Route(
                         [
                             Trip(
@@ -149,6 +154,7 @@ async def triggered(event: query.TriggeredEvent):
                 DepartedEvent(
                     source=event.source,
                     user_id=event.details.userId,
+                    demand_id=event.details.demandId,
                     location=Location(
                         id_=event.details.location.locationId,
                         lat=event.details.location.lat,
@@ -161,6 +167,7 @@ async def triggered(event: query.TriggeredEvent):
                 ArrivedEvent(
                     source=event.source,
                     user_id=event.details.userId,
+                    demand_id=event.details.demandId,
                     location=Location(
                         id_=event.details.location.locationId,
                         lat=event.details.location.lat,

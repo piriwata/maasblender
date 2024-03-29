@@ -3,17 +3,11 @@
 
 from pydantic import BaseModel
 
-from jschema.events import ReserveEvent, DepartEvent
+from mblib.jschema import response
+from mblib.jschema.events import ReserveEvent, DepartEvent
 
+Message = response.Message
+Peek = response.Peek
 
-class Message(BaseModel):
-    message: str
-
-
-class Peek(BaseModel):
-    next: float
-
-
-class Step(BaseModel):
-    now: float
-    events: list[ReserveEvent | DepartEvent]
+StepEvent = ReserveEvent | DepartEvent
+Step = response.Step[StepEvent]
