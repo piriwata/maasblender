@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2023 TOYOTA MOTOR CORPORATION and MaaS Blender Contributors
 # SPDX-License-Identifier: Apache-2.0
+import itertools
 import logging
 import random
 import typing
@@ -18,6 +19,7 @@ class Demand(typing.NamedTuple):
     time: float | None  # reserving time in case of advance reservation
     dept: float
     user_id: str
+    demand_id: str
     info: DemandInfo
 
 
@@ -96,9 +98,11 @@ def make_demands(setting: jschema.query.Setup):
         (e for sen in sen for e in sen.generate_demands()),
         key=lambda e: (e.time, e.dept),
     )
+    user_id_gen = (setting.userIDFormat % i for i in itertools.count(1))
+    demand_id_gen = (setting.demandIDFormat % i for i in itertools.count(1))
     demands = [
-        Demand(time=e.time, dept=e.dept, user_id=setting.userIDFormat % i, info=e.info)
-        for i, e in enumerate(ten, 1)
+        Demand(time=e.time, dept=e.dept, user_id=next(user_id_gen), demand_id=next(demand_id_gen), info=e.info)
+        for e in ten
     ]
 
     return demands
@@ -109,6 +113,7 @@ class DemandGenerator:
         self.env = simpy.Environment()
         self._demands: list[Demand] = []
         self._events: list[DemandEvent] = []
+        self._user_types = {}
 
     def setup(self, setting: jschema.query.Setup):
         random.seed(setting.seed)
@@ -141,10 +146,10 @@ class DemandGenerator:
         if demand.time is None:  # immediate reservation
             yield self.env.timeout(demand.dept)  # wait for departure time
             self._events.append(
-                DemandEvent(user_id=demand.user_id, dept=None, info=demand.info)
+                DemandEvent(user_id=demand.user_id, demand_id=demand.demand_id, dept=None, info=demand.info)
             )
         else:  # advance reservation
             yield self.env.timeout(demand.time)  # wait for reservation time
             self._events.append(
-                DemandEvent(user_id=demand.user_id, dept=demand.dept, info=demand.info)
+                DemandEvent(user_id=demand.user_id, demand_id=demand.demand_id, dept=demand.dept, info=demand.info)
             )

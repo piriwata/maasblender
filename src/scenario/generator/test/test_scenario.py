@@ -58,6 +58,8 @@ class DemandGeneratorTestCase(unittest.TestCase):
                 "eventType": "DEMAND",
                 "details": {
                     "userId": "U001",
+                    "userType": "test-user",
+                    "demandId": "D_1",
                     "org": org1,
                     "dst": dst1,
                 },
@@ -78,8 +80,8 @@ class DemandGeneratorTestCase(unittest.TestCase):
         self.assertEqual(len(expected_events), len(actual_events))
         for expected, actual in zip(expected_events, actual_events):
             self.assertEqual(
-                jschema.response.DemandEvent.parse_obj(expected),
-                jschema.response.DemandEvent.parse_obj(actual),
+                jschema.response.DemandEvent.model_validate(expected),
+                jschema.response.DemandEvent.model_validate(actual),
             )
 
     def test_one_sen_two_ten(self):
@@ -106,6 +108,7 @@ class DemandGeneratorTestCase(unittest.TestCase):
                 "time": 39.0,
                 "details": {
                     "userId": "U001",
+                    "demandId": "D_1",
                     "org": org1,
                     "dst": dst1,
                     "service": "mobility-service-for-test",
@@ -116,6 +119,7 @@ class DemandGeneratorTestCase(unittest.TestCase):
                 "time": 52.0,
                 "details": {
                     "userId": "U002",
+                    "demandId": "D_2",
                     "org": org1,
                     "dst": dst1,
                     "service": "mobility-service-for-test",
@@ -141,8 +145,8 @@ class DemandGeneratorTestCase(unittest.TestCase):
         self.assertEqual(len(expected_events), len(actual_events))
         for expected, actual in zip(expected_events, actual_events):
             self.assertEqual(
-                jschema.response.DemandEvent.parse_obj(expected),
-                jschema.response.DemandEvent.parse_obj(actual),
+                jschema.response.DemandEvent.model_validate(expected),
+                jschema.response.DemandEvent.model_validate(actual),
             )
 
     def test_two_sen_two_ten(self):
@@ -179,6 +183,8 @@ class DemandGeneratorTestCase(unittest.TestCase):
                 "time": 91.0,
                 "details": {
                     "userId": "U001",
+                    "userType": "user_B",
+                    "demandId": "D_1",
                     "org": org2,
                     "dst": dst2,
                     "service": "lexical_mobilities",
@@ -189,6 +195,8 @@ class DemandGeneratorTestCase(unittest.TestCase):
                 "time": 114.0,
                 "details": {
                     "userId": "U002",
+                    "userType": "user_A",
+                    "demandId": "D_2",
                     "org": org1,
                     "dst": dst1,
                     "service": "advanced_mobilities",
@@ -214,8 +222,8 @@ class DemandGeneratorTestCase(unittest.TestCase):
         self.assertEqual(len(expected_events), len(actual_events))
         for expected, actual in zip(expected_events, actual_events):
             self.assertEqual(
-                jschema.response.DemandEvent.parse_obj(expected),
-                jschema.response.DemandEvent.parse_obj(actual),
+                jschema.response.DemandEvent.model_validate(expected),
+                jschema.response.DemandEvent.model_validate(actual),
             )
 
 

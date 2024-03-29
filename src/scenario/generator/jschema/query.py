@@ -2,9 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 from pydantic import BaseModel
 
-from jschema.events import Event
-
-
 class LocationSetting(BaseModel):
     locationId: str
     lat: float
@@ -26,6 +23,4 @@ class Setup(BaseModel):
     seed: int
     demands: list[SenDemandsSetting]
     userIDFormat: str = "U_%d"
-
-
-TriggeredEvent = Event
+    demandIDFormat: str = "D_%d"
