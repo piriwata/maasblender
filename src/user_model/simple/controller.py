@@ -96,7 +96,7 @@ def step():
 
 
 @app.post("/triggered")
-async def triggered(event: query.TriggeredEvent | events.Event)):
+async def triggered(event: query.TriggeredEvent | events.Event):
     # expect nothing to happen. just let time forward.
     if manager.env.now < event.time:
         manager.env.run(until=event.time)

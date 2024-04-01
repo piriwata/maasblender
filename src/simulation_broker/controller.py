@@ -14,6 +14,7 @@ from mblib.io.log import init_logger
 from mblib.io.result import FileResultWriter, HTTPResultWriter, ResultWriter
 from engine import RunnerEngine
 from jschema import query, response
+from runner import Runner
 from route_planner import Planner, Path
 from runner import HttpRunner
 from validation import EventValidator
@@ -91,7 +92,7 @@ class Manager:
     # main simulation engine
     engine: RunnerEngine | None = None
     # manager to communicate planner
-    planners: list[Planner] = dataclasses.field(default_factory=list)
+    planners: dict[str, Planner] = dataclasses.field(default_factory=dict)
     # writer to send simulation result to jobmanager
     writer: ResultWriter | None = None
     # running state of engine
@@ -103,15 +104,19 @@ class Manager:
     def success(self):
         return not self.error
 
-    async def setup_planner(self, endpoint: str, setting: typing.Mapping):
-        planner = Planner(endpoint=endpoint)
+    async def setup_planner(self, name: str, setting: typing.Mapping):
+        planner = self.planners[name]
         await planner.setup(setting)
-        self.planners.append(planner)
 
-    async def setup_external(self, name: str, endpoint: str, setting: typing.Mapping):
-        runner = HttpRunner(name, endpoint=endpoint)
+    async def setup_external(self, name: str, setting: typing.Mapping):
+        runner = self.engine._runners[name]
         await runner.setup(setting)
-        self.engine.setup_runners({name: runner})
+
+    def add_runner(self, name: str, runner: Runner):
+        self.engine.add_runner(name, runner)
+
+    def add_planner(self, name: str, planner: Planner):
+        self.planners[name] = planner
 
     def run(self, until: int | float | None, background_tasks: fastapi.BackgroundTasks):
         self.running = True
@@ -136,7 +141,7 @@ class Manager:
         if self.engine:
             await self.engine.finish()
             self.engine = None
-        for planner in self.planners:
+        for planner in self.planners.values():
             await planner.finish()
         self.planners.clear()
         if self.writer:
@@ -168,19 +173,19 @@ async def setup(settings: query.Setup):
         validator = EventValidator()
     manager.engine = RunnerEngine(writer=manager.writer, validator=validator)
     for name, planner_setting in parser.planners:
-        planner = Planner(name, endpoint=str(planner_setting.endpoint))
+        planner = Planner(name, endpoint=planner_setting.endpoint.unicode_string())
         manager.add_planner(name, planner)
     for name, external_setting in parser.externals:
-        runner = HttpRunner(name, endpoint=str(external_setting.endpoint))
+        runner = HttpRunner(name, endpoint=external_setting.endpoint.unicode_string())
         manager.add_runner(name, runner)
     await manager.engine.setup()
-    for _, planner_setting in parser.planners:
+    for name, planner_setting in parser.planners:
         await manager.setup_planner(
-            str(planner_setting.endpoint), planner_setting.details
+            name, planner_setting.details
         )
     for name, external_setting in parser.externals:
         await manager.setup_external(
-            name, str(external_setting.endpoint), external_setting.details
+            name, external_setting.details
         )
 
     return {"message": "successfully configured."}

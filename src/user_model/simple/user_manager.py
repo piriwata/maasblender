@@ -308,7 +308,7 @@ class UserManager(Runner):
 
         tasks = self.plans_to_trips(route_plans, fixed_service)
         user = User(
-            user_id_=user_id,
+            user_id=user_id,
             demand_id=demand_id,
             org=org,
             dst=dst,
