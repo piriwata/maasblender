@@ -4,6 +4,7 @@ import io
 import logging
 import zipfile
 
+import aiohttp
 import fastapi
 
 from gbfs import GbfsFiles

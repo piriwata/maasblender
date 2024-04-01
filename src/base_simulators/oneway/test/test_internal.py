@@ -3,7 +3,6 @@
 import unittest
 import logging
 
-from jschema.query import Setup
 from simulation import Simulation
 from event import EventType
 from mobility import ScooterParameter
