@@ -9,8 +9,6 @@ import zipfile
 import aiohttp
 import fastapi
 
-import httputil
-from config import env
 from core import Location, MobilityNetwork, WalkingNetwork
 from gbfs.network import Network as GbfsNetwork
 from gbfs.reader import FilesReader as GbfsFiles
@@ -47,7 +45,7 @@ def exception_callback(request: fastapi.Request, exc: Exception):
     return PlainTextResponse(str(exc), status_code=500)
 
 
-file_table = httputil.FileManager(limit=env.FILE_SIZE_LIMIT)
+file_table = httputil.FileManager()
 planner: Planner | None = None
 
 
