@@ -73,7 +73,13 @@ class ReserveFailedEvent(Event):
         self.demand_id = demand_id
 
     def dumps(self):
-        return super().dumps() | {"details": {"success": False, "userId": self.user_id, "demandId": self.demand_id}}
+        return super().dumps() | {
+            "details": {
+                "success": False,
+                "userId": self.user_id,
+                "demandId": self.demand_id,
+            }
+        }
 
 
 class DepartedArrivedEvent(Event):
@@ -107,12 +113,24 @@ class DepartedArrivedEvent(Event):
 
 
 class DepartedEvent(DepartedArrivedEvent):
-    def __init__(self, mobility: Mobility, location: Location, user_id: str = None, demand_id: str = None):
+    def __init__(
+        self,
+        mobility: Mobility,
+        location: Location,
+        user_id: str = None,
+        demand_id: str = None,
+    ):
         super().__init__(EventType.DEPARTED, mobility, location, user_id, demand_id)
 
 
 class ArrivedEvent(DepartedArrivedEvent):
-    def __init__(self, mobility: Mobility, location: Location, user_id: str = None, demand_id: str = None):
+    def __init__(
+        self,
+        mobility: Mobility,
+        location: Location,
+        user_id: str = None,
+        demand_id: str = None,
+    ):
         super().__init__(EventType.ARRIVED, mobility, location, user_id, demand_id)
 
 

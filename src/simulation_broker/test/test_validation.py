@@ -10,8 +10,14 @@ from jsonschema.exceptions import ValidationError
 
 from jschema.event import Event
 from mblib.jschema import events, spec
-from validation import JsonSchema, SchemaCompatibilityChecker, EventValidator, MismatchFutureError, \
-    MismatchSchemaError, MismatchVersionError
+from validation import (
+    JsonSchema,
+    SchemaCompatibilityChecker,
+    EventValidator,
+    MismatchFutureError,
+    MismatchSchemaError,
+    MismatchVersionError,
+)
 
 
 class JsonSchemaTestCase(unittest.TestCase):
@@ -44,7 +50,9 @@ class JsonSchemaTestCase(unittest.TestCase):
         schema = JsonSchema(self.data)
         event = Event(eventType=events.EventType.RESERVE, time=12345.6789)
         event.details = {"user_id": "hogehoge"}
-        with self.assertRaises(ValidationError, msg="'userId' is a required property") as cm:
+        with self.assertRaises(
+            ValidationError, msg="'userId' is a required property"
+        ) as cm:
             schema.validate(event)
         print(cm.exception)
 
@@ -68,29 +76,33 @@ class JsonSchemaTestCase(unittest.TestCase):
 
 class SchemaCompatibilityCheckerTestCase(unittest.TestCase):
     def test_ok(self):
-        rx_schema = JsonSchema({
-            "$defs": {
-                "DemandEventDetails": {
-                    "required": ["userId", "demandId", "org", "dst"]
-                }
-            },
-            "properties": {"details": {"$ref": "#/$defs/DemandEventDetails"}},
-            "required": ["eventType", "time", "details"]
-        })
+        rx_schema = JsonSchema(
+            {
+                "$defs": {
+                    "DemandEventDetails": {
+                        "required": ["userId", "demandId", "org", "dst"]
+                    }
+                },
+                "properties": {"details": {"$ref": "#/$defs/DemandEventDetails"}},
+                "required": ["eventType", "time", "details"],
+            }
+        )
         tx_schema = copy.deepcopy(rx_schema)
         check = SchemaCompatibilityChecker("DEMAND", "module_from", "module_to")
         check(tx_schema, rx_schema)
 
     def test_ok_part(self):
-        rx_schema = JsonSchema({
-            "$defs": {
-                "DemandEventDetails": {
-                    "required": ["userId", "demandId", "org", "dst"]
-                }
-            },
-            "properties": {"details": {"$ref": "#/$defs/DemandEventDetails"}},
-            "required": ["eventType", "time", "details"]
-        })
+        rx_schema = JsonSchema(
+            {
+                "$defs": {
+                    "DemandEventDetails": {
+                        "required": ["userId", "demandId", "org", "dst"]
+                    }
+                },
+                "properties": {"details": {"$ref": "#/$defs/DemandEventDetails"}},
+                "required": ["eventType", "time", "details"],
+            }
+        )
         tx_schema = copy.deepcopy(rx_schema)
         tx_schema.data["required"].append("appendix")
         tx_schema.data["$defs"]["DemandEventDetails"]["required"].append("userType")
@@ -98,15 +110,17 @@ class SchemaCompatibilityCheckerTestCase(unittest.TestCase):
         check(tx_schema, rx_schema)
 
     def test_ng_missing_time(self):
-        rx_schema = JsonSchema({
-            "$defs": {
-                "DemandEventDetails": {
-                    "required": ["userId", "demandId", "org", "dst"]
-                }
-            },
-            "properties": {"details": {"$ref": "#/$defs/DemandEventDetails"}},
-            "required": ["eventType", "time", "details"]
-        })
+        rx_schema = JsonSchema(
+            {
+                "$defs": {
+                    "DemandEventDetails": {
+                        "required": ["userId", "demandId", "org", "dst"]
+                    }
+                },
+                "properties": {"details": {"$ref": "#/$defs/DemandEventDetails"}},
+                "required": ["eventType", "time", "details"],
+            }
+        )
         tx_schema = copy.deepcopy(rx_schema)
         tx_schema.data["required"].remove("time")
         check = SchemaCompatibilityChecker("DEMAND", "module_from", "module_to")
@@ -116,15 +130,17 @@ class SchemaCompatibilityCheckerTestCase(unittest.TestCase):
         print(cm.exception)
 
     def test_ng_missing_demand(self):
-        rx_schema = JsonSchema({
-            "$defs": {
-                "DemandEventDetails": {
-                    "required": ["userId", "demandId", "org", "dst"]
-                }
-            },
-            "properties": {"details": {"$ref": "#/$defs/DemandEventDetails"}},
-            "required": ["eventType", "time", "details"]
-        })
+        rx_schema = JsonSchema(
+            {
+                "$defs": {
+                    "DemandEventDetails": {
+                        "required": ["userId", "demandId", "org", "dst"]
+                    }
+                },
+                "properties": {"details": {"$ref": "#/$defs/DemandEventDetails"}},
+                "required": ["eventType", "time", "details"],
+            }
+        )
         tx_schema = copy.deepcopy(rx_schema)
         tx_schema.data["$defs"]["DemandEventDetails"]["required"].remove("demandId")
         check = SchemaCompatibilityChecker("DEMAND", "module_from", "module_to")
@@ -136,36 +152,59 @@ class SchemaCompatibilityCheckerTestCase(unittest.TestCase):
 
 class EventValidatorTestCase(unittest.TestCase):
     specs = {
-        "broker": spec.SpecificationResponse.model_validate({
-            "version": "https://tmc.co.jp/maas-blender/v1/base-schema.json",
-            "events": {
-                "DEMAND": {"dir": "Tx", "schema": events.DemandEvent.model_json_schema(),
-                           "feature": {"declared": ["feature_123"]}},
-            },
-        }),
-        "abc_module": spec.SpecificationResponse.model_validate({
-            "version": "https://tmc.co.jp/maas-blender/v1/base-schema.json",
-            "events": {
-                "DEMAND": {"dir": "Rx", "schema": events.DemandEvent.model_json_schema(),
-                           "feature": {"required": ["feature_123"]}},
-            },
-        }),
-        "xyz_module": spec.SpecificationResponse.model_validate({
-            "version": "https://tmc.co.jp/maas-blender/v1/base-schema.json",
-            "events": {
-                "DEMAND": {"dir": "Rx", "schema": events.DemandEvent.model_json_schema(),
-                           "feature": {"required": ["feature_123"]}},
-                "RESERVED": {"dir": "Tx", "schema": events.ReservedEvent.model_json_schema(),
-                             "feature": {"required": ["hogepiyo"]}},
-            },
-        }),
-        "mod_a": spec.SpecificationResponse.model_validate({
-            "version": "https://tmc.co.jp/maas-blender/v1/base-schema.json",
-            "events": {
-                "RESERVED": {"dir": "Rx", "schema": events.ReservedEvent.model_json_schema(),
-                             "feature": {"required": ["hogepiyo"]}},
-            },
-        }),
+        "broker": spec.SpecificationResponse.model_validate(
+            {
+                "version": "https://tmc.co.jp/maas-blender/v1/base-schema.json",
+                "events": {
+                    "DEMAND": {
+                        "dir": "Tx",
+                        "schema": events.DemandEvent.model_json_schema(),
+                        "feature": {"declared": ["feature_123"]},
+                    },
+                },
+            }
+        ),
+        "abc_module": spec.SpecificationResponse.model_validate(
+            {
+                "version": "https://tmc.co.jp/maas-blender/v1/base-schema.json",
+                "events": {
+                    "DEMAND": {
+                        "dir": "Rx",
+                        "schema": events.DemandEvent.model_json_schema(),
+                        "feature": {"required": ["feature_123"]},
+                    },
+                },
+            }
+        ),
+        "xyz_module": spec.SpecificationResponse.model_validate(
+            {
+                "version": "https://tmc.co.jp/maas-blender/v1/base-schema.json",
+                "events": {
+                    "DEMAND": {
+                        "dir": "Rx",
+                        "schema": events.DemandEvent.model_json_schema(),
+                        "feature": {"required": ["feature_123"]},
+                    },
+                    "RESERVED": {
+                        "dir": "Tx",
+                        "schema": events.ReservedEvent.model_json_schema(),
+                        "feature": {"required": ["hogepiyo"]},
+                    },
+                },
+            }
+        ),
+        "mod_a": spec.SpecificationResponse.model_validate(
+            {
+                "version": "https://tmc.co.jp/maas-blender/v1/base-schema.json",
+                "events": {
+                    "RESERVED": {
+                        "dir": "Rx",
+                        "schema": events.ReservedEvent.model_json_schema(),
+                        "feature": {"required": ["hogepiyo"]},
+                    },
+                },
+            }
+        ),
     }
 
     def test_version(self):
@@ -175,7 +214,9 @@ class EventValidatorTestCase(unittest.TestCase):
 
     def test_version_ng(self):
         specs = copy.deepcopy(self.specs)
-        specs["abc_module"].version = pydantic.AnyHttpUrl("https://tmc.co.jp/maas-blender/v2/base-schema.json")
+        specs["abc_module"].version = pydantic.AnyHttpUrl(
+            "https://tmc.co.jp/maas-blender/v2/base-schema.json"
+        )
         validator = EventValidator(specs=specs)
         ptn = "https://tmc.co.jp/maas-blender/v1/base-schema.json, https://tmc.co.jp/maas-blender/v2/base-schema.json"
         with self.assertRaisesRegex(MismatchVersionError, ptn) as cm:
@@ -188,12 +229,14 @@ class EventValidatorTestCase(unittest.TestCase):
 
     def test_feature_ng(self):
         specs = copy.deepcopy(self.specs)
-        specs["mod_B"] = spec.SpecificationResponse.model_validate({
-            "version": "https://z",
-            "events": {
-                "DEMAND": {"dir": "Tx", "feature": {"required": ["qwerty"]}},
-            },
-        })
+        specs["mod_B"] = spec.SpecificationResponse.model_validate(
+            {
+                "version": "https://z",
+                "events": {
+                    "DEMAND": {"dir": "Tx", "feature": {"required": ["qwerty"]}},
+                },
+            }
+        )
         validator = EventValidator(specs=specs)
         ptn = re.escape(r"event_type=DEMAND, modules=('mod_B', 'abc_module')")
         with self.assertRaisesRegex(MismatchFutureError, ptn) as cm:
@@ -204,12 +247,18 @@ class EventValidatorTestCase(unittest.TestCase):
         specs = copy.deepcopy(self.specs)
         schema = events.DemandEvent.model_json_schema()
         schema["$defs"]["DemandEventDetails"]["required"].remove("userId")
-        specs["mod_B"] = spec.SpecificationResponse.model_validate({
-            "version": "https://z",
-            "events": {
-                "DEMAND": {"dir": "Tx", "schema": schema, "feature": {"declared": ["feature_123"]}},
-            },
-        })
+        specs["mod_B"] = spec.SpecificationResponse.model_validate(
+            {
+                "version": "https://z",
+                "events": {
+                    "DEMAND": {
+                        "dir": "Tx",
+                        "schema": schema,
+                        "feature": {"declared": ["feature_123"]},
+                    },
+                },
+            }
+        )
         validator = EventValidator(specs=specs)
         ptn = re.escape(r"event_type=DEMAND, modules=('mod_B', 'abc_module')")
         with self.assertRaisesRegex(MismatchSchemaError, ptn) as cm:

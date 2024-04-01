@@ -133,7 +133,13 @@ class ReservationFlowTestCase(unittest.TestCase):
         triggered_events = self.event_manager.dequeue()
         expected_events = [
             ReserveEvent(
-                service="mobility", user_id=user_id, demand_id=demand_id, org=org, dst=dst, dept=0, now=0
+                service="mobility",
+                user_id=user_id,
+                demand_id=demand_id,
+                org=org,
+                dst=dst,
+                dept=0,
+                now=0,
             )
         ]
         self.assertEqual(len(expected_events), len(triggered_events))
@@ -142,14 +148,22 @@ class ReservationFlowTestCase(unittest.TestCase):
 
         # trigger a reservation failed event for the reservation event (originally from the walking module).
         self.event_manager.trigger(
-            ReservedEvent(source="mobility", user_id=user_id, demand_id=demand_id, success=False)
+            ReservedEvent(
+                source="mobility", user_id=user_id, demand_id=demand_id, success=False
+            )
         )
         self.env.run(2)
         # confirm a reservation event for user's walking trip.
         triggered_events = self.event_manager.dequeue()
         expected_events = [
             ReserveEvent(
-                service="walking", user_id=user_id, demand_id=demand_id, org=org, dst=dst, dept=1, now=1
+                service="walking",
+                user_id=user_id,
+                demand_id=demand_id,
+                org=org,
+                dst=dst,
+                dept=1,
+                now=1,
             )
         ]
         self.assertEqual(len(expected_events), len(triggered_events))

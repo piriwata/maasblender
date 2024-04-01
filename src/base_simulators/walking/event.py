@@ -24,7 +24,13 @@ class ReservedEvent(Event):
     arrv: float
 
     def __init__(
-        self, user_id: str, demand_id: str, org: Location, dst: Location, dept: float, arrv: float
+        self,
+        user_id: str,
+        demand_id: str,
+        org: Location,
+        dst: Location,
+        dept: float,
+        arrv: float,
     ):
         super().__init__(EventType.RESERVED)
         self.user_id = user_id
@@ -57,7 +63,9 @@ class DepartedArrivedEvent(Event):
     location: Location
     user_id: str
 
-    def __init__(self, event_type: EventType, location: Location, user_id: str, demand_id: str):
+    def __init__(
+        self, event_type: EventType, location: Location, user_id: str, demand_id: str
+    ):
         super().__init__(event_type)
         self.location = location
         self.user_id = user_id

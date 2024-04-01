@@ -57,7 +57,9 @@ class Simulation:
             )
         return False
 
-    def reserve_user(self, user_id: str, demand_id: str, org: str, dst: str, dept: float):
+    def reserve_user(
+        self, user_id: str, demand_id: str, org: str, dst: str, dept: float
+    ):
         org = self.stops[org]
         dst = self.stops[dst]
         if mobility := self.car_manager.earliest_mobility(org, dst, dept):

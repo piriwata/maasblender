@@ -45,13 +45,23 @@ async def shutdown_event():
     await finish()
 
 
-@app.get("/spec", response_model=spec.SpecificationResponse, response_model_exclude_none=True)
+@app.get(
+    "/spec", response_model=spec.SpecificationResponse, response_model_exclude_none=True
+)
 def get_specification():
-    builder = spec.EventSpecificationBuilder(step=response.StepEvent, triggered=query.TriggeredEvent)
-    builder.set_feature(events.EventType.DEMAND, declared=["user_type"], required=["demand_id", "pre_reserve"])
+    builder = spec.EventSpecificationBuilder(
+        step=response.StepEvent, triggered=query.TriggeredEvent
+    )
+    builder.set_feature(
+        events.EventType.DEMAND,
+        declared=["user_type"],
+        required=["demand_id", "pre_reserve"],
+    )
     builder.set_feature(events.EventType.RESERVE, declared=["demand_id"])
     builder.set_feature(events.EventType.DEPART, declared=["demand_id"])
-    builder.set_feature(events.EventType.RESERVED, declared=["demand_id"], required=["pre_reserve"])
+    builder.set_feature(
+        events.EventType.RESERVED, declared=["demand_id"], required=["pre_reserve"]
+    )
     builder.set_feature(events.EventType.DEPARTED, declared=["demand_id"])
     builder.set_feature(events.EventType.ARRIVED, declared=["demand_id"])
     return builder.get_specification_response(version=events.VERSION_1)

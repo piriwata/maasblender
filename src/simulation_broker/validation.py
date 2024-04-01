@@ -96,7 +96,9 @@ class SchemaCompatibilityChecker:
         if not rx.required <= tx.required:
             rx_req = sorted(rx.required)
             tx_req = sorted(tx.required)
-            logger.error(f"rx.required={rx_req} must be contained in tx.required={tx_req}")
+            logger.error(
+                f"rx.required={rx_req} must be contained in tx.required={tx_req}"
+            )
             raise MismatchSchemaError(self.event_type, (self.tx_name, self.rx_name))
         for name in rx.required:
             # Check the definition of the required field
@@ -135,7 +137,7 @@ class EventValidator:
             yield module_name, spec.version
 
     def _iter_feature(
-            self, dir_: TxRx
+        self, dir_: TxRx
     ) -> typing.Iterator[tuple[str, EventType, FeatureDefinition]]:
         for module_name, spec in self.specs.items():
             if spec.events is not None:
@@ -144,7 +146,7 @@ class EventValidator:
                         yield module_name, event_type, event.feature
 
     def _iter_feature_on_event_type(
-            self, dir_: TxRx, event_type: EventType
+        self, dir_: TxRx, event_type: EventType
     ) -> typing.Iterator[tuple[str, FeatureDefinition]]:
         for module_name, spec in self.specs.items():
             if spec.events is not None:
@@ -152,16 +154,14 @@ class EventValidator:
                 if event and event.feature and event.dir == dir_:
                     yield module_name, event.feature
 
-    def _iter_features_pair(
-            self, dir_main: TxRx
-    ) -> typing.Iterator[FeaturePairInfo]:
+    def _iter_features_pair(self, dir_main: TxRx) -> typing.Iterator[FeaturePairInfo]:
         dir_rev = self._inv_tx_rx(dir_main)
         for name, event_type, defs in self._iter_feature(dir_main):
             for name_t, defs_t in self._iter_feature_on_event_type(dir_rev, event_type):
                 yield FeaturePairInfo(event_type, name, defs, name_t, defs_t)
 
     def _iter_schema(
-            self, dir_: TxRx
+        self, dir_: TxRx
     ) -> typing.Iterator[tuple[str, EventType, JsonSchema]]:
         for name, spec in self.specs.items():
             if spec.events is not None:
@@ -170,7 +170,7 @@ class EventValidator:
                         yield name, event_type, JsonSchema(event.schema_)
 
     def _iter_schema_on_event_type(
-            self, dir_: TxRx, event_type: EventType = None
+        self, dir_: TxRx, event_type: EventType = None
     ) -> typing.Iterator[tuple[str, JsonSchema]]:
         for name, spec in self.specs.items():
             if spec.events is not None:
@@ -179,11 +179,13 @@ class EventValidator:
                     yield name, JsonSchema(event.schema_)
 
     def _iter_schema_pair(
-            self, dir_main: TxRx
+        self, dir_main: TxRx
     ) -> typing.Iterator[tuple[EventType, str, str, JsonSchema, JsonSchema]]:
         dir_rev = self._inv_tx_rx(dir_main)
         for name, event_type, schema in self._iter_schema(dir_main):
-            for name_r, schema_r in self._iter_schema_on_event_type(dir_rev, event_type):
+            for name_r, schema_r in self._iter_schema_on_event_type(
+                dir_rev, event_type
+            ):
                 yield event_type, name, name_r, schema, schema_r
 
     @cached_property
@@ -209,13 +211,27 @@ class EventValidator:
             # print(f"{e.defs_t.declared=} >= {e.defs.required=}")
             if not self._contains_feature(e.defs, e.defs_t):
                 msg = "mismatch event[%s] features, %s declared on Rx[%s] for %s required Tx[%s]"
-                logger.error(msg, e.event_type, e.defs_t.declared, e.name_t, e.defs.required, e.name)
+                logger.error(
+                    msg,
+                    e.event_type,
+                    e.defs_t.declared,
+                    e.name_t,
+                    e.defs.required,
+                    e.name,
+                )
                 raise MismatchFutureError(e.event_type, (e.name, e.name_t))
         for e in self._iter_features_pair("Rx"):
             # print(f"{e.defs_t.declared=} >= {e.defs.required=}")
             if not self._contains_feature(e.defs, e.defs_t):
                 msg = "mismatch event[%s] features, %s declared on Tx[%s] for %s required Rx[%s]"
-                logger.error(msg, e.event_type, e.defs_t.declared, e.name_t, e.defs.required, e.name)
+                logger.error(
+                    msg,
+                    e.event_type,
+                    e.defs_t.declared,
+                    e.name_t,
+                    e.defs.required,
+                    e.name,
+                )
                 raise MismatchFutureError(e.event_type, (e.name, e.name_t))
 
     def check_schemas(self):
@@ -249,7 +265,9 @@ class EventValidator:
             try:
                 schema.validate(event)
             except:
-                logger.error("validation failed on step response from %s: %s", module_name, event)
+                logger.error(
+                    "validation failed on step response from %s: %s", module_name, event
+                )
                 raise
 
     def check_event_on_triggered_request(self, module_name: str, event: Event):
@@ -260,5 +278,9 @@ class EventValidator:
             try:
                 schema.validate(event)
             except:
-                logger.error("validation failed on triggered request to %s: %s", module_name, event)
+                logger.error(
+                    "validation failed on triggered request to %s: %s",
+                    module_name,
+                    event,
+                )
                 raise

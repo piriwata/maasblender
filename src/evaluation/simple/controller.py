@@ -46,7 +46,9 @@ manager: UsabilityEvaluator | None = None
 writer: ResultWriter | None = None
 
 
-@app.get("/spec", response_model=spec.SpecificationResponse, response_model_exclude_none=True)
+@app.get(
+    "/spec", response_model=spec.SpecificationResponse, response_model_exclude_none=True
+)
 def get_specification():
     builder = spec.EventSpecificationBuilder(triggered=query.TriggeredEvent)
     builder.set_feature(events.EventType.DEMAND)

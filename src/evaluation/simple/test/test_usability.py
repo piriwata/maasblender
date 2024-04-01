@@ -129,7 +129,9 @@ class EvaluationTestCase(unittest.IsolatedAsyncioTestCase):
                 ]
             ),
         ]
-        result = await self.evaluator._evaluate(routes, None, 0.0, 0.0, demand_id="Demand123")
+        result = await self.evaluator._evaluate(
+            routes, None, 0.0, 0.0, demand_id="Demand123"
+        )
 
         self.assertEqual(
             {

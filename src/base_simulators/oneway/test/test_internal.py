@@ -210,14 +210,8 @@ class SimpleUserFlowCase(unittest.TestCase):
             dst=self.user["dst"],
             dept=self.dept,
         )
-        self.simulation.depart(
-            user_id="U_001",
-            demand_id="D_0001"
-        )
-        self.simulation.depart(
-            user_id="U_002",
-            demand_id="D_0002"
-        )
+        self.simulation.depart(user_id="U_001", demand_id="D_0001")
+        self.simulation.depart(user_id="U_002", demand_id="D_0002")
 
         org = self.simulation.stations[self.user["org"]]
         dst = self.simulation.stations[self.user["dst"]]

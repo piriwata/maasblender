@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 from pydantic import BaseModel
 
+
 class LocationSetting(BaseModel):
     locationId: str
     lat: float

@@ -51,7 +51,13 @@ class User:
     """A moving object that travels between locations using multiple mobility services"""
 
     def __init__(
-        self, user_id: str, demand_id: str, org: Location, dst: Location, dept: float, tasks: list[Task]
+        self,
+        user_id: str,
+        demand_id: str,
+        org: Location,
+        dst: Location,
+        dept: float,
+        tasks: list[Task],
     ):
         self.user_id = user_id
         self.demand_id = demand_id

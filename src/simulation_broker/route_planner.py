@@ -35,7 +35,7 @@ class Path:
 
 
 class Planner:
-    def __init__(self, _name:str, endpoint: str):
+    def __init__(self, _name: str, endpoint: str):
         self._endpoint = endpoint
         self._session = aiohttp.ClientSession()
 

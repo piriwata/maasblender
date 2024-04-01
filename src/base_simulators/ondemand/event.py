@@ -59,7 +59,7 @@ class ReservedEvent(TriggerEvent):
 
 
 class ReserveFailedEvent(TriggerEvent):
-    def __init__(self, env: Environment, user_id: str,  demand_id: str):
+    def __init__(self, env: Environment, user_id: str, demand_id: str):
         super().__init__(env, EventType.RESERVED)
         self.user_id = user_id
         self.demand_id = demand_id
@@ -156,8 +156,10 @@ class EventQueue:
         )
 
     def reserve_failed(self, user: User):
-        self._enqueue(ReserveFailedEvent(
-            env=self._env,
-            user_id=user.user_id,
-            demand_id=user.demand_id,
-        ))
+        self._enqueue(
+            ReserveFailedEvent(
+                env=self._env,
+                user_id=user.user_id,
+                demand_id=user.demand_id,
+            )
+        )

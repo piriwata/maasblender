@@ -9,4 +9,5 @@ from mblib.jschema.events import ReserveEvent, DepartEvent
 class Setup(BaseModel):
     walking_meters_per_minute: float = 80.0  # (m/min)
 
+
 TriggeredEvent = ReserveEvent | DepartEvent

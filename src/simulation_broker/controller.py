@@ -180,13 +180,9 @@ async def setup(settings: query.Setup):
         manager.add_runner(name, runner)
     await manager.engine.setup()
     for name, planner_setting in parser.planners:
-        await manager.setup_planner(
-            name, planner_setting.details
-        )
+        await manager.setup_planner(name, planner_setting.details)
     for name, external_setting in parser.externals:
-        await manager.setup_external(
-            name, external_setting.details
-        )
+        await manager.setup_external(name, external_setting.details)
 
     return {"message": "successfully configured."}
 

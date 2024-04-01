@@ -37,7 +37,9 @@ def exception_callback(request: fastapi.Request, exc: Exception):
 scenario: HistoricalScenario | None = None
 
 
-@app.get("/spec", response_model=spec.SpecificationResponse, response_model_exclude_none=True)
+@app.get(
+    "/spec", response_model=spec.SpecificationResponse, response_model_exclude_none=True
+)
 def get_specification():
     builder = spec.EventSpecificationBuilder(step=response.StepEvent)
     builder.set_feature(events.EventType.DEMAND, declared=["demand_id", "pre_reserve"])
@@ -48,7 +50,12 @@ def get_specification():
 def setup(settings: query.Setup):
     global scenario
     scenario = HistoricalScenario()
-    scenario.setup(settings.trips, settings.userIDFormat, settings.demandIDFormat, settings.offset_time)
+    scenario.setup(
+        settings.trips,
+        settings.userIDFormat,
+        settings.demandIDFormat,
+        settings.offset_time,
+    )
     return response.Message(message="successfully configured.")
 
 

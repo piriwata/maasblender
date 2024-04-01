@@ -41,4 +41,4 @@ class Setup(BaseModel):
 
 
 # Note: OtherEvent must be described at the end
-TriggeredEvent = DemandEvent | ReservedEvent | DepartedEvent | ArrivedEvent 
+TriggeredEvent = DemandEvent | ReservedEvent | DepartedEvent | ArrivedEvent

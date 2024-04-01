@@ -37,7 +37,9 @@ def exception_callback(request: fastapi.Request, exc: Exception):
 scenario: DemandGenerator | None = None
 
 
-@app.get("/spec", response_model=spec.SpecificationResponse, response_model_exclude_none=True)
+@app.get(
+    "/spec", response_model=spec.SpecificationResponse, response_model_exclude_none=True
+)
 def get_specification():
     builder = spec.EventSpecificationBuilder(step=response.StepEvent)
     builder.set_feature(events.EventType.DEMAND, declared=["demand_id", "pre_reserve"])

@@ -53,7 +53,13 @@ class User:
     """地点間を複数のモビリティサービスを利用しながら移動する動体"""
 
     def __init__(
-        self, user_id: str, demand_id: str, org: Location, dst: Location, dept: float, tasks: list[Task]
+        self,
+        user_id: str,
+        demand_id: str,
+        org: Location,
+        dst: Location,
+        dept: float,
+        tasks: list[Task],
     ):
         self.user_id = user_id
         self.demand_id = demand_id

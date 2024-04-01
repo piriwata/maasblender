@@ -115,13 +115,17 @@ class Simulation:
 
     def reserve(self, user_id: str, demand_id: str, org: str, dst: str, dept: float):
         self.env.process(
-            self._reserve(user_id, demand_id, self.stations[org], self.stations[dst], dept)
+            self._reserve(
+                user_id, demand_id, self.stations[org], self.stations[dst], dept
+            )
         )
 
     def depart(self, user_id: str, demand_id: str):
         self.env.process(self._depart(user_id, demand_id))
 
-    def _reserve(self, user_id: str, demand_id: str, org: Station, dst: Station, dept: float):
+    def _reserve(
+        self, user_id: str, demand_id: str, org: Station, dst: Station, dept: float
+    ):
         yield self.env.timeout(0)
         assert user_id not in self._reservations, user_id
         if not self.reservable(org.location_id, dst.location_id):

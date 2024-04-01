@@ -70,7 +70,9 @@ class Simulation:
             )
         )
 
-    def reserve_user(self, user_id: str, demand_id: str, org: str, dst: str, dept: float):
+    def reserve_user(
+        self, user_id: str, demand_id: str, org: str, dst: str, dept: float
+    ):
         org = self.stops[org]
         dst = self.stops[dst]
         self.car_manager.reserve(

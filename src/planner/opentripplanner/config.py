@@ -3,6 +3,7 @@
 import pathlib
 from mblib.io.log import LogConfig
 
+
 class Configuration(LogConfig, frozen=True):
     """environment variable"""
 

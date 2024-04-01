@@ -38,10 +38,16 @@ def exception_callback(request: fastapi.Request, exc: Exception):
 sim: Simulation | None = None
 
 
-@app.get("/spec", response_model=spec.SpecificationResponse, response_model_exclude_none=True)
+@app.get(
+    "/spec", response_model=spec.SpecificationResponse, response_model_exclude_none=True
+)
 def get_specification():
-    builder = spec.EventSpecificationBuilder(step=response.StepEvent, triggered=query.TriggeredEvent)
-    builder.set_feature(events.EventType.RESERVED, declared=["demand_id", "pre_reserve"])
+    builder = spec.EventSpecificationBuilder(
+        step=response.StepEvent, triggered=query.TriggeredEvent
+    )
+    builder.set_feature(
+        events.EventType.RESERVED, declared=["demand_id", "pre_reserve"]
+    )
     builder.set_feature(events.EventType.DEPARTED, declared=["demand_id"])
     builder.set_feature(events.EventType.ARRIVED, declared=["demand_id"])
     builder.set_feature(events.EventType.RESERVE, required=["demand_id"])

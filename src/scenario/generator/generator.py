@@ -101,7 +101,13 @@ def make_demands(setting: jschema.query.Setup):
     user_id_gen = (setting.userIDFormat % i for i in itertools.count(1))
     demand_id_gen = (setting.demandIDFormat % i for i in itertools.count(1))
     demands = [
-        Demand(time=e.time, dept=e.dept, user_id=next(user_id_gen), demand_id=next(demand_id_gen), info=e.info)
+        Demand(
+            time=e.time,
+            dept=e.dept,
+            user_id=next(user_id_gen),
+            demand_id=next(demand_id_gen),
+            info=e.info,
+        )
         for e in ten
     ]
 
@@ -146,10 +152,20 @@ class DemandGenerator:
         if demand.time is None:  # immediate reservation
             yield self.env.timeout(demand.dept)  # wait for departure time
             self._events.append(
-                DemandEvent(user_id=demand.user_id, demand_id=demand.demand_id, dept=None, info=demand.info)
+                DemandEvent(
+                    user_id=demand.user_id,
+                    demand_id=demand.demand_id,
+                    dept=None,
+                    info=demand.info,
+                )
             )
         else:  # advance reservation
             yield self.env.timeout(demand.time)  # wait for reservation time
             self._events.append(
-                DemandEvent(user_id=demand.user_id, demand_id=demand.demand_id, dept=demand.dept, info=demand.info)
+                DemandEvent(
+                    user_id=demand.user_id,
+                    demand_id=demand.demand_id,
+                    dept=demand.dept,
+                    info=demand.info,
+                )
             )

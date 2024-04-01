@@ -81,11 +81,21 @@ class Trip(Task):
         )
         # not yield, only wait arrived event here.
         self.event_manager.event(
-            DepartedEvent(source=self.service, user_id=user.user_id, demand_id=user.demand_id, location=self.org)
+            DepartedEvent(
+                source=self.service,
+                user_id=user.user_id,
+                demand_id=user.demand_id,
+                location=self.org,
+            )
         )
 
         yield self.event_manager.event(
-            ArrivedEvent(source=self.service, user_id=user.user_id, demand_id=user.demand_id, location=self.dst)
+            ArrivedEvent(
+                source=self.service,
+                user_id=user.user_id,
+                demand_id=user.demand_id,
+                location=self.dst,
+            )
         )
 
 

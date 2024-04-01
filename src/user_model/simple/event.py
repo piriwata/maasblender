@@ -120,7 +120,12 @@ class ReservedEvent(EventIdentifier):
         self.route = route
 
     def __eq__(self, other):
-        return super().__eq__(other) and all((self.user_id == other.user_id, self.demand_id == other.demand_id,))
+        return super().__eq__(other) and all(
+            (
+                self.user_id == other.user_id,
+                self.demand_id == other.demand_id,
+            )
+        )
 
     def __hash__(self):
         return hash(
@@ -156,20 +161,35 @@ class DepartedArrivedEvent(EventIdentifier):
         )
 
     def __hash__(self):
-        return hash((super().__hash__(), self.location.location_id, self.user_id, self.demand_id,))
+        return hash(
+            (
+                super().__hash__(),
+                self.location.location_id,
+                self.user_id,
+                self.demand_id,
+            )
+        )
 
 
 class DepartedEvent(DepartedArrivedEvent):
     def __init__(self, source: str, location: Location, user_id: str, demand_id: str):
         super().__init__(
-            EventType.DEPARTED, source=source, location=location, user_id=user_id, demand_id=demand_id
+            EventType.DEPARTED,
+            source=source,
+            location=location,
+            user_id=user_id,
+            demand_id=demand_id,
         )
 
 
 class ArrivedEvent(DepartedArrivedEvent):
     def __init__(self, source: str, location: Location, user_id: str, demand_id: str):
         super().__init__(
-            EventType.ARRIVED, source=source, location=location, user_id=user_id, demand_id=demand_id
+            EventType.ARRIVED,
+            source=source,
+            location=location,
+            user_id=user_id,
+            demand_id=demand_id,
         )
 
 

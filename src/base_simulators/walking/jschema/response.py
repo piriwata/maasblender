@@ -22,4 +22,5 @@ class Step(BaseModel):
 class ReservableStatus(BaseModel):
     reservable: bool
 
+
 StepEvent = ReservedEvent | DepartedEvent | ArrivedEvent

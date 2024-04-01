@@ -158,14 +158,22 @@ class DepartedArrivedEvent(EventIdentifier):
 class DepartedEvent(DepartedArrivedEvent):
     def __init__(self, source: str, location: Location, user_id: str, demand_id: str):
         super().__init__(
-            EventType.DEPARTED, source=source, location=location, user_id=user_id, demand_id=demand_id
+            EventType.DEPARTED,
+            source=source,
+            location=location,
+            user_id=user_id,
+            demand_id=demand_id,
         )
 
 
 class ArrivedEvent(DepartedArrivedEvent):
     def __init__(self, source: str, location: Location, user_id: str, demand_id: str):
         super().__init__(
-            EventType.ARRIVED, source=source, location=location, user_id=user_id, demand_id=demand_id
+            EventType.ARRIVED,
+            source=source,
+            location=location,
+            user_id=user_id,
+            demand_id=demand_id,
         )
 
 

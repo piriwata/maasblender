@@ -13,8 +13,6 @@ from validation import EventValidator
 logger = logging.getLogger(__name__)
 
 
-
-
 class Runner:
     def __init__(self, name: str):
         self.name = name
@@ -68,10 +66,14 @@ class RunnerEngine:
             await runner.start()
 
     async def peek(self):
-        return min(await asyncio.gather(*[runner.peek() for runner in self._runners.values()]))
+        return min(
+            await asyncio.gather(*[runner.peek() for runner in self._runners.values()])
+        )
 
     async def step(self, until: int | float = None) -> int | float:
-        peeks = await asyncio.gather(*[runner.peek() for runner in self._runners.values()])
+        peeks = await asyncio.gather(
+            *[runner.peek() for runner in self._runners.values()]
+        )
 
         # step the simulator with the lowest peek() value
         runner, min_peek = min(zip(self._runners.values(), peeks), key=lambda e: e[1])

@@ -55,7 +55,6 @@ class BrokerSetting(BaseSetting):
 
 
 class Setup(RootModel[dict[str, BrokerSetting | PlannerSetting | ExternalSetting]]):
-
     # dict-like accessors
     def __getattr__(self, name: str):
         if name in ["get", "keys", "values", "items"]:

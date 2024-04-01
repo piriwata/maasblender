@@ -44,7 +44,8 @@ class CommuterScenarioTestCase(unittest.TestCase):
                     user_type="commuter_users",
                     service="commuter-trains",
                 )
-            }, demand_id_format="Demand%04d"
+            },
+            demand_id_format="Demand%04d",
         )
 
         expected_events = [

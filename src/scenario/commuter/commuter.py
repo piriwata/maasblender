@@ -36,7 +36,11 @@ class CommuterScenario:
         self._events: list[DemandEvent] = []
         self._demand_id_gen: typing.Iterator[str] | None = None
 
-    def setup(self, commuters: typing.Mapping[str, jschema.query.CommuterSetting], demand_id_format: str):
+    def setup(
+        self,
+        commuters: typing.Mapping[str, jschema.query.CommuterSetting],
+        demand_id_format: str,
+    ):
         self.commuters = [
             Commuter(
                 env=self.env,
@@ -88,4 +92,6 @@ class CommuterScenario:
             yield self.env.timeout(1440)  # repeat daily
 
     def _demand(self, user_id: str, demand_id: str, info: DemandInfo):
-        self._events.append(DemandEvent(user_id=user_id, demand_id=demand_id, info=info))
+        self._events.append(
+            DemandEvent(user_id=user_id, demand_id=demand_id, info=info)
+        )

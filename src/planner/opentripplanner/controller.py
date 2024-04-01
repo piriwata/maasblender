@@ -37,6 +37,7 @@ app = fastapi.FastAPI(
 def startup():
     init_logger()
 
+
 @app.exception_handler(Exception)
 def exception_callback(request: fastapi.Request, exc: Exception):
     from fastapi.responses import PlainTextResponse

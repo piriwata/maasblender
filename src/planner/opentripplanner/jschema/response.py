@@ -10,7 +10,6 @@ Peek = response.Peek
 Step = response.Step[Event]
 
 
-
 class DistanceMatrix(BaseModel):
     stops: list[str]
     matrix: list[list[float]]

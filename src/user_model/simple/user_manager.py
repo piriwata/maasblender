@@ -60,7 +60,11 @@ class Trip(Task):
             )
         )
         event: ReservedEvent = yield self.event_manager.event(
-            ReservedEvent(source=self.service, user_id=user.user_id, demand_id=user.demand_id,)
+            ReservedEvent(
+                source=self.service,
+                user_id=user.user_id,
+                demand_id=user.demand_id,
+            )
         )
         if not event.success:
             if not self.fail:
@@ -80,11 +84,21 @@ class Trip(Task):
         )
         # not yield, only wait arrived event here.
         self.event_manager.event(
-            DepartedEvent(source=self.service, user_id=user.user_id, demand_id=user.demand_id, location=self.org)
+            DepartedEvent(
+                source=self.service,
+                user_id=user.user_id,
+                demand_id=user.demand_id,
+                location=self.org,
+            )
         )
 
         yield self.event_manager.event(
-            ArrivedEvent(source=self.service, user_id=user.user_id, demand_id=user.demand_id, location=self.dst)
+            ArrivedEvent(
+                source=self.service,
+                user_id=user.user_id,
+                demand_id=user.demand_id,
+                location=self.dst,
+            )
         )
 
 
@@ -135,7 +149,11 @@ class Reserve(Task):
             )
         )
         event: ReservedEvent = yield self.event_manager.event(
-            ReservedEvent(source=self.service, user_id=user.user_id, demand_id=user.demand_id,)
+            ReservedEvent(
+                source=self.service,
+                user_id=user.user_id,
+                demand_id=user.demand_id,
+            )
         )
         # wait for departure from pre-reserve time
         if self.route.trips[0].dept > self.event_manager.env.now:
@@ -232,11 +250,21 @@ class ReservedTrip(Task):
 
         # not yield, only wait arrived event here.
         self.event_manager.event(
-            DepartedEvent(source=self.service, user_id=user.user_id, demand_id=user.demand_id, location=self.org)
+            DepartedEvent(
+                source=self.service,
+                user_id=user.user_id,
+                demand_id=user.demand_id,
+                location=self.org,
+            )
         )
 
         yield self.event_manager.event(
-            ArrivedEvent(source=self.service, user_id=user.user_id, demand_id=user.demand_id, location=self.dst)
+            ArrivedEvent(
+                source=self.service,
+                user_id=user.user_id,
+                demand_id=user.demand_id,
+                location=self.dst,
+            )
         )
 
 
