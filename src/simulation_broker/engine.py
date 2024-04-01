@@ -4,24 +4,23 @@ import asyncio
 import logging
 import typing
 
-from pydantic import BaseModel, Extra
+from jschema.event import Event
 
-from common.result import ResultWriter
+from mblib.io.result import ResultWriter
+from mblib.jschema.spec import SpecificationResponse
+from validation import EventValidator
 
 logger = logging.getLogger(__name__)
 
 
-class Event(BaseModel, extra=Extra.allow):
-    eventType: str
-    source: str | None = None
-    time: float
-    service: str | None = None
-    details: typing.Any
 
 
 class Runner:
     def __init__(self, name: str):
         self.name = name
+
+    async def spec(self) -> SpecificationResponse:
+        raise NotImplementedError()
 
     async def setup(self, setting: typing.Mapping) -> None:
         pass
@@ -48,15 +47,23 @@ class Runner:
 class RunnerEngine:
     def __init__(self, writer: ResultWriter):
         self._writer = writer
+        self.validator: EventValidator = None
         self._runners: dict[str, Runner] = {}
 
     @property
     def runners(self):
         yield from self._runners.values()
 
-    def setup_runners(self, runners: typing.Mapping[str, Runner]):
+    async def setup_runners(self, runners: typing.Mapping[str, Runner]):
         for name, runner in runners.items():
+            spec = await runner.spec()
+            self.validator.specs[name] = spec
             self._runners[name] = runner
+
+        logger.debug("validator: %s", self.validator)
+        self.validator.check_versions()
+        self.validator.check_schemas()
+        self.validator.check_features()
 
     async def start(self):
         for runner in self.runners:
@@ -77,24 +84,35 @@ class RunnerEngine:
         now, events = await runner.step()
 
         for event in events:
+            self.validator.check_event_on_step_response(runner.name, event)
             event.source = runner.name
-            await self._writer.write_json(event.dict(exclude_none=True))
+            await self._writer.write_json(event.model_dump(exclude_none=True))
 
             # sync triggered events with the other runners
             if service := event.service:
+                self.validator.check_event_on_triggered_request(service, event)
                 await self._runners[service].triggered(event)
             else:
                 for each in self.runners:
+                    self.validator.check_event_on_triggered_request(each.name, event)
                     await each.triggered(event)
         return now
 
     async def finish(self):
         for runner in self.runners:
-            await runner.finish()
+            try:
+                await runner.finish()
+            except:
+                logger.info("error on %s", runner)
+                raise
 
     async def reservable(self, service: str, org: str, dst: str):
         if runner := self._runners.get(service, None):
-            return await runner.reservable(org, dst)
+            try:
+                return await runner.reservable(org, dst)
+            except:
+                logger.info("error on %s", runner)
+                raise
         else:
             msg = f"service: {service} was not found. (services: {list(self._runners.keys())})"
             raise KeyError(msg)

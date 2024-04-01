@@ -9,12 +9,14 @@ import typing
 
 import fastapi
 
-from common.result import ResultWriter, FileResultWriter, HTTPResultWriter
-from config import env
+
+from mblib.io.log import init_logger
+from mblib.io.result import FileResultWriter, HTTPResultWriter, ResultWriter
 from engine import RunnerEngine
 from jschema import query, response
 from route_planner import Planner, Path
 from runner import HttpRunner
+from validation import EventValidator
 
 logger = logging.getLogger(__name__)
 app = fastapi.FastAPI(
@@ -28,23 +30,7 @@ app = fastapi.FastAPI(
 
 @app.on_event("startup")
 def startup():
-    class MultilineLogFormatter(logging.Formatter):
-        def format(self, record: logging.LogRecord) -> str:
-            message = super().format(record)
-            return message.replace(
-                "\n", "\t\n"
-            )  # indicate continuation line by trailing tab
-
-    formatter = MultilineLogFormatter(env.log_format)
-    handler = logging.StreamHandler()
-    handler.setFormatter(formatter)
-    logging.basicConfig(level=env.log_level, handlers=[handler])
-
-    # replace logging formatter for uvicorn
-    for handler in logging.getLogger("uvicorn").handlers:
-        handler.setFormatter(formatter)
-
-    logger.debug("configuration: %s", env.json())
+    init_logger()
 
 
 @app.exception_handler(Exception)
@@ -172,7 +158,22 @@ async def setup(settings: query.Setup):
     else:
         manager.writer = FileResultWriter(pathlib.Path("events.txt"))
 
-    manager.engine = RunnerEngine(writer=manager.writer)
+    if v := broker_setting.details.validation:
+        validator = EventValidator(
+            ignore_feature=v.ignore_feature,
+            ignore_schema=v.ignore_schema,
+            ignore_in_process=v.ignore_in_process,
+        )
+    else:
+        validator = EventValidator()
+    manager.engine = RunnerEngine(writer=manager.writer, validator=validator)
+    for name, planner_setting in parser.planners:
+        planner = Planner(name, endpoint=str(planner_setting.endpoint))
+        manager.add_planner(name, planner)
+    for name, external_setting in parser.externals:
+        runner = HttpRunner(name, endpoint=str(external_setting.endpoint))
+        manager.add_runner(name, runner)
+    await manager.engine.setup()
     for _, planner_setting in parser.planners:
         await manager.setup_planner(
             str(planner_setting.endpoint), planner_setting.details
