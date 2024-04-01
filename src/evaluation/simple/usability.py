@@ -5,7 +5,7 @@ import json
 
 from simpy import Environment
 
-from common.result import ResultWriter
+from mblib.io.result import ResultWriter
 from planner import Location, Route, Planner, ReservableChecker
 from event import EventQueue, DemandEvent
 
@@ -44,7 +44,7 @@ class UsabilityEvaluator:
         org: Location,
         dst: Location,
         service: str | None,
-        user_id: str | None,
+        demand_id: str | None,
     ):
         """
         enqueue DEMAND event at dept
@@ -56,7 +56,7 @@ class UsabilityEvaluator:
             org=org,
             dst=dst,
             service=service,
-            user_id=user_id,
+            demand_id=demand_id,
         )
         self.env.process(self._demand(demand))
 
@@ -78,7 +78,7 @@ class UsabilityEvaluator:
             actual=demand.service,
             event_time=demand.event_time,
             dept=demand.dept,
-            user_id=demand.user_id,
+            demand_id=demand.demand_id,
         )
         await self.logger.write_json(result)
 
@@ -91,7 +91,7 @@ class UsabilityEvaluator:
         actual: str | None,
         event_time: float,
         dept: float,
-        user_id: str | None,
+        demand_id: str,
     ):
         org = plans[0].org
         dst = plans[0].dst
@@ -113,7 +113,7 @@ class UsabilityEvaluator:
             "time": dept,
             "actual_service": actual,
             "plans": [await self._evaluate_plan(plan) for plan in plans],
-            "user_id": user_id,
+            "demand_id": demand_id,
         }
         return result
 
