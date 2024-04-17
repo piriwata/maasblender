@@ -88,7 +88,7 @@ async def setup(settings: query.Setup):
                 ).dict()
                 for e in sorted(stops.values(), key=lambda e: e.stop_id)
             ]
-            async with session.post(network_url, json=stops_req) as resp:
+            async with session.post(str(network_url), json=stops_req) as resp:
                 await httputil.check_response(resp)
                 matrix = await resp.json()
             network = Network()
