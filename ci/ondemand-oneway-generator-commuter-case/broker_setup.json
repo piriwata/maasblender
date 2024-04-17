@@ -1,0 +1,147 @@
+{
+  "broker": {
+    "type": "broker",
+    "details": {
+      "writer": {}
+    }
+  },
+  "walking": {
+    "type": "http",
+    "endpoint": "http://walking",
+    "details": {}
+  },
+  "scenario_commuter": {
+    "type": "http",
+    "endpoint": "http://scenario_commuter",
+    "details": {
+      "commuters": {
+        "CU_001": {
+          "org": {
+            "locationId": "toyama_station",
+            "lat": 36.7014265,
+            "lng": 137.210879
+          },
+          "dst": {
+            "locationId": "toyama_court",
+            "lat": 36.6835921,
+            "lng": 137.2044729
+          },
+          "deptOut": 540.0,
+          "deptIn": 1080.0
+        }
+      }
+    }
+  },
+  "scenario_generator": {
+    "type": "http",
+    "endpoint": "http://scenario_generator",
+    "details": {
+      "demands":[
+        {
+          "org": {
+            "locationId": "toyama_station",
+            "lat": 36.7014265,
+            "lng": 137.210879
+          },
+          "dst": {
+            "locationId": "toyama_court",
+            "lat": 36.6835921,
+            "lng": 137.2044729
+          },
+          "begin": 540.0,
+          "end": 1080.0,
+          "expected_demands": 10
+        }
+      ],
+      "seed": 1,
+      "userIDFormat": "GU_%d"
+    }
+  },
+  "gbfs": {
+    "type": "http",
+    "endpoint": "http://oneway",
+    "details": {
+      "input_files": [
+        {
+          "filename": "gbfs.zip"
+        }
+      ]
+    }
+  },
+  "flex": {
+    "type": "http",
+    "endpoint": "http://ondemand",
+    "details": {
+      "reference_time": "20230404",
+      "input_files": [
+        {
+          "filename": "flex.zip"
+        }
+      ],
+      "network": {
+        "fetch_url": "http://planner/matrix"
+      },
+      "board_time": 1,
+      "max_delay_time": 10,
+      "mobility_speed": 300,
+      "mobilities": [
+        {
+          "mobility_id": "F_001",
+          "trip_id": "FLEX",
+          "capacity": 1,
+          "stop": "1_1"
+        }
+      ]
+    }
+  },
+  "planner": {
+    "type": "planner",
+    "endpoint": "http://planner",
+    "details": {
+      "networks": {
+        "gbfs": {
+          "type": "gbfs",
+          "input_files": [
+            {
+              "filename": "gbfs.zip"
+            }
+          ],
+          "mobility_meters_per_minute": 180
+        },
+        "flex": {
+          "type": "gtfs_flex",
+          "input_files": [
+            {
+              "filename": "flex.zip"
+            }
+          ],
+          "mobility_meters_per_minute": 300,
+          "expected_waiting_time": 5
+        }
+      },
+      "reference_time": "20230404",
+      "walking_meters_per_minute": 80.0
+    }
+  },
+  "user": {
+    "type": "http",
+    "endpoint": "http://user_model",
+    "details": {
+      "planner": {
+        "endpoint":  "http://planner/plan"
+      }
+    }
+  },
+  "evaluation": {
+    "type": "http",
+    "endpoint": "http://evaluation",
+    "details": {
+      "planner": {
+        "endpoint":  "http://broker/plan"
+      },
+      "reservable": {
+        "endpoint":  "http://broker/reservable"
+      }
+    }
+  }
+}

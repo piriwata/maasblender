@@ -12,7 +12,7 @@ services:
     build:
       context: ../../src/user_model/simple/
 
-  scenario:
+  scenario_historical:
     build:
       context: ../../src/scenario/historical/
 
@@ -26,7 +26,7 @@ services:
     build:
       context: ../../src/planner/simple
     ports:
-      - "3002:80"
+      - "3010:80"
 
   walking:
     build:
