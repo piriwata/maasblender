@@ -31,7 +31,7 @@ class Trip:
 @dataclasses.dataclass(frozen=True)
 class Path:
     trips: typing.List[Trip]
-    walking_time_minutes: float
+    # walking_time_minutes: float
 
 
 class Planner:
