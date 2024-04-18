@@ -4,8 +4,6 @@ import typing
 
 from pydantic import BaseModel, Field
 
-from jschema.events import Event
-
 
 class LocationSetting(BaseModel):
     locationId: str
@@ -24,6 +22,4 @@ class CommuterSetting(BaseModel):
 
 class Setup(BaseModel):
     commuters: typing.Mapping[str, CommuterSetting]  # key indicates User ID
-
-
-TriggeredEvent = Event
+    demandIDFormat: str = "D_%d"

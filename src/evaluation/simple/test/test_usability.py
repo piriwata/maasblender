@@ -5,7 +5,7 @@ import pathlib
 import unittest
 import unittest.mock
 
-from common.result import FileResultWriter
+from mblib.io.result import FileResultWriter
 from core import Location
 from planner import Route, Trip
 from usability import UsabilityEvaluator
@@ -129,7 +129,9 @@ class EvaluationTestCase(unittest.IsolatedAsyncioTestCase):
                 ]
             ),
         ]
-        result = await self.evaluator._evaluate(routes, None, 0.0, 0.0, self.user_id)
+        result = await self.evaluator._evaluate(
+            routes, None, 0.0, 0.0, demand_id="Demand123"
+        )
 
         self.assertEqual(
             {
@@ -138,7 +140,7 @@ class EvaluationTestCase(unittest.IsolatedAsyncioTestCase):
                 "time": 0.0,
                 "actual_service": None,
                 "event_time": 0.0,
-                "user_id": self.user_id,
+                "demand_id": "Demand123",
                 "plans": [
                     {
                         "org": route.trips[trip_index].org.location_id,
@@ -224,7 +226,7 @@ class EvaluationTestCase(unittest.IsolatedAsyncioTestCase):
             ),
         ]
         result = await self.evaluator._evaluate(
-            routes, "test-service", 1000.0, dept=1000.0, user_id=self.user_id
+            routes, "test-service", 1000.0, dept=1000.0, demand_id="D999"
         )
         self.assertEqual(
             result,
@@ -234,7 +236,7 @@ class EvaluationTestCase(unittest.IsolatedAsyncioTestCase):
                 "time": 1000.0,
                 "actual_service": "test-service",
                 "event_time": 1000.0,
-                "user_id": self.user_id,
+                "demand_id": "D999",
                 "plans": [
                     {
                         "org": route.trips[trip_index].org.location_id,

@@ -56,6 +56,7 @@ class Simulation:
             self.car_manager.minimum_delay(
                 User(
                     user_id=...,
+                    demand_id=...,
                     org=org,
                     dst=dst,
                     desired=self.env.datetime_from(dept)
@@ -69,12 +70,15 @@ class Simulation:
             )
         )
 
-    def reserve_user(self, user_id: str, org: str, dst: str, dept: float):
+    def reserve_user(
+        self, user_id: str, demand_id: str, org: str, dst: str, dept: float
+    ):
         org = self.stops[org]
         dst = self.stops[dst]
         self.car_manager.reserve(
             User(
                 user_id=user_id,
+                demand_id=demand_id,
                 org=org,
                 dst=dst,
                 desired=self.env.datetime_from(dept),

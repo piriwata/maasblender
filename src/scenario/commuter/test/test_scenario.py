@@ -44,7 +44,8 @@ class CommuterScenarioTestCase(unittest.TestCase):
                     user_type="commuter_users",
                     service="commuter-trains",
                 )
-            }
+            },
+            demand_id_format="Demand%04d",
         )
 
         expected_events = [
@@ -53,6 +54,8 @@ class CommuterScenarioTestCase(unittest.TestCase):
                 "time": 400,
                 "details": {
                     "userId": "U_001",
+                    "userType": "commuter_users",
+                    "demandId": "Demand0001",
                     "org": org,
                     "dst": dst,
                     "service": "commuter-trains",
@@ -63,6 +66,8 @@ class CommuterScenarioTestCase(unittest.TestCase):
                 "time": 800,
                 "details": {
                     "userId": "U_001",
+                    "userType": "commuter_users",
+                    "demandId": "Demand0002",
                     "org": dst,
                     "dst": org,
                     "service": "commuter-trains",
@@ -73,6 +78,8 @@ class CommuterScenarioTestCase(unittest.TestCase):
                 "time": 1840,
                 "details": {
                     "userId": "U_001",
+                    "userType": "commuter_users",
+                    "demandId": "Demand0003",
                     "org": org,
                     "dst": dst,
                     "service": "commuter-trains",
@@ -83,6 +90,8 @@ class CommuterScenarioTestCase(unittest.TestCase):
                 "time": 2240,
                 "details": {
                     "userId": "U_001",
+                    "userType": "commuter_users",
+                    "demandId": "Demand0004",
                     "org": dst,
                     "dst": org,
                     "service": "commuter-trains",

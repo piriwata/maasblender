@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 from pydantic import BaseModel, AnyHttpUrl
 
-from jschema.events import DemandEvent, Event as OtherEvent
+from mblib.jschema.events import DemandEvent
 
 
 class ResultWriterSetting(BaseModel):
@@ -23,4 +23,4 @@ class Setup(BaseModel):
     reservable: ReservableSetting
 
 
-TriggeredEvent = DemandEvent | OtherEvent
+TriggeredEvent = DemandEvent

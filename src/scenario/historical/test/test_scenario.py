@@ -40,6 +40,7 @@ class HistoricalScenarioTestCase(unittest.TestCase):
                 )
             ],
             "U_%d",
+            "D_%d",
         )
 
         expected_events = [
@@ -48,6 +49,8 @@ class HistoricalScenarioTestCase(unittest.TestCase):
                 "eventType": "DEMAND",
                 "details": {
                     "userId": "U_1",
+                    "userType": "user-xyz",
+                    "demandId": "D_1",
                     "org": org,
                     "dst": dst,
                     "service": "mobility",
@@ -69,8 +72,8 @@ class HistoricalScenarioTestCase(unittest.TestCase):
         self.assertEqual(len(expected_events), len(actual_events))
         for expected, actual in zip(expected_events, actual_events):
             self.assertEqual(
-                jschema.response.DemandEvent.parse_obj(expected),
-                jschema.response.DemandEvent.parse_obj(actual),
+                jschema.response.DemandEvent.model_validate(expected),
+                jschema.response.DemandEvent.model_validate(actual),
             )
 
 

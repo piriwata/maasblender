@@ -1,21 +1,16 @@
 # SPDX-FileCopyrightText: 2023 TOYOTA MOTOR CORPORATION and MaaS Blender Contributors
 # SPDX-License-Identifier: Apache-2.0
+import typing
+
 from pydantic import BaseModel
 
-from jschema.events import DemandEvent
+from mblib.jschema import response
+from mblib.jschema.events import DemandEvent
 
-
-class Message(BaseModel):
-    message: str
-
-
-class Peek(BaseModel):
-    next: float
-
-
-class Step(BaseModel):
-    now: float
-    events: list[DemandEvent]
+Message = response.Message
+Peek = response.Peek
+StepEvent: typing.TypeAlias = DemandEvent
+Step = response.Step[StepEvent]
 
 
 class User(BaseModel):

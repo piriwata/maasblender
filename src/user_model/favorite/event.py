@@ -32,6 +32,7 @@ class ReserveEvent(TriggerEvent):
         self,
         service: str,
         user_id: str,
+        demand_id: str,
         org: Location,
         dst: Location,
         dept: float,
@@ -41,6 +42,7 @@ class ReserveEvent(TriggerEvent):
         super().__init__(EventType.RESERVE, time=now)
         self.service = service
         self.user_id = user_id
+        self.demand_id = demand_id
         self.org = org
         self.dst = dst
         self.dept = dept
@@ -51,6 +53,7 @@ class ReserveEvent(TriggerEvent):
             "service": self.service,
             "details": {
                 "userId": self.user_id,
+                "demandId": self.demand_id,
                 "org": {
                     "locationId": self.org.location_id,
                     "lat": self.org.lat,
@@ -68,16 +71,18 @@ class ReserveEvent(TriggerEvent):
 
 
 class DepartEvent(TriggerEvent):
-    def __init__(self, service: str, user_id: str, now: float):
+    def __init__(self, service: str, user_id: str, demand_id: str, now: float):
         super().__init__(EventType.DEPART, time=now)
         self.service = service
         self.user_id = user_id
+        self.demand_id = demand_id
 
     def dumps(self):
         return super().dumps() | {
             "service": self.service,
             "details": {
                 "userId": self.user_id,
+                "demandId": self.demand_id,
             },
         }
 
@@ -131,10 +136,12 @@ class DepartedArrivedEvent(EventIdentifier):
         source: str,
         location: Location,
         user_id: str,
+        demand_id: str,
     ):
         super().__init__(event_type, source=source)
         self.location = location
         self.user_id = user_id
+        self.demand_id = demand_id
 
     def __eq__(self, other):
         return super().__eq__(other) and all(
@@ -149,16 +156,24 @@ class DepartedArrivedEvent(EventIdentifier):
 
 
 class DepartedEvent(DepartedArrivedEvent):
-    def __init__(self, source: str, location: Location, user_id: str):
+    def __init__(self, source: str, location: Location, user_id: str, demand_id: str):
         super().__init__(
-            EventType.DEPARTED, source=source, location=location, user_id=user_id
+            EventType.DEPARTED,
+            source=source,
+            location=location,
+            user_id=user_id,
+            demand_id=demand_id,
         )
 
 
 class ArrivedEvent(DepartedArrivedEvent):
-    def __init__(self, source: str, location: Location, user_id: str):
+    def __init__(self, source: str, location: Location, user_id: str, demand_id: str):
         super().__init__(
-            EventType.ARRIVED, source=source, location=location, user_id=user_id
+            EventType.ARRIVED,
+            source=source,
+            location=location,
+            user_id=user_id,
+            demand_id=demand_id,
         )
 
 

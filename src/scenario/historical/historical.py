@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 import logging
 import typing
+import itertools
+
 from dataclasses import dataclass
 
 import simpy
@@ -24,19 +26,40 @@ class HistoricalScenario:
         self.env = simpy.Environment()
         self._demands: list[HistoricalDemand] = []
         self._events: list[DemandEvent] = []
+        self._user_types = {}
 
     def setup(
         self,
         settings: typing.Collection[jschema.query.HistoricalDemandSetting],
         user_id_format: str,
+        demand_id_format: str,
         offset_time=0.0,
     ):
         if offset_time:
             logger.info("offset time: %s", offset_time)
+
+        # append user_id
+        user_id_gen = (user_id_format % i for i in itertools.count(1))
+        demand_id_gen = (demand_id_format % i for i in itertools.count(1))
+        for setting in settings:
+            if not setting.user_id:
+                setting.user_id = next(user_id_gen)
+            if not setting.demand_id:
+                setting.demand_id = next(demand_id_gen)
+
+        # make user table with user_type
+        for setting in settings:
+            if setting.user_type:
+                self._user_types[setting.user_id] = setting.user_type
+            elif setting.user_id not in self._user_types:
+                self._user_types[setting.user_id] = None
+            else:
+                assert not self._user_types[setting.user_id]
+
         self._demands = [
             HistoricalDemand(
                 dept=setting.dept - offset_time,
-                user_id=user_id_format % i,
+                user_id=setting.user_id,
                 info=DemandInfo(
                     org=Location(
                         setting.org.locationId, setting.org.lat, setting.org.lng
@@ -45,20 +68,21 @@ class HistoricalScenario:
                         setting.dst.locationId, setting.dst.lat, setting.dst.lng
                     ),
                     service=setting.service,
-                    user_type=setting.user_type,
+                    demand_id=setting.demand_id,
+                    user_type=self._user_types[setting.user_id],
                 ),
             )
-            for i, setting in enumerate(settings, 1)
+            for setting in settings
             if setting.dept - offset_time >= 0
         ]
 
     def users(self):
         return [
             {
-                "userId": demand.user_id,
-                "userType": demand.info.user_type,
+                "userId": user_id,
+                "userType": user_type,
             }
-            for demand in self._demands
+            for user_id, user_type in self._user_types.items()
         ]
 
     def start(self):

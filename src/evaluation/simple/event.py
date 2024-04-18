@@ -15,7 +15,7 @@ class DemandEvent:
     org: Location
     dst: Location
     service: str | None
-    user_id: str | None
+    demand_id: str
 
 
 class EventQueue:

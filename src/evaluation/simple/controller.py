@@ -6,10 +6,11 @@ import pathlib
 
 import fastapi
 
-from common.result import ResultWriter, HTTPResultWriter, FileResultWriter
-from config import env
 from core import Location
 from jschema import query, response
+from mblib.io.log import init_logger
+from mblib.io.result import ResultWriter, HTTPResultWriter, FileResultWriter
+from mblib.jschema import events, spec
 from usability import UsabilityEvaluator
 
 logger = logging.getLogger(__name__)
@@ -24,23 +25,7 @@ app = fastapi.FastAPI(
 
 @app.on_event("startup")
 def startup():
-    class MultilineLogFormatter(logging.Formatter):
-        def format(self, record: logging.LogRecord) -> str:
-            message = super().format(record)
-            return message.replace(
-                "\n", "\t\n"
-            )  # indicate continuation line by trailing tab
-
-    formatter = MultilineLogFormatter(env.log_format)
-    handler = logging.StreamHandler()
-    handler.setFormatter(formatter)
-    logging.basicConfig(level=env.log_level, handlers=[handler])
-
-    # replace logging formatter for uvicorn
-    for handler in logging.getLogger("uvicorn").handlers:
-        handler.setFormatter(formatter)
-
-    logger.debug("configuration: %s", env.json())
+    init_logger()
 
 
 @app.exception_handler(Exception)
@@ -59,6 +44,15 @@ async def shutdown_event():
 
 manager: UsabilityEvaluator | None = None
 writer: ResultWriter | None = None
+
+
+@app.get(
+    "/spec", response_model=spec.SpecificationResponse, response_model_exclude_none=True
+)
+def get_specification():
+    builder = spec.EventSpecificationBuilder(triggered=query.TriggeredEvent)
+    builder.set_feature(events.EventType.DEMAND)
+    return builder.get_specification_response(version=events.VERSION_1)
 
 
 @app.post("/setup", response_model=response.Message)
@@ -91,11 +85,11 @@ def peek():
 @app.post("/step", response_model=response.Step)
 async def step():
     now = await manager.step()
-    return response.Step(now=now)
+    return response.Step(now=now, events={})
 
 
 @app.post("/triggered")
-def triggered(event: query.TriggeredEvent):
+def triggered(event: query.TriggeredEvent | events.Event):
     match event:
         case query.DemandEvent():
             manager.demand(
@@ -112,7 +106,7 @@ def triggered(event: query.TriggeredEvent):
                     lng=event.details.dst.lng,
                 ),
                 service=event.details.service,
-                user_id=event.details.userId,
+                demand_id=event.details.demandId,
             )
 
 

@@ -24,10 +24,17 @@ class ReservedEvent(Event):
     arrv: float
 
     def __init__(
-        self, user_id: str, org: Location, dst: Location, dept: float, arrv: float
+        self,
+        user_id: str,
+        demand_id: str,
+        org: Location,
+        dst: Location,
+        dept: float,
+        arrv: float,
     ):
         super().__init__(EventType.RESERVED)
         self.user_id = user_id
+        self.demand_id = demand_id
         self.org = org
         self.dst = dst
         self.dept = dept
@@ -37,6 +44,7 @@ class ReservedEvent(Event):
         return super().dumps() | {
             "details": {
                 "userId": self.user_id,
+                "demandId": self.demand_id,
                 "success": True,
                 "route": [
                     {
@@ -55,10 +63,13 @@ class DepartedArrivedEvent(Event):
     location: Location
     user_id: str
 
-    def __init__(self, event_type: EventType, location: Location, user_id: str):
+    def __init__(
+        self, event_type: EventType, location: Location, user_id: str, demand_id: str
+    ):
         super().__init__(event_type)
         self.location = location
         self.user_id = user_id
+        self.demand_id = demand_id
 
     @property
     def subject_id(self):
@@ -69,6 +80,7 @@ class DepartedArrivedEvent(Event):
             "details": {
                 "subjectId": self.subject_id,
                 "userId": self.user_id,
+                "demandId": self.demand_id,
                 "mobilityId": None,
                 "location": self.location.dumps(),
             }
@@ -77,11 +89,11 @@ class DepartedArrivedEvent(Event):
 
 @dataclasses.dataclass
 class DepartedEvent(DepartedArrivedEvent):
-    def __init__(self, location: Location, user_id: str):
-        super().__init__(EventType.DEPARTED, location, user_id)
+    def __init__(self, location: Location, user_id: str, demand_id: str):
+        super().__init__(EventType.DEPARTED, location, user_id, demand_id)
 
 
 @dataclasses.dataclass
 class ArrivedEvent(DepartedArrivedEvent):
-    def __init__(self, location: Location, user_id: str):
-        super().__init__(EventType.ARRIVED, location, user_id)
+    def __init__(self, location: Location, user_id: str, demand_id: str):
+        super().__init__(EventType.ARRIVED, location, user_id, demand_id)

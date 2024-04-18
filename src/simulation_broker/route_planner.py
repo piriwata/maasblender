@@ -6,7 +6,7 @@ import typing
 
 import aiohttp
 
-from common import httputil
+from mblib.io import httputil
 from jschema.query import LocationSetting
 
 logger = logging.getLogger(__name__)
@@ -35,7 +35,7 @@ class Path:
 
 
 class Planner:
-    def __init__(self, endpoint: str):
+    def __init__(self, _name: str, endpoint: str):
         self._endpoint = endpoint
         self._session = aiohttp.ClientSession()
 
@@ -67,7 +67,7 @@ class Planner:
     async def plan(self, org: LocationSetting, dst: LocationSetting, dept: float):
         response = await self._post(
             method="plan",
-            data={"org": org.dict(), "dst": dst.dict()},
+            data={"org": org.model_dump(), "dst": dst.model_dump()},
             params={"dept": dept},
         )
         return response

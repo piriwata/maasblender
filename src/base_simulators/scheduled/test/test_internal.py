@@ -90,6 +90,7 @@ class SingleTripTestCase(unittest.TestCase):
                 "time": 543.0,
                 "details": {
                     "userId": None,
+                    "demandId": None,
                     "mobilityId": self.mobility_id,
                     "location": {
                         "locationId": self.stops["3_1"].stop_id,
@@ -103,6 +104,7 @@ class SingleTripTestCase(unittest.TestCase):
                 "time": 543.0,
                 "details": {
                     "userId": None,
+                    "demandId": None,
                     "mobilityId": self.mobility_id,
                     "location": {
                         "locationId": self.stops["3_1"].stop_id,
@@ -116,6 +118,7 @@ class SingleTripTestCase(unittest.TestCase):
                 "time": 548.0,
                 "details": {
                     "userId": None,
+                    "demandId": None,
                     "mobilityId": self.mobility_id,
                     "location": {
                         "locationId": self.stops["7_1"].stop_id,
@@ -129,6 +132,7 @@ class SingleTripTestCase(unittest.TestCase):
                 "time": 548.0,
                 "details": {
                     "userId": None,
+                    "demandId": None,
                     "mobilityId": self.mobility_id,
                     "location": {
                         "locationId": self.stops["7_1"].stop_id,
@@ -143,6 +147,7 @@ class SingleTripTestCase(unittest.TestCase):
     def test_a_user_flow(self):
         user = {
             "user_id": "U_001",
+            "demand_id": "D_0001",
             "org": "3_1",
             "dst": "23_0",
             "dept": 490,
@@ -152,6 +157,7 @@ class SingleTripTestCase(unittest.TestCase):
 
         self.simulation.reserve_user(
             user_id=user["user_id"],
+            demand_id=user["demand_id"],
             org=user["org"],
             dst=user["dst"],
             dept=user["dept"],
@@ -165,6 +171,7 @@ class SingleTripTestCase(unittest.TestCase):
                 "details": {
                     "success": True,
                     "userId": user["user_id"],
+                    "demandId": user["demand_id"],
                     "mobilityId": self.mobility_id,
                     "route": [
                         {
@@ -202,6 +209,7 @@ class SingleTripTestCase(unittest.TestCase):
                 "time": 543.0,
                 "details": {
                     "userId": user["user_id"],
+                    "demandId": user["demand_id"],
                     "mobilityId": self.mobility_id,
                     "location": {
                         "locationId": self.stops[user["org"]].stop_id,
@@ -215,6 +223,7 @@ class SingleTripTestCase(unittest.TestCase):
                 "time": 574.0,
                 "details": {
                     "userId": user["user_id"],
+                    "demandId": user["demand_id"],
                     "mobilityId": self.mobility_id,
                     "location": {
                         "locationId": self.stops[user["dst"]].stop_id,
@@ -303,6 +312,7 @@ class BlockTripTestCase(unittest.TestCase):
     def test_cannot_reserve_the_second_trip_only_the_first_trip_is_operating(self):
         user = {
             "user_id": "U_001",
+            "demand_id": "D_0001",
             "org": "3_1",
             "dst": "23_0",
             "dept": 490,  # Monday
@@ -311,6 +321,7 @@ class BlockTripTestCase(unittest.TestCase):
 
         self.simulation.reserve_user(
             user_id=user["user_id"],
+            demand_id=user["demand_id"],
             org=user["org"],
             dst=user["dst"],
             dept=user["dept"],
@@ -324,6 +335,7 @@ class BlockTripTestCase(unittest.TestCase):
                 "details": {
                     "success": False,
                     "userId": user["user_id"],
+                    "demandId": user["demand_id"],
                 },
             }
         ]
@@ -332,6 +344,7 @@ class BlockTripTestCase(unittest.TestCase):
     def test_can_reserve_the_first_trip_only_the_first_trip_is_operating(self):
         user = {
             "user_id": "U_001",
+            "demand_id": "D_0001",
             "org": "3_1",
             "dst": "11_1",
             "dept": 490,  # Monday
@@ -340,6 +353,7 @@ class BlockTripTestCase(unittest.TestCase):
 
         self.simulation.reserve_user(
             user_id=user["user_id"],
+            demand_id=user["demand_id"],
             org=user["org"],
             dst=user["dst"],
             dept=user["dept"],
@@ -353,6 +367,7 @@ class BlockTripTestCase(unittest.TestCase):
                 "details": {
                     "success": True,
                     "userId": user["user_id"],
+                    "demandId": user["demand_id"],
                     "mobilityId": self.mobility_id,
                     "route": [
                         {
@@ -379,14 +394,16 @@ class BlockTripTestCase(unittest.TestCase):
         thursday = 1440 * 3
         user = {
             "user_id": "U_001",
+            "demand_id": "D_0001",
             "org": "3_1",
             "dst": "23_0",
-            "dept": thursday + 490,  # Thursday
+            "dept": thursday + 490.0,  # Thursday
         }
         run(self.simulation, until=user["dept"])
 
         self.simulation.reserve_user(
             user_id=user["user_id"],
+            demand_id=user["demand_id"],
             org=user["org"],
             dst=user["dst"],
             dept=user["dept"],
@@ -401,6 +418,7 @@ class BlockTripTestCase(unittest.TestCase):
                 "details": {
                     "success": True,
                     "userId": user["user_id"],
+                    "demandId": user["demand_id"],
                     "mobilityId": self.mobility_id,
                     "route": [
                         {
@@ -438,6 +456,7 @@ class BlockTripTestCase(unittest.TestCase):
                 "time": thursday + 543.0,
                 "details": {
                     "userId": user["user_id"],
+                    "demandId": user["demand_id"],
                     "mobilityId": self.mobility_id,
                     "location": {
                         "locationId": self.stops[user["org"]].stop_id,
@@ -451,6 +470,7 @@ class BlockTripTestCase(unittest.TestCase):
                 "time": thursday + 574.0,
                 "details": {
                     "userId": user["user_id"],
+                    "demandId": user["demand_id"],
                     "mobilityId": self.mobility_id,
                     "location": {
                         "locationId": self.stops[user["dst"]].stop_id,

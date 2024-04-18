@@ -4,14 +4,7 @@ import math
 
 from pydantic import BaseModel, AnyHttpUrl, model_validator
 from enum import Enum
-
-from jschema.events import (
-    DemandEvent,
-    ReservedEvent,
-    DepartedEvent,
-    ArrivedEvent,
-    Event as OtherEvent,
-)
+from mblib.jschema.events import DemandEvent, ReservedEvent, DepartedEvent, ArrivedEvent
 
 
 class PlannerSetting(BaseModel):
@@ -48,4 +41,4 @@ class Setup(BaseModel):
 
 
 # Note: OtherEvent must be described at the end
-TriggeredEvent = DemandEvent | ReservedEvent | DepartedEvent | ArrivedEvent | OtherEvent
+TriggeredEvent = DemandEvent | ReservedEvent | DepartedEvent | ArrivedEvent

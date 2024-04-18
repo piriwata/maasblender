@@ -143,9 +143,9 @@ class Car(Mobility):
         )
         return f"Car({data})"
 
-    def reserve(self, user_id: str, path: Path):
+    def reserve(self, user_id: str, demand_id: str, path: Path):
         assert user_id not in self.users
-        self.users.update({user_id: User(user_id, path)})
+        self.users.update({user_id: User(user_id, demand_id, path)})
         self.env.process(self._reserved(self.users[user_id]))
 
     def _reserved(self, user: User):

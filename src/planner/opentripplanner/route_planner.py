@@ -9,9 +9,9 @@ import pprint
 
 import aiohttp
 
-import httputil
 from core import Location, Path, Trip, calc_distance
 from jschema.response import DistanceMatrix
+from mblib.io import httputil
 
 logger = logging.getLogger(__name__)
 

@@ -36,6 +36,7 @@ class ReservedEvent(TriggerEvent):
             "details": {
                 "success": True,
                 "userId": self.user.user_id,
+                "demandId": self.user.demand_id,
                 "mobilityId": self.mobility.mobility_id if self.mobility else None,
                 "route": [
                     {
@@ -58,12 +59,19 @@ class ReservedEvent(TriggerEvent):
 
 
 class ReserveFailedEvent(TriggerEvent):
-    def __init__(self, env: Environment, user_id: str):
+    def __init__(self, env: Environment, user_id: str, demand_id: str):
         super().__init__(env, EventType.RESERVED)
         self.user_id = user_id
+        self.demand_id = demand_id
 
     def dumps(self):
-        return super().dumps() | {"details": {"success": False, "userId": self.user_id}}
+        return super().dumps() | {
+            "details": {
+                "success": False,
+                "userId": self.user_id,
+                "demandId": self.demand_id,
+            }
+        }
 
 
 class DepartedArrivedEvent(TriggerEvent):
@@ -82,6 +90,7 @@ class DepartedArrivedEvent(TriggerEvent):
         return super().dumps() | {
             "details": {
                 "userId": self.user.user_id if self.user else None,
+                "demandId": self.user.demand_id if self.user else None,
                 "mobilityId": self.mobility.mobility_id,
                 "location": {
                     "locationId": self.mobility.stop.stop_id,
@@ -146,5 +155,11 @@ class EventQueue:
             )
         )
 
-    def reserve_failed(self, user_id: str):
-        self._enqueue(ReserveFailedEvent(env=self._env, user_id=user_id))
+    def reserve_failed(self, user: User):
+        self._enqueue(
+            ReserveFailedEvent(
+                env=self._env,
+                user_id=user.user_id,
+                demand_id=user.demand_id,
+            )
+        )
