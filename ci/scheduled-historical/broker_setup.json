@@ -12,7 +12,7 @@
   },
   "scenario": {
     "type": "http",
-    "endpoint": "http://scenario",
+    "endpoint": "http://scenario_historical",
     "details": {
       "trips":[
         {

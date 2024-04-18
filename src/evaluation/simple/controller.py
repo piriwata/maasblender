@@ -70,8 +70,8 @@ async def setup(settings: query.Setup):
         writer = FileResultWriter(pathlib.Path("evaluation.txt"))
     manager = UsabilityEvaluator(
         writer,
-        planner=settings.planner.endpoint,
-        reservable=settings.reservable.endpoint,
+        planner=str(settings.planner.endpoint),
+        reservable=str(settings.reservable.endpoint),
     )
     return response.Message(message="successfully configured.")
 

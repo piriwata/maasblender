@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+
+  broker:
+    build:
+      context: ../../src/simulation_broker
+    ports:
+      - "3000:80"
+
+  user_model:
+    build:
+      context: ../../src/user_model/simple
+
+  scenario_generator:
+    build:
+      context: ../../src/scenario/generator
+
+  scenario_commuter:
+    build:
+      context: ../../src/scenario/commuter
+
+  ondemand:
+    build:
+      context: ../../src/base_simulators/ondemand
+    ports:
+      - "3002:80"
+
+  oneway:
+    build:
+      context: ../../src/base_simulators/oneway
+    ports:
+      - "3003:80"
+
+  planner:
+    build:
+      context: ../../src/planner/simple
+    ports:
+      - "3010:80"
+
+  walking:
+    build:
+      context: ../../src/base_simulators/walking
+
+  evaluation:
+    build:
+      context: ../../src/evaluation/simple
+    ports:
+      - "3020:80"
