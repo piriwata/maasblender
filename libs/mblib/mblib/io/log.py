@@ -38,7 +38,9 @@ class AsyncHttpSeqnoHandler(logging.Handler):
     @classmethod
     async def wait_queue_size(cls, qsize: int, interval: int):
         while cls.get_queue_size() > qsize:
-            logger.warning("wait_queue_size: queue_size=%s > %s", cls.get_queue_size(), qsize)
+            logger.warning(
+                "wait_queue_size: queue_size=%s > %s", cls.get_queue_size(), qsize
+            )
             await asyncio.sleep(interval)
 
     def __init__(self, url: str):
@@ -100,6 +102,7 @@ class AsyncHttpSeqnoHandler(logging.Handler):
 
 class LogConfig(BaseSettings, frozen=True):
     """environment variable for logger"""
+
     DEBUG: bool = False  # debug log flag
     LOG_FORMAT_DEBUG: str = "[%(levelname).3s] %(name)s - %(message)s"
     LOG_FORMAT: str = "[%(levelname).3s] %(message)s"
@@ -107,6 +110,7 @@ class LogConfig(BaseSettings, frozen=True):
     @property
     def log_level(self) -> int:
         import logging
+
         return logging.DEBUG if self.DEBUG else logging.INFO
 
     @property
@@ -117,7 +121,9 @@ class LogConfig(BaseSettings, frozen=True):
 class MultilineLogFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         message = super().format(record)
-        return message.replace("\n", "\t\n")  # indicate continuation line by trailing tab
+        return message.replace(
+            "\n", "\t\n"
+        )  # indicate continuation line by trailing tab
 
 
 def init_logger() -> None:

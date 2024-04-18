@@ -12,7 +12,9 @@ TxRx = typing.Literal["Tx", "Rx"]
 
 class FeatureDefinition(BaseModel):
     declared: list[str] | None = Field(None, title="declare to support features")
-    required: list[str] | None = Field(None, title="declare and require to support features for other side")
+    required: list[str] | None = Field(
+        None, title="declare and require to support features for other side"
+    )
 
 
 class EventDefinition(BaseModel):
@@ -35,7 +37,9 @@ class EventDefinition(BaseModel):
             feature = event_class.feature
         else:
             feature = None
-        return EventDefinition(dir=dir_, schema=event_class.model_json_schema(), feature=feature)
+        return EventDefinition(
+            dir=dir_, schema=event_class.model_json_schema(), feature=feature
+        )
 
 
 class SpecificationResponse(BaseModel):
@@ -51,7 +55,9 @@ class SpecificationResponse(BaseModel):
 
 
 # class type of StepEvent or TriggeredEvent
-EventClassType = typing.Union[typing.Type[BaseModel], ...] | typing.Type[BaseModel] | None
+EventClassType = (
+    typing.Union[typing.Type[BaseModel], ...] | typing.Type[BaseModel] | None
+)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -60,7 +66,9 @@ class EventSpecificationBuilder:
     step: dataclasses.InitVar[EventClassType | None] = None
     triggered: dataclasses.InitVar[EventClassType | None] = None
 
-    def __post_init__(self, step: EventClassType = None, triggered: EventClassType = None):
+    def __post_init__(
+        self, step: EventClassType = None, triggered: EventClassType = None
+    ):
         # set event specification of step API response
         self._set_events("Tx", step)
         # set event specification of triggered API request
@@ -81,7 +89,13 @@ class EventSpecificationBuilder:
             event_type = schema["properties"]["eventType"]["const"]
             self.events[event_type] = EventDefinition(dir=dir_, schema=schema)
 
-    def set_feature(self, event_type: typing.Any, *, declared: list[str] = None, required: list[str] = None) -> None:
+    def set_feature(
+        self,
+        event_type: typing.Any,
+        *,
+        declared: list[str] = None,
+        required: list[str] = None,
+    ) -> None:
         """set feature definition for step or triggered event specification"""
         feature = FeatureDefinition(declared=declared, required=required)
         self.events[str(event_type)].feature = feature

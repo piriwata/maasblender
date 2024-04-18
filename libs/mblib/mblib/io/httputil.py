@@ -25,11 +25,11 @@ async def error_log(response: aiohttp.ClientResponse, logger_: LoggerType = logg
             case _:
                 text = pformat(content, width=200)
         logger_.error("%s:\n%s", message, text)
-    except:
+    except:  # noqa: E722, In general, too broad exception is not appropriate, but here the purpose is to log all exceptions, so E722 is ignored.
         try:
             text = await response.text()
             logger_.error("%s: %s", message, text)
-        except:  # ignore error
+        except:  # noqa: E722, In general, too broad exception is not appropriate, but here the purpose is to log all exceptions, so E722 is ignored.
             logger_.error("%s: cannot read response", message)
     return message
 
@@ -60,12 +60,17 @@ async def check_response(response: aiohttp.ClientResponse, *, limit=0):
 def check_upload_filename(upload_file: fastapi.UploadFile):
     filename = urllib.parse.unquote(upload_file.filename)
     if filename != upload_file.filename:
-        logger.warning("upload file with urlencoded filename: %s, raw: %s", filename, upload_file.filename)
+        logger.warning(
+            "upload file with urlencoded filename: %s, raw: %s",
+            filename,
+            upload_file.filename,
+        )
     return filename
 
 
 class FileManagerConfig(BaseSettings, frozen=True):
     """environment variable"""
+
     FILE_SIZE_LIMIT: int = 0  # file size limit for each input file
 
 
@@ -91,8 +96,11 @@ class FileManager:
             return resp.content_disposition.filename, data
 
     async def pop(
-            self, session: aiohttp.ClientSession,
-            *, url: str | pydantic.AnyHttpUrl = None, filename: str = None,
+        self,
+        session: aiohttp.ClientSession,
+        *,
+        url: str | pydantic.AnyHttpUrl = None,
+        filename: str = None,
     ) -> tuple[str, bytes]:
         if url:
             if not isinstance(url, str):
@@ -102,8 +110,10 @@ class FileManager:
             data = self.table.pop(filename)
             return filename, data
         else:
-            raise fastapi.HTTPException(status_code=fastapi.status.HTTP_400_BAD_REQUEST,
-                                        detail=f"exists directory in GBFS zip file")
+            raise fastapi.HTTPException(
+                status_code=fastapi.status.HTTP_400_BAD_REQUEST,
+                detail="exists directory in GBFS zip file",  # ToDo: correct message?
+            )
 
     def clear(self):
         self.table.clear()

@@ -44,15 +44,20 @@ class FileResultWriter(ResultWriter):
 
 class ResultWriterConfig(BaseSettings, frozen=True):
     """environment variable"""
+
     RESULT_WRITER_QUEUE_SIZE: int = 500  # queue size limit for result writer buffer
-    RESULT_WRITER_OVER_INTERVAL: int = 1  # check interval time (seconds) over queue size limit
+    RESULT_WRITER_OVER_INTERVAL: int = (
+        1  # check interval time (seconds) over queue size limit
+    )
 
 
 @dataclasses.dataclass
 class HTTPResultWriter:
     url: str
     env: ResultWriterConfig = dataclasses.field(default_factory=ResultWriterConfig)
-    _session: aiohttp.ClientSession = dataclasses.field(default_factory=aiohttp.ClientSession)
+    _session: aiohttp.ClientSession = dataclasses.field(
+        default_factory=aiohttp.ClientSession
+    )
     _count: itertools.count = dataclasses.field(default_factory=itertools.count)
     _records: asyncio.Queue[dict] = dataclasses.field(default_factory=asyncio.Queue)
     _task: asyncio.Task | None = None
@@ -77,8 +82,11 @@ class HTTPResultWriter:
 
     async def _wait_over(self):
         while self._records.qsize() > self.env.RESULT_WRITER_QUEUE_SIZE:
-            logger.warning("wait_queue_size: queue_size=%s > %s",
-                           self._records.qsize(), self.env.RESULT_WRITER_QUEUE_SIZE)
+            logger.warning(
+                "wait_queue_size: queue_size=%s > %s",
+                self._records.qsize(),
+                self.env.RESULT_WRITER_QUEUE_SIZE,
+            )
             await asyncio.sleep(self.env.RESULT_WRITER_OVER_INTERVAL)
 
     async def _polling(self):
