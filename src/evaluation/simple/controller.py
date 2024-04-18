@@ -85,7 +85,7 @@ def peek():
 @app.post("/step", response_model=response.Step)
 async def step():
     now = await manager.step()
-    return response.Step(now=now, events={})
+    return response.Step(now=now, events=[])
 
 
 @app.post("/triggered")
