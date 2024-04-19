@@ -5,8 +5,9 @@ import typing
 
 import aiohttp
 
-from common import httputil
 from engine import Runner, Event
+from mblib.io import httputil
+from mblib.jschema.spec import SpecificationResponse
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +17,9 @@ class HttpRunner(Runner):
         super().__init__(name=name)
         self._endpoint = endpoint
         self._session = aiohttp.ClientSession()
+
+    def __str__(self):
+        return f"HttpRunner({self.name}, {self._endpoint})"
 
     async def _get(self, method: str, params: typing.Mapping = None):
         async with self._session.get(
@@ -36,6 +40,11 @@ class HttpRunner(Runner):
             await httputil.check_response(response)
             return await response.json()
 
+    async def spec(self) -> SpecificationResponse:
+        response = await self._get("spec")
+        result = SpecificationResponse.model_validate(response)
+        return result
+
     async def setup(self, setting: typing.Mapping):
         await self._post("setup", data=setting)
 
@@ -51,7 +60,7 @@ class HttpRunner(Runner):
         return response["now"], [Event.parse_obj(event) for event in response["events"]]
 
     async def triggered(self, event: Event):
-        await self._post("triggered", data=event.dict())
+        await self._post("triggered", data=event.model_dump())
 
     async def finish(self):
         await self._post("finish")

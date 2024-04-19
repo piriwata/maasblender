@@ -88,6 +88,7 @@ class SimpleUserFlowCase(unittest.TestCase):
         self.dept = 30
         self.user = {
             "user_id": "U_001",
+            "demand_id": "D_0001",
             "org": self.org["locationId"],
             "dst": self.dst["locationId"],
         }
@@ -102,6 +103,7 @@ class SimpleUserFlowCase(unittest.TestCase):
 
         self.simulation.reserve(
             user_id=self.user["user_id"],
+            demand_id=self.user["demand_id"],
             org=self.user["org"],
             dst=self.user["dst"],
             dept=self.dept,
@@ -114,6 +116,7 @@ class SimpleUserFlowCase(unittest.TestCase):
                 "time": self.dept,
                 "details": {
                     "userId": self.user["user_id"],
+                    "demandId": self.user["demand_id"],
                     "success": True,
                     "mobilityId": "M_001",
                     "route": [
@@ -133,6 +136,7 @@ class SimpleUserFlowCase(unittest.TestCase):
         _ = run(simulation=self.simulation, until=self.dept)
         self.simulation.reserve(
             user_id=self.user["user_id"],
+            demand_id=self.user["demand_id"],
             org=self.user["org"],
             dst=self.user["dst"],
             dept=self.dept,
@@ -141,6 +145,7 @@ class SimpleUserFlowCase(unittest.TestCase):
 
         self.simulation.depart(
             user_id="U_001",
+            demand_id="D_0001",
         )
 
         triggered_events = run(simulation=self.simulation, until=32)
@@ -150,6 +155,7 @@ class SimpleUserFlowCase(unittest.TestCase):
                 "time": 31,
                 "details": {
                     "userId": "U_001",
+                    "demandId": "D_0001",
                     "mobilityId": "M_001",
                     "location": self.org,
                 },
@@ -161,12 +167,14 @@ class SimpleUserFlowCase(unittest.TestCase):
         _ = run(simulation=self.simulation, until=self.dept)
         self.simulation.reserve(
             user_id=self.user["user_id"],
+            demand_id=self.user["demand_id"],
             org=self.user["org"],
             dst=self.user["dst"],
             dept=self.dept,
         )
         self.simulation.depart(
             user_id="U_001",
+            demand_id="D_0001",
         )
         _ = run(simulation=self.simulation, until=31)
 
@@ -177,6 +185,7 @@ class SimpleUserFlowCase(unittest.TestCase):
                 "time": 36.78891746782812,
                 "details": {
                     "userId": "U_001",
+                    "demandId": "D_0001",
                     "mobilityId": "M_001",
                     "location": self.dst,
                 },
@@ -188,22 +197,20 @@ class SimpleUserFlowCase(unittest.TestCase):
         _ = run(simulation=self.simulation, until=30)
         self.simulation.reserve(
             user_id="U_001",
+            demand_id="D_0001",
             org=self.user["org"],
             dst=self.user["dst"],
             dept=self.dept,
         )
         self.simulation.reserve(
             user_id="U_002",
+            demand_id="D_0002",
             org=self.user["org"],
             dst=self.user["dst"],
             dept=self.dept,
         )
-        self.simulation.depart(
-            user_id="U_001",
-        )
-        self.simulation.depart(
-            user_id="U_002",
-        )
+        self.simulation.depart(user_id="U_001", demand_id="D_0001")
+        self.simulation.depart(user_id="U_002", demand_id="D_0002")
 
         org = self.simulation.stations[self.user["org"]]
         dst = self.simulation.stations[self.user["dst"]]

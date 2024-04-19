@@ -110,6 +110,7 @@ class Network:
 @dataclasses.dataclass(frozen=True)
 class User:
     user_id: str
+    demand_id: str
     org: Stop
     dst: Stop
     desired: datetime

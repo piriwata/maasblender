@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2023 TOYOTA MOTOR CORPORATION and MaaS Blender Contributors
 # SPDX-License-Identifier: Apache-2.0
+import itertools
 import typing
 from dataclasses import dataclass
 
@@ -16,16 +17,16 @@ class Commuter:
     dept_out: float
     dept_in: float
     info: DemandInfo
-    demand: typing.Callable[[str, DemandInfo], None]
+    demand: typing.Callable[[str, str, DemandInfo], None]
 
-    def run(self):
+    def run(self, demand_id_gen: typing.Iterator[str]):
         # dept out
         yield self.env.timeout(self.dept_out)
-        self.demand(self.user_id, self.info)
+        self.demand(self.user_id, next(demand_id_gen), self.info)
 
         # dept in
         yield self.env.timeout(self.dept_in - self.dept_out)
-        self.demand(self.user_id, self.info.reverse)
+        self.demand(self.user_id, next(demand_id_gen), self.info.reverse)
 
 
 class CommuterScenario:
@@ -33,8 +34,13 @@ class CommuterScenario:
         self.env = simpy.Environment()
         self.commuters: list[Commuter] = []
         self._events: list[DemandEvent] = []
+        self._demand_id_gen: typing.Iterator[str] | None = None
 
-    def setup(self, commuters: typing.Mapping[str, jschema.query.CommuterSetting]):
+    def setup(
+        self,
+        commuters: typing.Mapping[str, jschema.query.CommuterSetting],
+        demand_id_format: str,
+    ):
         self.commuters = [
             Commuter(
                 env=self.env,
@@ -55,6 +61,7 @@ class CommuterScenario:
             )
             for user_id, setting in commuters.items()
         ]
+        self._demand_id_gen = (demand_id_format % i for i in itertools.count(1))
 
     def users(self):
         return [
@@ -81,8 +88,10 @@ class CommuterScenario:
     def _run(self):
         while True:
             for commuter in self.commuters:
-                self.env.process(commuter.run())
+                self.env.process(commuter.run(self._demand_id_gen))
             yield self.env.timeout(1440)  # repeat daily
 
-    def _demand(self, user_id: str, info: DemandInfo):
-        self._events.append(DemandEvent(user_id=user_id, info=info))
+    def _demand(self, user_id: str, demand_id: str, info: DemandInfo):
+        self._events.append(
+            DemandEvent(user_id=user_id, demand_id=demand_id, info=info)
+        )

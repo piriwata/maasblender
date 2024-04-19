@@ -1,11 +1,14 @@
-# SPDX-FileCopyrightText: 2022 TOYOTA MOTOR CORPORATION
+# SPDX-FileCopyrightText: 2024 TOYOTA MOTOR CORPORATION
 # SPDX-License-Identifier: Apache-2.0
+import dataclasses
 import logging
 import urllib.parse
 from pprint import pformat
 
 import aiohttp
 import fastapi
+import pydantic
+from pydantic_settings import BaseSettings
 
 logger = logging.getLogger(__name__)
 LoggerType = logging.Logger | logging.LoggerAdapter
@@ -22,11 +25,11 @@ async def error_log(response: aiohttp.ClientResponse, logger_: LoggerType = logg
             case _:
                 text = pformat(content, width=200)
         logger_.error("%s:\n%s", message, text)
-    except Exception:
+    except:  # noqa: E722, In general, too broad exception is not appropriate, but here the purpose is to log all exceptions, so E722 is ignored.
         try:
             text = await response.text()
             logger_.error("%s: %s", message, text)
-        except Exception:  # ignore error
+        except:  # noqa: E722, In general, too broad exception is not appropriate, but here the purpose is to log all exceptions, so E722 is ignored.
             logger_.error("%s: cannot read response", message)
     return message
 
@@ -65,13 +68,20 @@ def check_upload_filename(upload_file: fastapi.UploadFile):
     return filename
 
 
-class FileManager:
-    limit: int | None
-    table: dict[str, bytes]
+class FileManagerConfig(BaseSettings, frozen=True):
+    """environment variable"""
 
-    def __init__(self, *, limit: int = None):
-        self.limit = limit
-        self.table = {}
+    FILE_SIZE_LIMIT: int = 0  # file size limit for each input file
+
+
+@dataclasses.dataclass(frozen=True)
+class FileManager:
+    env: FileManagerConfig = dataclasses.field(default_factory=FileManagerConfig)
+    table: dict[str, bytes] = dataclasses.field(default_factory=dict)
+
+    @property
+    def limit(self):
+        return self.env.FILE_SIZE_LIMIT
 
     def put(self, upload_file: fastapi.UploadFile):
         data = upload_file.file.read()
@@ -86,9 +96,15 @@ class FileManager:
             return resp.content_disposition.filename, data
 
     async def pop(
-        self, session: aiohttp.ClientSession, *, url: str = None, filename: str = None
+        self,
+        session: aiohttp.ClientSession,
+        *,
+        url: str | pydantic.AnyHttpUrl = None,
+        filename: str = None,
     ) -> tuple[str, bytes]:
         if url:
+            if not isinstance(url, str):
+                url = str(url)
             return await self._fetch(session, url)
         elif filename:
             data = self.table.pop(filename)
@@ -96,7 +112,7 @@ class FileManager:
         else:
             raise fastapi.HTTPException(
                 status_code=fastapi.status.HTTP_400_BAD_REQUEST,
-                detail="exists directory in GBFS zip file",
+                detail="exists directory in GBFS zip file",  # ToDo: correct message?
             )
 
     def clear(self):

@@ -31,6 +31,7 @@ class DemandInfo:
 @dataclass(frozen=True)
 class DemandEvent:
     user_id: str
+    demand_id: str
     dept: float | None
     info: DemandInfo
 
@@ -40,6 +41,8 @@ class DemandEvent:
             "eventType": EventType.Demand.value,
             "details": {
                 "userId": self.user_id,
+                "userType": self.info.user_type,
+                "demandId": self.demand_id,
                 "org": {
                     "locationId": info.org.location_id,
                     "lat": info.org.lat,

@@ -60,11 +60,12 @@ class TimeoutWatchDog:
         if elapsed >= self.interval + self.interval * self.count:
             if self.count == 0:
                 logger.info(
-                    "%s: elapsed=%s[sec], car=%s, user=%s, route=%s",
+                    "%s: elapsed=%s[sec], car=%s, user=%s, deamnd=%s, route=%s",
                     self.name,
                     elapsed,
                     car,
                     user.user_id,
+                    user.demand_id,
                     route.stop_times,
                 )
             else:
@@ -74,11 +75,12 @@ class TimeoutWatchDog:
             return True
         else:
             logger.warning(
-                "abort calculation %s: elapsed=%s[sec], car=%s, user=%s, route=%s",
+                "abort calculation %s: elapsed=%s[sec], car=%s, user=%s, deamnd=%s, route=%s",
                 self.name,
                 elapsed,
                 car,
                 user.user_id,
+                user.demand_id,
                 route.stop_times,
             )
             return False
@@ -554,4 +556,4 @@ class CarManager:
                     )
 
         else:
-            self.event_queue.reserve_failed(user_id=user.user_id)
+            self.event_queue.reserve_failed(user)

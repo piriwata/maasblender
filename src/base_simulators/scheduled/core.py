@@ -195,6 +195,7 @@ class Trip:
 @dataclasses.dataclass
 class User:
     user_id: str
+    demand_id: str
     path: Path
     _status: UserStatus = UserStatus.RESERVED
 

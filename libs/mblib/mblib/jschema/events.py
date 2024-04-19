@@ -1,12 +1,15 @@
-# SPDX-FileCopyrightText: 2023 TOYOTA MOTOR CORPORATION and MaaS Blender Contributors
+# SPDX-FileCopyrightText: 2024 TOYOTA MOTOR CORPORATION
 # SPDX-License-Identifier: Apache-2.0
 import typing
-from enum import Enum
+from enum import StrEnum
 
-from pydantic import BaseModel, Extra
+from pydantic import BaseModel, Extra, model_validator
+
+# TODO: replace with actual version URI once relaese information is available
+VERSION_1 = "https://github.com/maasblender/maasblender/tree/main"
 
 
-class EventType(str, Enum):
+class EventType(StrEnum):
     DEMAND = "DEMAND"
     RESERVE = "RESERVE"
     RESERVED = "RESERVED"
@@ -31,6 +34,8 @@ class Location(BaseModel):
 
 class DemandEventDetails(BaseModel, extra=Extra.allow):
     userId: str
+    userType: str | None = None
+    demandId: str
     org: Location
     dst: Location
     service: str | None = None
@@ -45,6 +50,7 @@ class DemandEvent(Event):
 
 class ReserveEventDetails(BaseModel, extra=Extra.allow):
     userId: str
+    demandId: str
     org: Location
     dst: Location
     dept: float
@@ -68,6 +74,7 @@ class Trip(BaseModel, extra=Extra.allow):
 class ReservedEventDetails(BaseModel, extra=Extra.allow):
     success: bool
     userId: str
+    demandId: str
     route: list[Trip] = []
 
 
@@ -78,6 +85,7 @@ class ReservedEvent(Event):
 
 class DepartEventDetails(BaseModel, extra=Extra.allow):
     userId: str
+    demandId: str
 
 
 class DepartEvent(Event):
@@ -86,21 +94,26 @@ class DepartEvent(Event):
     details: DepartEventDetails
 
 
-class DepartedEventDetails(BaseModel, extra=Extra.allow):
+class DepartedArrivedEventDetails(BaseModel, extra=Extra.allow):
     userId: str | None
+    demandId: str | None
     location: Location
+
+    @model_validator(mode="after")
+    def check_exist_id(self):
+        if self.userId and not self.demandId:  # userId only
+            raise ValueError(f"missing demandId with userId(={self.userId})")
+        elif not self.userId and self.demandId:  # demandId only
+            raise ValueError(f"missing userId with demandId(={self.demandId})")
+        else:
+            return self
 
 
 class DepartedEvent(Event):
     eventType: typing.Literal[EventType.DEPARTED]
-    details: DepartedEventDetails
-
-
-class ArrivedEventDetails(BaseModel, extra=Extra.allow):
-    userId: str | None
-    location: Location
+    details: DepartedArrivedEventDetails
 
 
 class ArrivedEvent(Event):
     eventType: typing.Literal[EventType.ARRIVED]
-    details: ArrivedEventDetails
+    details: DepartedArrivedEventDetails

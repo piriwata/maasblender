@@ -6,8 +6,9 @@ import math
 import fastapi
 
 from commuter import CommuterScenario
-from config import env
 from jschema import query, response
+from mblib.io.log import init_logger
+from mblib.jschema import events, spec
 
 logger = logging.getLogger(__name__)
 app = fastapi.FastAPI(
@@ -21,23 +22,7 @@ app = fastapi.FastAPI(
 
 @app.on_event("startup")
 def startup():
-    class MultilineLogFormatter(logging.Formatter):
-        def format(self, record: logging.LogRecord) -> str:
-            message = super().format(record)
-            return message.replace(
-                "\n", "\t\n"
-            )  # indicate continuation line by trailing tab
-
-    formatter = MultilineLogFormatter(env.log_format)
-    handler = logging.StreamHandler()
-    handler.setFormatter(formatter)
-    logging.basicConfig(level=env.log_level, handlers=[handler])
-
-    # replace logging formatter for uvicorn
-    for handler in logging.getLogger("uvicorn").handlers:
-        handler.setFormatter(formatter)
-
-    logger.debug("configuration: %s", env.json())
+    init_logger()
 
 
 @app.exception_handler(Exception)
@@ -52,11 +37,20 @@ def exception_callback(request: fastapi.Request, exc: Exception):
 scenario: CommuterScenario | None = None
 
 
+@app.get(
+    "/spec", response_model=spec.SpecificationResponse, response_model_exclude_none=True
+)
+def get_specification():
+    builder = spec.EventSpecificationBuilder(step=response.StepEvent)
+    builder.set_feature(events.EventType.DEMAND, declared=["demand_id", "pre_reserve"])
+    return builder.get_specification_response(version=events.VERSION_1)
+
+
 @app.post("/setup", response_model=response.Message)
 def setup(settings: query.Setup):
     global scenario
     scenario = CommuterScenario()
-    scenario.setup(settings.commuters)
+    scenario.setup(settings.commuters, settings.demandIDFormat)
     return response.Message(message="successfully configured.")
 
 
@@ -85,7 +79,7 @@ def step():
 
 
 @app.post("/triggered")
-def triggered(_: query.TriggeredEvent):
+def triggered(_: events.Event):
     pass
 
 

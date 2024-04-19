@@ -9,9 +9,10 @@ import aiohttp
 import fastapi
 
 import gtfs
-import httputil
-from config import env
 from jschema import query, response
+from mblib.io import httputil
+from mblib.io.log import init_logger
+from mblib.jschema import spec, events
 from simulation import Simulation
 
 logger = logging.getLogger(__name__)
@@ -26,23 +27,7 @@ app = fastapi.FastAPI(
 
 @app.on_event("startup")
 def startup():
-    class MultilineLogFormatter(logging.Formatter):
-        def format(self, record: logging.LogRecord) -> str:
-            message = super().format(record)
-            return message.replace(
-                "\n", "\t\n"
-            )  # indicate continuation line by trailing tab
-
-    formatter = MultilineLogFormatter(env.log_format)
-    handler = logging.StreamHandler()
-    handler.setFormatter(formatter)
-    logging.basicConfig(level=env.log_level, handlers=[handler])
-
-    # replace logging formatter for uvicorn
-    for handler in logging.getLogger("uvicorn").handlers:
-        handler.setFormatter(formatter)
-
-    logger.debug("configuration: %s", env.json())
+    init_logger()
 
 
 @app.exception_handler(Exception)
@@ -54,8 +39,25 @@ def exception_callback(request: fastapi.Request, exc: Exception):
     return PlainTextResponse(str(exc), status_code=500)
 
 
-file_table = httputil.FileManager(limit=env.FILE_SIZE_LIMIT)
+file_table = httputil.FileManager()
 sim: Simulation | None = None
+
+
+@app.get(
+    "/spec", response_model=spec.SpecificationResponse, response_model_exclude_none=True
+)
+def get_specification():
+    builder = spec.EventSpecificationBuilder(
+        step=response.StepEvent, triggered=query.TriggeredEvent
+    )
+    builder.set_feature(
+        events.EventType.RESERVED, declared=["demand_id", "pre_reserve"]
+    )
+    builder.set_feature(events.EventType.DEPARTED, declared=["demand_id"])
+    builder.set_feature(events.EventType.ARRIVED, declared=["demand_id"])
+    builder.set_feature(events.EventType.RESERVE, required=["demand_id"])
+    builder.set_feature(events.EventType.DEPART, required=["demand_id"])
+    return builder.get_specification_response(version=events.VERSION_1)
 
 
 @app.post("/upload")
@@ -106,7 +108,7 @@ def step():
 
 
 @app.post("/triggered")
-def triggered(event: query.TriggeredEvent):
+def triggered(event: query.TriggeredEvent | events.Event):
     # expect nothing to happen. just let time forward.
     if sim.env.now < event.time:
         sim.env.run(until=event.time)
@@ -115,6 +117,7 @@ def triggered(event: query.TriggeredEvent):
         case query.ReserveEvent():
             sim.reserve_user(
                 user_id=event.details.userId,
+                demand_id=event.details.demandId,
                 org=event.details.org.locationId,
                 dst=event.details.dst.locationId,
                 dept=event.details.dept,

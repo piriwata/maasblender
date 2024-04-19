@@ -3,12 +3,11 @@
 
 from pydantic import BaseModel
 
-from jschema.events import ReserveEvent, DepartEvent, Event as OtherEvent
+from mblib.jschema.events import ReserveEvent, DepartEvent
 
 
 class Setup(BaseModel):
     walking_meters_per_minute: float = 80.0  # (m/min)
 
 
-# Note: OtherEvent must be described at the end
-TriggeredEvent = ReserveEvent | DepartEvent | OtherEvent
+TriggeredEvent = ReserveEvent | DepartEvent

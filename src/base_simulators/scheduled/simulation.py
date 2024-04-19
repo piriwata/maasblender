@@ -71,23 +71,26 @@ class Simulation:
             )
         return False
 
-    def reserve_user(self, user_id: str, org: str, dst: str, dept: float):
+    def reserve_user(
+        self, user_id: str, demand_id: str, org: str, dst: str, dept: float
+    ):
         org = self.stops[org]
         dst = self.stops[dst]
         if mobility := self.car_manager.earliest_mobility(org, dst, dept):
             earliest_path = mobility.earliest_path(org, dst, dept)
             if mobility.is_reservable(earliest_path):
-                mobility.reserve(user_id, earliest_path)
+                mobility.reserve(user_id, demand_id, earliest_path)
                 return
 
-        self.env.process(self._failed_to_reserve(user_id))
+        self.env.process(self._failed_to_reserve(user_id, demand_id))
 
-    def _failed_to_reserve(self, user_id: str):
+    def _failed_to_reserve(self, user_id: str, demand_id: str):
         yield self.env.timeout(0)
         self.event_queue.enqueue(
             ReserveFailedEvent(
                 env=self.env,
                 user_id=user_id,
+                demand_id=demand_id,
             )
         )
 

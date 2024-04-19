@@ -54,16 +54,18 @@ class Simulation:
     def reserve(
         self,
         user_id: str,
+        demand_id: str,
         org: Location,
         dst: Location,
         dept: float,
         arrv: float | None,
     ):
-        self.env.process(self._reserve(user_id, org, dst, dept, arrv))
+        self.env.process(self._reserve(user_id, demand_id, org, dst, dept, arrv))
 
     def _reserve(
         self,
         user_id: str,
+        demand_id: str,
         org: Location,
         dst: Location,
         dept: float,
@@ -79,6 +81,7 @@ class Simulation:
         self.queue.enqueue(
             ReservedEvent(
                 user_id=user_id,
+                demand_id=demand_id,
                 org=org,
                 dst=dst,
                 dept=dept,
@@ -90,10 +93,10 @@ class Simulation:
         duration = calc_distance(org, dst) / self.velocity
         return max(duration, MIN_DURATION)
 
-    def depart(self, user_id: str):
-        self.env.process(self._depart(user_id))
+    def depart(self, user_id: str, demand_id: str):
+        self.env.process(self._depart(user_id, demand_id))
 
-    def _depart(self, user_id: str):
+    def _depart(self, user_id: str, demand_id: str):
         # This user only needs to reserve a vehicle just before departure, so it must not be reserved at this time.
         assert (
             user_id in self._reservations
@@ -107,6 +110,7 @@ class Simulation:
         self.queue.enqueue(
             DepartedEvent(
                 user_id=user_id,
+                demand_id=demand_id,
                 location=reservation.org,
             )
         )
@@ -115,6 +119,7 @@ class Simulation:
         self.queue.enqueue(
             ArrivedEvent(
                 user_id=user_id,
+                demand_id=demand_id,
                 location=reservation.dst,
             )
         )

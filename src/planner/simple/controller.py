@@ -9,8 +9,6 @@ import zipfile
 import aiohttp
 import fastapi
 
-import httputil
-from config import env
 from core import Location, MobilityNetwork, WalkingNetwork
 from gbfs.network import Network as GbfsNetwork
 from gbfs.reader import FilesReader as GbfsFiles
@@ -19,6 +17,8 @@ from gtfs.reader import FilesReader as GtfsFiles
 from gtfs_flex.network import Network as GtfsFlexNetwork
 from gtfs_flex.reader import FilesReader as GtfsFlexFiles
 from jschema import query, response
+from mblib.io import httputil
+from mblib.io.log import init_logger
 from route_planner import Planner, DirectPathPlanner
 
 logger = logging.getLogger(__name__)
@@ -33,23 +33,7 @@ app = fastapi.FastAPI(
 
 @app.on_event("startup")
 def startup():
-    class MultilineLogFormatter(logging.Formatter):
-        def format(self, record: logging.LogRecord) -> str:
-            message = super().format(record)
-            return message.replace(
-                "\n", "\t\n"
-            )  # indicate continuation line by trailing tab
-
-    formatter = MultilineLogFormatter(env.log_format)
-    handler = logging.StreamHandler()
-    handler.setFormatter(formatter)
-    logging.basicConfig(level=env.log_level, handlers=[handler])
-
-    # replace logging formatter for uvicorn
-    for handler in logging.getLogger("uvicorn").handlers:
-        handler.setFormatter(formatter)
-
-    logger.debug("configuration: %s", env.json())
+    init_logger()
 
 
 @app.exception_handler(Exception)
@@ -61,7 +45,7 @@ def exception_callback(request: fastapi.Request, exc: Exception):
     return PlainTextResponse(str(exc), status_code=500)
 
 
-file_table = httputil.FileManager(limit=env.FILE_SIZE_LIMIT)
+file_table = httputil.FileManager()
 planner: Planner | None = None
 
 

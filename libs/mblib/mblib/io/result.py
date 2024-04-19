@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 TOYOTA MOTOR CORPORATION and MaaS Blender Contributors
+# SPDX-FileCopyrightText: 2024 TOYOTA MOTOR CORPORATION
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
@@ -11,9 +11,9 @@ import pathlib
 import typing
 
 import aiohttp
+from pydantic_settings import BaseSettings
 
-from common import httputil
-from config import env
+from . import httputil
 
 logger = logging.getLogger(__name__)
 
@@ -42,9 +42,19 @@ class FileResultWriter(ResultWriter):
         self._fp.write("\n")
 
 
+class ResultWriterConfig(BaseSettings, frozen=True):
+    """environment variable"""
+
+    RESULT_WRITER_QUEUE_SIZE: int = 500  # queue size limit for result writer buffer
+    RESULT_WRITER_OVER_INTERVAL: int = (
+        1  # check interval time (seconds) over queue size limit
+    )
+
+
 @dataclasses.dataclass
-class HTTPResultWriter(ResultWriter):
+class HTTPResultWriter:
     url: str
+    env: ResultWriterConfig = dataclasses.field(default_factory=ResultWriterConfig)
     _session: aiohttp.ClientSession = dataclasses.field(
         default_factory=aiohttp.ClientSession
     )
@@ -71,19 +81,18 @@ class HTTPResultWriter(ResultWriter):
         self._records.put_nowait(record)
 
     async def _wait_over(self):
-        while self._records.qsize() > env.RESULT_WRITER_QUEUE_SIZE:
+        while self._records.qsize() > self.env.RESULT_WRITER_QUEUE_SIZE:
             logger.warning(
                 "wait_queue_size: queue_size=%s > %s",
                 self._records.qsize(),
-                env.RESULT_WRITER_QUEUE_SIZE,
+                self.env.RESULT_WRITER_QUEUE_SIZE,
             )
-            await asyncio.sleep(env.RESULT_WRITER_OVER_INTERVAL)
+            await asyncio.sleep(self.env.RESULT_WRITER_OVER_INTERVAL)
 
     async def _polling(self):
-        """Monitor the queue and log output immediately."""
         while not self._closed:
             await self._send_records()
-        # until the queue is empty after close()
+        # after close(), process records until the queue becomes empty
         if not self._records.empty():
             logger.info("remaining qsize: %s", self._records.qsize())
             await self._send_records(nowait=True)
