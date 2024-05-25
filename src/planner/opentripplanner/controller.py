@@ -17,7 +17,7 @@ import aiohttp
 import fastapi
 
 from config import env
-from core import Location
+from core import Location, Path
 from jschema import query, response
 from mblib.io import httputil
 from mblib.io.log import init_logger
@@ -258,10 +258,10 @@ async def meters_for_all_stops_combinations(stops: list[str]):
     return await planner.meters_for_all_stops_combinations(stops, planner.ref_datetime)
 
 
-# `response_model=list[Path]` does not work
-# @app.post("/plan", response_model=list[Path])
-@app.post("/plan")
+@app.post("/plan", response_model=list[Path])
 async def plan(org: query.LocationSetting, dst: query.LocationSetting, dept: float):
     org = Location(id_=org.locationId, lat=org.lat, lng=org.lng)
     dst = Location(id_=dst.locationId, lat=dst.lat, lng=dst.lng)
-    return await planner.plan(org, dst, dept)
+    plans = await planner.plan(org, dst, dept)
+    print(plans)
+    return plans
