@@ -24,7 +24,7 @@ services:
 
   planner:
     build:
-      context: ../../src/planner/simple
+      context: ../../src/planner/opentripplanner
     ports:
       - "3010:80"
 
