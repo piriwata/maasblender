@@ -16,7 +16,7 @@ RUN pip install --upgrade pip \
  && pip install --upgrade setuptools \
  && pip install -r requirements.txt
 
-RUN chown nobody -R /var/otp
+#RUN chown nobody -R /var/otp
 
 USER nobody
 
