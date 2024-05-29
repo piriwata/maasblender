@@ -35,9 +35,20 @@ jobs:
             exit 1
           fi
 
-      - name: Setup the simple planner
+      - name: Setup the OpenTripPlanner planner
         run: |
           response=$(curl -sS -X POST -F upload_file=@./gtfs.zip http://localhost:3010/upload)
+          message=$(echo $response | jq -r '.message')
+          if [ "$message" = "successfully uploaded. gtfs.zip" ]; then
+            echo "Validation passed: $message"
+          else
+            echo "Validation failed: $response"
+            exit 1
+          fi
+
+      - name: Setup the OpenTripPlanner planner
+        run: |
+          response=$(curl -sS -X POST -F upload_file=@./otp-config.zip http://localhost:3010/upload)
           message=$(echo $response | jq -r '.message')
           if [ "$message" = "successfully uploaded. gtfs.zip" ]; then
             echo "Validation passed: $message"
