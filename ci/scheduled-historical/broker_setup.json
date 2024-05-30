@@ -52,6 +52,13 @@
     "type": "planner",
     "endpoint": "http://planner",
     "details": {
+      "otp_config": {
+        "input_files": [
+          {
+            "filename": "otp-config.zip"
+          }
+        ]
+      },
       "networks": {
         "gtfs": {
           "type": "gtfs",
@@ -59,7 +66,8 @@
             {
               "filename": "gtfs.zip"
             }
-          ]
+          ],
+          "agency_id": "7230001002032"
         }
       },
       "reference_time": "20230404",
