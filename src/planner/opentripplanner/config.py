@@ -13,6 +13,7 @@ class Configuration(LogConfig, frozen=True):
     )
     FILE_SIZE_LIMIT: int = 0  # file size limit for each input file
     # data directory for OpenTripPlanner core
+    OPENTRIPPLANNER_EXECUTABLE: pathlib.Path = pathlib.Path("/var/otp/otp-shaded.jar")
     OPENTRIPPLANNER_VOLUME_DIR: pathlib.Path = pathlib.Path("/var/otp/volume")
     OPENTRIPPLANNER_GBFS_DIR: pathlib.Path = pathlib.Path("/var/otp/volume/gbfs")
 

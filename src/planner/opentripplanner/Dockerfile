@@ -1,6 +1,5 @@
 FROM python:3.11-slim
 
-
 RUN apt-get update && apt-get install -y \
     openjdk-17-jre \
     wget \
@@ -16,6 +15,8 @@ ENV PIP_ROOT_USER_ACTION=ignore
 RUN pip install --upgrade pip \
  && pip install --upgrade setuptools \
  && pip install -r requirements.txt
+
+RUN chown nobody -R /var/otp
 
 USER nobody
 

@@ -15,7 +15,7 @@ class Planner:
         await self._session.close()
 
     async def plan(self, org: Location, dst: Location, dept: float) -> list[Route]:
-        response = self.query(org, dst, dept)
+        response = await self.query(org, dst, dept)
         return [
             Route(
                 [
@@ -37,7 +37,7 @@ class Planner:
                     for trip in route["trips"]
                 ]
             )
-            for route in await response
+            for route in response
         ]
 
     async def query(self, org: Location, dst: Location, dept: float):
