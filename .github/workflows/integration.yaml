@@ -50,7 +50,7 @@ jobs:
         run: |
           response=$(curl -sS -X POST -F upload_file=@./otp-config.zip http://localhost:3010/upload)
           message=$(echo $response | jq -r '.message')
-          if [ "$message" = "successfully uploaded. gtfs.zip" ]; then
+          if [ "$message" = "successfully uploaded. otp-config.zip" ]; then
             echo "Validation passed: $message"
           else
             echo "Validation failed: $response"
