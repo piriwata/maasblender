@@ -34,6 +34,7 @@ class HistoricalScenarioTestCase(unittest.TestCase):
                     dst=jschema.query.LocationSetting(
                         locationId=dst["locationId"], lat=dst["lat"], lng=dst["lng"]
                     ),
+                    time=400.0,
                     dept=400.0,
                     service="mobility",
                     user_type="user-xyz",
@@ -51,6 +52,7 @@ class HistoricalScenarioTestCase(unittest.TestCase):
                     "userId": "U_1",
                     "userType": "user-xyz",
                     "demandId": "D_1",
+                    "dept": 400,
                     "org": org,
                     "dst": dst,
                     "service": "mobility",
