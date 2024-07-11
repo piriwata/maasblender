@@ -172,7 +172,7 @@ class Car(Mobility):
             self.paths(org, dst, at=dept_datetime.date() + timedelta(days=1)),
         ):
             # This route is available for boarding.
-            if dept_datetime < path.departure:
+            if dept_datetime <= path.departure:
                 return path
         return None
 
