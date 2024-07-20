@@ -48,7 +48,7 @@ class Schedule:
 
 @dataclasses.dataclass
 class TimeoutWatchDog:
-    limit_seconds: int  # [sec]
+    limit_seconds: float  # [sec]
     start_time: float = dataclasses.field(default_factory=time.perf_counter)
 
     def limit_exceeded(self):
@@ -236,7 +236,7 @@ class Car(Mobility):
     def routes_appended_new_user(
         self, user: User, timeout_seconds: int = 30, max_stop_time_length: int = 20
     ):
-        watchdog = TimeoutWatchDog(limit_seconds=timeout_seconds)
+        watchdog = TimeoutWatchDog(limit_seconds=float(timeout_seconds))
         routes = [
             Route(
                 stop_times=[
@@ -478,7 +478,7 @@ class CarManager:
         self.event_queue = event_queue
         self.board_time: timedelta = timedelta(minutes=board_time)
         self.max_delay_time: timedelta = timedelta(minutes=max_delay_time)
-        self.max_calculation_seconds = (max_calculation_seconds,)
+        self.max_calculation_seconds = max_calculation_seconds
         self.max_calculation_stop_times_length = max_calculation_stop_times_length
         self.mobilities: typing.Dict[str, Car] = {
             setting.mobility_id: Car(
