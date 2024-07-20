@@ -21,6 +21,8 @@ class Simulation:
         max_delay_time: float,
         trips: dict[str, Trip],
         settings: typing.Collection[CarSetting],
+        max_calculation_seconds: int = 30,
+        max_calculation_stop_times_length: int = 10,
     ):
         self.env = Environment(start_time=start_time)
         self.event_queue = EventQueue(self.env)
@@ -36,6 +38,8 @@ class Simulation:
             event_queue=self.event_queue,
             board_time=board_time,
             max_delay_time=max_delay_time,
+            max_calculation_seconds=max_calculation_seconds,
+            max_calculation_stop_times_length=max_calculation_stop_times_length,
             settings=settings,
         )
 

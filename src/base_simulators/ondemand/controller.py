@@ -125,6 +125,8 @@ async def setup(settings: query.Setup):
         trips=trips,
         board_time=settings.board_time,
         max_delay_time=settings.max_delay_time,
+        max_calculation_seconds=settings.max_calculation_seconds,
+        max_calculation_stop_times_length=settings.max_calculation_stop_times_length,
         settings=[
             CarSetting(
                 mobility_id=mobility.mobility_id,

@@ -48,42 +48,12 @@ class Schedule:
 
 @dataclasses.dataclass
 class TimeoutWatchDog:
-    name: str
-    limit: int  # [sec]
-    interval: int = 10  # [sec]
+    limit_seconds: float  # [sec]
     start_time: float = dataclasses.field(default_factory=time.perf_counter)
-    count: int = 0
 
-    def check(self, car: Car, user: User, route: Route):
+    def limit_exceeded(self):
         elapsed = time.perf_counter() - self.start_time
-        # warning log at every interval
-        if elapsed >= self.interval + self.interval * self.count:
-            if self.count == 0:
-                logger.info(
-                    "%s: elapsed=%s[sec], car=%s, user=%s, deamnd=%s, route=%s",
-                    self.name,
-                    elapsed,
-                    car,
-                    user.user_id,
-                    user.demand_id,
-                    route.stop_times,
-                )
-            else:
-                logger.info("%s: elapsed=%s[sec]", self.name, elapsed)
-            self.count += 1
-        if elapsed < self.limit:
-            return True
-        else:
-            logger.warning(
-                "abort calculation %s: elapsed=%s[sec], car=%s, user=%s, deamnd=%s, route=%s",
-                self.name,
-                elapsed,
-                car,
-                user.user_id,
-                user.demand_id,
-                route.stop_times,
-            )
-            return False
+        return elapsed > self.limit_seconds
 
 
 class Car(Mobility):
@@ -263,10 +233,10 @@ class Car(Mobility):
 
         self.env.process(self.arrived())
 
-    def routes_appended_new_user(self, user: User):
-        watchdog = TimeoutWatchDog(
-            f"routes_appended_new_user(user={user.user_id})", limit=30, interval=5
-        )  # calculation timeout
+    def routes_appended_new_user(
+        self, user: User, timeout_seconds: int = 30, max_stop_time_length: int = 20
+    ):
+        watchdog = TimeoutWatchDog(limit_seconds=float(timeout_seconds))
         routes = [
             Route(
                 stop_times=[
@@ -281,11 +251,15 @@ class Car(Mobility):
         ).values():
             new_routes = []
             for route in routes:
+                if watchdog.limit_exceeded():
+                    logger.warning(
+                        f"abort calculation for appending a new user={user.user_id} to the car={self}: elapsed more than {watchdog.limit_seconds} seconds",
+                    )
+                    return []
+
                 for i, k in itertools.combinations_with_replacement(
                     range(len(route.stop_times) + 1), 2
                 ):
-                    if not watchdog.check(self, user_, route):
-                        return []
                     stop_times = [
                         StopTime(
                             stop=stop_time.stop, on=stop_time.on, off=stop_time.off
@@ -309,6 +283,11 @@ class Car(Mobility):
                     if any(
                         value > self._max_delay_time for value in Delay(self, r).values
                     ):
+                        continue
+                    if len(r.stop_times) > max_stop_time_length:
+                        logger.debug(
+                            f"skip a route for appending a new user={user.user_id} to the car={self}: exceeded max stop times length={max_stop_time_length}."
+                        )
                         continue
                     new_routes.append(r)
 
@@ -492,11 +471,15 @@ class CarManager:
         board_time: float,
         max_delay_time: float,
         settings: typing.Collection[CarSetting],
+        max_calculation_seconds: int = 30,
+        max_calculation_stop_times_length: int = 10,
     ):
         self.network = network
         self.event_queue = event_queue
         self.board_time: timedelta = timedelta(minutes=board_time)
         self.max_delay_time: timedelta = timedelta(minutes=max_delay_time)
+        self.max_calculation_seconds = max_calculation_seconds
+        self.max_calculation_stop_times_length = max_calculation_stop_times_length
         self.mobilities: typing.Dict[str, Car] = {
             setting.mobility_id: Car(
                 network=self.network,
@@ -525,7 +508,11 @@ class CarManager:
         for delay in sorted(
             Delay(car, route)
             for car in self.mobilities.values()
-            for route in car.routes_appended_new_user(user)
+            for route in car.routes_appended_new_user(
+                user,
+                timeout_seconds=self.max_calculation_seconds,
+                max_stop_time_length=self.max_calculation_stop_times_length,
+            )
         ):
             if all(value < self.max_delay_time for value in delay.values):
                 return delay

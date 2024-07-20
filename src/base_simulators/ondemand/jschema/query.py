@@ -30,6 +30,8 @@ class Setup(BaseModel):
     board_time: float | None
     max_delay_time: float | None
     mobility_speed: float = 20.0 * 1000 / 60  # [m/min]
+    max_calculation_seconds: int = 30
+    max_calculation_stop_times_length: int = 10
     mobilities: list[Mobility]
 
 
