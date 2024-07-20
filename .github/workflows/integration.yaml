@@ -127,7 +127,7 @@ jobs:
           fi
 
   ondemand-oneway-generator-commuter-case:
-    name: Run historical scheduled test case
+    name: Run ondemand oneway generator commuter test case
     runs-on: ubuntu-latest
     defaults:
       run:
