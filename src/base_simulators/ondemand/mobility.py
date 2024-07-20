@@ -470,9 +470,9 @@ class CarManager:
         event_queue: EventQueue,
         board_time: float,
         max_delay_time: float,
-        max_calculation_seconds: int,
-        max_calculation_stop_times_length: int,
         settings: typing.Collection[CarSetting],
+        max_calculation_seconds: int = 30,
+        max_calculation_stop_times_length: int = 10,
     ):
         self.network = network
         self.event_queue = event_queue

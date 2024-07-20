@@ -19,10 +19,10 @@ class Simulation:
         network: Network,
         board_time: float,
         max_delay_time: float,
-        max_calculation_seconds: int,
-        max_calculation_stop_times_length: int,
         trips: dict[str, Trip],
         settings: typing.Collection[CarSetting],
+        max_calculation_seconds: int = 30,
+        max_calculation_stop_times_length: int = 10,
     ):
         self.env = Environment(start_time=start_time)
         self.event_queue = EventQueue(self.env)
