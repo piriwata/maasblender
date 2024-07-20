@@ -19,6 +19,8 @@ class Simulation:
         network: Network,
         board_time: float,
         max_delay_time: float,
+        max_calculation_seconds: int,
+        max_calculation_stop_times_length: int,
         trips: dict[str, Trip],
         settings: typing.Collection[CarSetting],
     ):
@@ -36,6 +38,8 @@ class Simulation:
             event_queue=self.event_queue,
             board_time=board_time,
             max_delay_time=max_delay_time,
+            max_calculation_seconds=max_calculation_seconds,
+            max_calculation_stop_times_length=max_calculation_stop_times_length,
             settings=settings,
         )
 
