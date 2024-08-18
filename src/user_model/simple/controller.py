@@ -128,7 +128,7 @@ async def triggered(event: query.TriggeredEvent | events.Event):
                     lng=event.details.dst.lng,
                 ),
                 dept=event.details.dept,
-                fixed_service=event.details.service,
+                service=event.details.service,
             )
         case query.ReservedEvent():
             manager.trigger(
