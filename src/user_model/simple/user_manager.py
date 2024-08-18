@@ -5,6 +5,7 @@ from __future__ import annotations
 import itertools
 import logging
 
+from jschema.query import PreferenceMode
 from core import Runner, User, Task, Location, Route
 from event import (
     Manager as EventManager,
@@ -271,26 +272,28 @@ class ReservedTrip(Task):
 def filter_plans_by_fixed_service(
     plans: list[Route], fixed_service: str
 ) -> list[Route]:
-    if fixed_service == "walking":  # select walk-only route
+    if fixed_service == "walking":
+        # select walk-only route
         return [plan for plan in plans if plan.is_walking_only()]
-    else:  # select route containing the service
-        result = [
+    else:
+        # select route containing the service
+        if result := [
             plan
             for plan in plans
             if fixed_service in {trip.service for trip in plan.trips}
-        ]
-        if result:
+        ]:
             return result
         else:
-            logger.warning(
-                f"The designated transportation service '{fixed_service}' cannot be used to trip "
-                f"from the origin '{plans[0].org}' to the destination '{plans[0].dst}'."
-                f"This is independent of the reservation conditions."
-            )
-            logger.warning(
-                f"ignore fixed service, because of no plan using {fixed_service=}"
-            )
-            return plans
+            return filter_plans_by_fixed_service(plans, "walking")
+
+
+def sort_plans_by_prefer_service(
+    plans: list[Route], prefer_service: str
+) -> list[Route]:
+    plans.sort(
+        key=lambda plan: prefer_service not in {trip.service for trip in plan.trips}
+    )
+    return plans
 
 
 class UserManager(Runner):
@@ -298,11 +301,18 @@ class UserManager(Runner):
     route_planner: Planner | None
     confirmed_services: list[str]
 
-    def __init__(self, confirmed_services: list[str] = None):
+    def __init__(
+        self, preference_mode: PreferenceMode, confirmed_services: list[str] = None
+    ):
         super().__init__()
         self._event_manager = EventManager(env=self.env)
         self.route_planner = None
         self.confirmed_services = confirmed_services or []
+        self.preference = (
+            filter_plans_by_fixed_service
+            if preference_mode == PreferenceMode.fixed
+            else sort_plans_by_prefer_service
+        )
 
     async def close(self):
         if self.route_planner:
@@ -358,9 +368,9 @@ class UserManager(Runner):
         else:
             return tasks
 
-    def plans_to_trips(self, plans: list[Route], fixed_service: str | None):
-        if fixed_service:  # check for each DEMAND event
-            plans = filter_plans_by_fixed_service(plans, fixed_service)
+    def plans_to_trips(self, plans: list[Route], service: str | None):
+        if service:  # check for each DEMAND event
+            plans = self.preference(plans, service)
 
         # ToDo: Unclear criteria for determining walking plan
         # No alternative plan
