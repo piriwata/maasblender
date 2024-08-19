@@ -400,12 +400,12 @@ class Delay:
     def __init__(self, car: Car, plan: Route):
         self.car = car
         self.stop_times = plan.stop_times
+        self.values = [timedelta(days=1)]
+        self.value = timedelta(days=1)
 
         start_window, end_window = car.window()
+        # unavailable
         if start_window is None:
-            # unavailable
-            self.values = [self.car._max_delay_time]
-            self.value = self.car._max_delay_time
             return
 
         # If on the move, set to the next stop-time.
@@ -444,13 +444,9 @@ class Delay:
                 for stop_time in plan.stop_times
                 for user in stop_time.off
             ]
-            self.value = sum(self.values, timedelta())
-        else:
-            # unavailable
-            self.values = [self.car._max_delay_time]
-            self.value = self.car._max_delay_time
+            self.value = sum(self.values, timedelta()) / len(self.values)
 
-    def __lt__(self, other):
+    def __lt__(self, other: Delay):
         return self.value < other.value
 
 
@@ -505,7 +501,7 @@ class CarManager:
                 return user
 
     def minimum_delay(self, user: User):
-        for delay in sorted(
+        delays = [
             Delay(car, route)
             for car in self.mobilities.values()
             for route in car.routes_appended_new_user(
@@ -513,9 +509,10 @@ class CarManager:
                 timeout_seconds=self.max_calculation_seconds,
                 max_stop_time_length=self.max_calculation_stop_times_length,
             )
-        ):
-            if all(value < self.max_delay_time for value in delay.values):
-                return delay
+        ]
+
+        if len(delays):
+            return min(delays)
 
     def reserve(self, user: User):
         self.env.process(self._reserve(user))
