@@ -73,8 +73,11 @@ def get_event_schema_all() -> dict[str, spec.JsonSchemaValue | None]:
 async def setup(settings: query.Setup):
     global manager
 
-    manager = UserManager(confirmed_services=settings.confirmed_services)
-    manager.setup_planner(endpoint=settings.planner.endpoint)
+    manager = UserManager(
+        preference_mode=settings.preference_mode,
+        confirmed_services=settings.confirmed_services,
+    )
+    manager.setup_planner(endpoint=settings.planner.endpoint.unicode_string())
 
     return {"message": "successfully configured."}
 
@@ -125,7 +128,7 @@ async def triggered(event: query.TriggeredEvent | events.Event):
                     lng=event.details.dst.lng,
                 ),
                 dept=event.details.dept,
-                fixed_service=event.details.service,
+                service=event.details.service,
             )
         case query.ReservedEvent():
             manager.trigger(

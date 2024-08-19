@@ -8,6 +8,7 @@ import planner
 import user_manager
 from core import Location, User
 from event import Manager as EventManager, ReserveEvent, ReservedEvent, DepartEvent
+from jschema.query import PreferenceMode
 from planner import Route
 from user_manager import UserManager
 
@@ -187,7 +188,7 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
                 self.assertEqualTrips(expected.fail, actual.fail)
 
     def setUp(self):
-        self.manager = UserManager()
+        self.manager = UserManager(preference_mode=PreferenceMode.fixed)
 
     def test_plans_contain_only_walking(self):
         org = Location(id_="ORG", lat=0, lng=0)
@@ -202,7 +203,7 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
                     ]
                 )
             ],
-            fixed_service=None,
+            service=None,
         )
 
         expected_trips = [
@@ -230,7 +231,7 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
                     ]
                 )
             ],
-            fixed_service="walking",
+            service="walking",
         )
 
         expected_trips = [
@@ -274,7 +275,7 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
                     ]
                 ),
             ],
-            fixed_service=None,
+            service=None,
         )
 
         expected_trips = [
@@ -318,7 +319,7 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
                     ]
                 ),
             ],
-            fixed_service=None,
+            service=None,
         )
 
         expected_trips = [
@@ -402,7 +403,7 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
                     ]
                 ),
             ],
-            fixed_service=None,
+            service=None,
         )
 
         expected_trips = [
@@ -496,7 +497,7 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
                     ]
                 ),
             ],
-            fixed_service="service",
+            service="service",
         )
 
         expected_trips = [
@@ -565,7 +566,171 @@ class ReservationFailedTripServiceTestCase(unittest.TestCase):
                     ]
                 ),
             ],
-            fixed_service="another",
+            service="another",
+        )
+
+        expected_trips = [
+            user_manager.Trip(
+                manager=self.manager._event_manager,
+                org=org,
+                dst=dst,
+                dept=0,
+                service="walking",
+                fail=[],
+            ),
+        ]
+        self.assertEqualTrips(expected_trips, trips)
+
+
+class PreferenceModePreferTestCase(unittest.TestCase):
+    def assertEqualTrips(
+        self,
+        expected_trips: list[user_manager.Trip],
+        actual_trips: list[user_manager.Trip],
+    ):
+        self.assertEqual(len(expected_trips), len(actual_trips))
+        for expected, actual in zip(expected_trips, actual_trips):
+            self.assertEqual(
+                (expected.org, expected.dst, expected.service),
+                (actual.org, actual.dst, actual.service),
+            )
+            self.assertEqual(len(expected.fail), len(actual.fail))
+            if expected.fail:
+                self.assertEqualTrips(expected.fail, actual.fail)
+
+    def setUp(self):
+        self.manager = UserManager(preference_mode=PreferenceMode.prefer)
+
+    def test_plans_contain_prefer_service_plan(self):
+        org = Location(id_="ORG", lat=0, lng=0)
+        loc_a = Location(id_="A", lat=0, lng=0)
+        loc_b = Location(id_="B", lat=0, lng=0)
+        dst = Location(id_="DST", lat=0, lng=0)
+
+        trips = self.manager.plans_to_trips(
+            [
+                Route(
+                    trips=[
+                        planner.Trip(
+                            org=org, dst=dst, dept=0, arrv=0, service="walking"
+                        )
+                    ]
+                ),
+                Route(
+                    trips=[
+                        planner.Trip(
+                            org=org, dst=loc_a, dept=0, arrv=0, service="walking"
+                        ),
+                        planner.Trip(
+                            org=loc_a, dst=loc_b, dept=0, arrv=0, service="service"
+                        ),
+                        planner.Trip(
+                            org=loc_b, dst=dst, dept=0, arrv=0, service="walking"
+                        ),
+                    ]
+                ),
+                Route(
+                    trips=[
+                        planner.Trip(
+                            org=org, dst=dst, dept=0, arrv=0, service="service"
+                        )
+                    ]
+                ),
+            ],
+            service="service",
+        )
+
+        expected_trips = [
+            user_manager.Trip(
+                manager=self.manager._event_manager,
+                org=org,
+                dst=loc_a,
+                dept=0,
+                service="walking",
+                fail=[],
+            ),
+            user_manager.Trip(
+                manager=self.manager._event_manager,
+                org=loc_a,
+                dst=loc_b,
+                dept=0,
+                service="service",
+                fail=[
+                    user_manager.Trip(
+                        manager=self.manager._event_manager,
+                        org=loc_a,
+                        dst=org,
+                        dept=0,
+                        service="walking",
+                        fail=[],
+                    ),
+                    user_manager.Trip(
+                        manager=self.manager._event_manager,
+                        org=org,
+                        dst=dst,
+                        dept=0,
+                        service="service",
+                        fail=[
+                            user_manager.Trip(
+                                manager=self.manager._event_manager,
+                                org=org,
+                                dst=dst,
+                                dept=0,
+                                service="walking",
+                                fail=[],
+                            ),
+                        ],
+                    ),
+                ],
+            ),
+            user_manager.Trip(
+                manager=self.manager._event_manager,
+                org=loc_b,
+                dst=dst,
+                dept=0,
+                service="walking",
+                fail=[],
+            ),
+        ]
+        self.assertEqualTrips(expected_trips, trips)
+
+    def test_plans_doesnt_contain_prefer_service_plan(self):
+        org = Location(id_="ORG", lat=0, lng=0)
+        loc_a = Location(id_="A", lat=0, lng=0)
+        loc_b = Location(id_="B", lat=0, lng=0)
+        dst = Location(id_="DST", lat=0, lng=0)
+
+        trips = self.manager.plans_to_trips(
+            [
+                Route(
+                    trips=[
+                        planner.Trip(
+                            org=org, dst=loc_a, dept=0, arrv=0, service="walking"
+                        ),
+                        planner.Trip(
+                            org=loc_a, dst=loc_b, dept=0, arrv=0, service="service"
+                        ),
+                        planner.Trip(
+                            org=loc_b, dst=dst, dept=0, arrv=0, service="walking"
+                        ),
+                    ]
+                ),
+                Route(
+                    trips=[
+                        planner.Trip(
+                            org=org, dst=dst, dept=0, arrv=0, service="walking"
+                        )
+                    ]
+                ),
+                Route(
+                    trips=[
+                        planner.Trip(
+                            org=org, dst=dst, dept=0, arrv=0, service="service"
+                        )
+                    ]
+                ),
+            ],
+            service="another",
         )
 
         expected_trips = [
