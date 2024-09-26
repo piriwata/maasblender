@@ -38,11 +38,20 @@ class NetworkSetting(BaseModel):
     agency_id: str | None = None  # equivalent to system_id for GBFS file
 
 
+class TransportMode(BaseModel):
+    mode: str
+    qualifier: str | None = None
+
+
+class TransportModes(BaseModel):
+    modes: conlist(TransportMode, min_length=1)
+
+
 class Setup(BaseModel):
     otp_config: OTPDetails
     networks: dict[str, NetworkSetting]
     reference_time: constr(min_length=8, max_length=8)
-    modes: conlist(str, min_length=1) = ["TRANSIT,WALK", "FLEX_DIRECT,WALK"]
+    modes: conlist(TransportModes, min_length=1) = None
     walking_meters_per_minute: float | None = (
         None  # get from router_config.json, if None
     )
