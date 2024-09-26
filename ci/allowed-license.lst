@@ -1,6 +1,7 @@
 # These license names are used for pip-license (https://github.com/raimon49/pip-licenses) and must use same word presented in pip license information.
 # We identified a line with non-alphabetical characters in head as comment.
 MIT License
+MIT
 BSD License
 Apache-2.0
 Apache Software License
