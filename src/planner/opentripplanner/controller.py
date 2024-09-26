@@ -251,7 +251,12 @@ async def setup(request: fastapi.Request, setting: query.Setup):
         endpoint=f"http://localhost:{env.OPENTRIPPLANNER_PORT}",
         ref_datetime=ref_datetime,
         walking_meters_per_minute=walking_meters_per_minute,
-        transport_modes=[[{"mode": mode.mode, "qualifier": mode.qualifier} for mode in modes.modes] for modes in setting.modes] if setting.modes else None,
+        transport_modes=[
+            [{"mode": mode.mode, "qualifier": mode.qualifier} for mode in modes.modes]
+            for modes in setting.modes
+        ]
+        if setting.modes
+        else None,
         services={
             details.agency_id or service: service
             for service, details in setting.networks.items()
@@ -309,12 +314,23 @@ async def plan(org: query.LocationSetting, dst: query.LocationSetting, dept: flo
 @app.get("/graphiql")
 async def graphiql():
     async with aiohttp.ClientSession() as session:
-        async with session.get(f"http://localhost:{env.OPENTRIPPLANNER_PORT}/graphiql") as resp:
-            return fastapi.Response(content=await resp.read(), status_code=resp.status, headers=dict(resp.headers))
+        async with session.get(
+            f"http://localhost:{env.OPENTRIPPLANNER_PORT}/graphiql"
+        ) as resp:
+            return fastapi.Response(
+                content=await resp.read(),
+                status_code=resp.status,
+                headers=dict(resp.headers),
+            )
 
 
 @app.post("/otp/routers/default/index/graphql")
 async def graphql(request: fastapi.Request):
     async with aiohttp.ClientSession() as session:
-        async with session.post(f"http://localhost:{env.OPENTRIPPLANNER_PORT}/otp/routers/default/index/graphql", json=await request.json()) as resp:
-            return fastapi.responses.JSONResponse(content=await resp.json(), status_code=resp.status)
+        async with session.post(
+            f"http://localhost:{env.OPENTRIPPLANNER_PORT}/otp/routers/default/index/graphql",
+            json=await request.json(),
+        ) as resp:
+            return fastapi.responses.JSONResponse(
+                content=await resp.json(), status_code=resp.status
+            )
