@@ -10,6 +10,8 @@ from datetime import datetime, timedelta
 import itertools
 import functools
 
+import simpy
+
 from core import Trip, Stop, Network, User, Mobility
 from event import EventQueue
 
@@ -86,6 +88,7 @@ class Car(Mobility):
         self._reserved_users: typing.Dict[str, User] = {}
         self._waiting_users: typing.Dict[str, User] = {}
         self._passengers: typing.Dict[str, User] = {}
+        self._wait_until_scheduled: typing.Optional[simpy.Process] = None
         _, end_window = self.window()
         self.env.process(
             self._move_to_initial_stop(end_window)
@@ -171,13 +174,22 @@ class Car(Mobility):
                 # move to initial after end window (fail-safe: avoid arrival after end window in reserve)
                 self.env.process(self._move_to_initial_stop())
 
-    def departed(self):
+    def wait_until_scheduled(self):
         # wait until the scheduled arrival time
         if users := self.schedule.current.on:
-            if (
-                latest_arrival_time := max(user.desired_dept for user in users)
-            ) > self.env.datetime_now:
-                yield self.env.timeout_until(latest_arrival_time)
+            latest_arrival_time = max(user.desired_dept for user in users)
+            if self.env.datetime_now < latest_arrival_time:
+                try:
+                    yield self.env.timeout_until(latest_arrival_time)
+                except simpy.Interrupt:
+                    return "interrupted"
+
+    def departed(self):
+        self._wait_until_scheduled = self.env.process(self.wait_until_scheduled())
+        cause = yield self._wait_until_scheduled
+        if cause == "interrupted":
+            return
+        self._wait_until_scheduled = None
 
         while users := [
             user for user in self.schedule.current.on if user in self.waiting_users
@@ -296,11 +308,19 @@ class Car(Mobility):
         return routes
 
     def reserve(self, user: User, schedule: typing.List[StopTime]):
+        # Ensure that the user has not already reserved
         assert user.user_id not in self.users
 
-        if not self.schedule.current:
+        # If there's no current schedule or the bus is in a waiting state, initiate the new schedule
+        # The absence of self.schedule.current indicates the bus is idle.
+        if not self.schedule.current or self._wait_until_scheduled:
+            # If self._wait_until_scheduled exists, it means the bus is waiting;
+            # in this case, interrupt the wait and initiate the new schedule
+            if self._wait_until_scheduled:
+                self._wait_until_scheduled.interrupt()
+
+            # If the next stop differs from the current stop, move to the next stop; otherwise, proceed with departure
             next_stop = schedule[0].stop
-            # If the bus has stopped and there's no next stop, operations begin according to the new schedule.
             self.env.process(
                 self.move(next_stop) if self.stop != next_stop else self.departed()
             )
