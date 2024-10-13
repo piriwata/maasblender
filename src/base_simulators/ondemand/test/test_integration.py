@@ -1745,7 +1745,7 @@ class OneMobilityTestCase(unittest.TestCase):
                             }
                         ],
                     },
-                }
+                },
             ],
             triggered_events,
         )
@@ -1793,8 +1793,8 @@ class OneMobilityTestCase(unittest.TestCase):
                         "demandId": None,
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
-                    }
-                }
+                    },
+                },
             ],
             triggered_events,
         )
@@ -1811,7 +1811,7 @@ class OneMobilityTestCase(unittest.TestCase):
                         "userId": "User3",
                         "demandId": "Demand",
                         "location": {"locationId": "Stop3", "lat": ..., "lng": ...},
-                        "mobilityId": "trip"
+                        "mobilityId": "trip",
                     },
                 },
             ],
@@ -1865,8 +1865,6 @@ class OneMobilityTestCase(unittest.TestCase):
             ],
             triggered_events,
         )
-
-
 
     def test_two_reservations(self):
         run(self.simulation, until=480.0)
