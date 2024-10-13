@@ -187,9 +187,9 @@ class Car(Mobility):
     def departed(self):
         self._wait_until_scheduled = self.env.process(self.wait_until_scheduled())
         cause = yield self._wait_until_scheduled
+        self._wait_until_scheduled = None
         if cause == "interrupted":
             return
-        self._wait_until_scheduled = None
 
         while users := [
             user for user in self.schedule.current.on if user in self.waiting_users
