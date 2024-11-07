@@ -4,6 +4,8 @@ import unittest
 import logging
 from datetime import datetime, date, time, timedelta
 
+import simpy
+
 from simulation import Simulation, CarSetting
 from core import EventType, Stop, StopTime, Service, Trip, Group, Network
 
@@ -1513,6 +1515,133 @@ class OneMobilityTestCase(unittest.TestCase):
             triggered_events,
         )
 
+    def test_reserve_at_exact_time_when_finished_waiting(self):
+        run(self.simulation, until=480.0)
+        self.simulation.reserve_user(
+            user_id="User1",
+            demand_id="Demand",
+            org="Stop1",
+            dst="Stop2",
+            dept=490.0,
+        )
+        self.simulation.reserve_user(
+            user_id="User2",
+            demand_id="Demand",
+            org="Stop2",
+            dst="Stop3",
+            dept=880.0,
+        )
+        triggered_events = run(self.simulation, until=481)
+
+        self.assertEqual(
+            [
+                {
+                    "eventType": EventType.RESERVED,
+                    "time": 480.0,
+                    "details": {
+                        "success": True,
+                        "userId": "User1",
+                        "demandId": "Demand",
+                        "mobilityId": "trip",
+                        "route": [
+                            {
+                                "org": {"locationId": "Stop1", "lat": ..., "lng": ...},
+                                "dst": {"locationId": "Stop2", "lat": ..., "lng": ...},
+                                "dept": 490.0,
+                                "arrv": 540.0,
+                            }
+                        ],
+                    },
+                },
+                {
+                    "eventType": EventType.RESERVED,
+                    "time": 480.0,
+                    "details": {
+                        "success": True,
+                        "userId": "User2",
+                        "demandId": "Demand",
+                        "mobilityId": "trip",
+                        "route": [
+                            {
+                                "org": {"locationId": "Stop2", "lat": ..., "lng": ...},
+                                "dst": {"locationId": "Stop3", "lat": ..., "lng": ...},
+                                "dept": 880.0,
+                                "arrv": 920.0,
+                            }
+                        ],
+                    },
+                },
+            ],
+            triggered_events,
+        )
+
+        self.simulation.ready_to_depart("User1")
+        run(self.simulation, until=880.0)
+
+        # A new reservation is received at exact time when finished waiting
+        self.simulation.reserve_user(
+            user_id="User3",
+            demand_id="Demand",
+            org="Stop3",
+            dst="Stop1",
+            dept=920.0,
+        )
+        self.simulation.ready_to_depart("User2")
+        triggered_events = run(self.simulation, until=880.1)
+
+        self.assertEqual(
+            [
+                {
+                    "eventType": EventType.RESERVED,
+                    "time": 880.0,
+                    "details": {
+                        "success": True,
+                        "userId": "User3",
+                        "demandId": "Demand",
+                        "mobilityId": "trip",
+                        "route": [
+                            {
+                                "org": {"locationId": "Stop3", "lat": ..., "lng": ...},
+                                "dst": {"locationId": "Stop1", "lat": ..., "lng": ...},
+                                "dept": 920.0,
+                                "arrv": 955.0,
+                            }
+                        ],
+                    },
+                }, {
+                    "eventType": EventType.DEPARTED,
+                    "time": 880.0,
+                    "details": {
+                        "userId": "User2",
+                        "demandId": "Demand",
+                        "mobilityId": "trip",
+                        "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
+                    },
+                }
+            ],
+            triggered_events,
+        )
+
+        self.simulation.ready_to_depart("User3")
+
+        run(self.simulation, until=955)
+        triggered_events = run(self.simulation, until=956)
+        self.assertEqual(
+            [
+                {
+                    "eventType": EventType.ARRIVED,
+                    "time": 955.0,
+                    "details": {
+                        "userId": "User3",
+                        "demandId": "Demand",
+                        "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
+                        "mobilityId": "trip",
+                    },
+                },
+            ],
+            triggered_events,
+        )
+
     def test_two_users_lifetime(self):
         run(self.simulation, until=480.0)
 
@@ -1690,7 +1819,7 @@ class OneMobilityTestCase(unittest.TestCase):
             triggered_events,
         )
 
-    def test_debug(self):
+    def test_reserve_while_waiting_until_scheduled_user(self):
         run(self.simulation, until=480.0)
         self.simulation.reserve_user(
             user_id="User1",
