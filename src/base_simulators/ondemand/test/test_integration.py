@@ -4,8 +4,6 @@ import unittest
 import logging
 from datetime import datetime, date, time, timedelta
 
-import simpy
-
 from simulation import Simulation, CarSetting
 from core import EventType, Stop, StopTime, Service, Trip, Group, Network
 
@@ -1608,7 +1606,8 @@ class OneMobilityTestCase(unittest.TestCase):
                             }
                         ],
                     },
-                }, {
+                },
+                {
                     "eventType": EventType.DEPARTED,
                     "time": 880.0,
                     "details": {
@@ -1617,7 +1616,7 @@ class OneMobilityTestCase(unittest.TestCase):
                         "mobilityId": "trip",
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
-                }
+                },
             ],
             triggered_events,
         )
