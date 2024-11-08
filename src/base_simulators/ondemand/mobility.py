@@ -147,6 +147,10 @@ class Car(Mobility):
     def moving(self):
         return self.schedule.current if not self.stop else None
 
+    @property
+    def waiting_until_scheduled(self):
+        return bool(self._wait_until_scheduled and self._wait_until_scheduled.is_alive)
+
     def find_reserved_user(self, user_id: str):
         return self._reserved_users.get(user_id, None)
 
@@ -187,7 +191,6 @@ class Car(Mobility):
     def departed(self):
         self._wait_until_scheduled = self.env.process(self.wait_until_scheduled())
         cause = yield self._wait_until_scheduled
-        self._wait_until_scheduled = None
         if cause == "interrupted":
             return
 
@@ -313,10 +316,9 @@ class Car(Mobility):
 
         # If there's no current schedule or the bus is in a waiting state, initiate the new schedule
         # The absence of self.schedule.current indicates the bus is idle.
-        if not self.schedule.current or self._wait_until_scheduled:
-            # If self._wait_until_scheduled exists, it means the bus is waiting;
-            # in this case, interrupt the wait and initiate the new schedule
-            if self._wait_until_scheduled:
+        # self.wait_until_scheduled indicates whether the bus is waiting or not.
+        if not self.schedule.current or self.waiting_until_scheduled:
+            if self.waiting_until_scheduled:
                 self._wait_until_scheduled.interrupt()
 
             # If the next stop differs from the current stop, move to the next stop; otherwise, proceed with departure
