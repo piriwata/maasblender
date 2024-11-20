@@ -88,7 +88,11 @@ async def setup(settings: query.Setup):
                 events.Location(locationId=e.stop_id, lat=e.lat, lng=e.lng).model_dump()
                 for e in sorted(stops.values(), key=lambda e: e.stop_id)
             ]
-            async with session.post(str(network_url), json=stops_req) as resp:
+            async with session.post(
+                str(network_url),
+                json=stops_req,
+                timeout=aiohttp.ClientTimeout(total=3600),
+            ) as resp:
                 await httputil.check_response(resp)
                 matrix = await resp.json()
             network = Network()
