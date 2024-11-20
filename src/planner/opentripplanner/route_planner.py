@@ -7,13 +7,14 @@ import re
 import typing
 
 from gql import Client, gql
-from gql.transport.aiohttp import AIOHTTPTransport
+from gql.transport.aiohttp import AIOHTTPTransport, log as aiohttp_logger
 import aiohttp
 
 from core import Location, Path, Trip, calc_distance
 from jschema.response import DistanceMatrix
 
 logger = logging.getLogger(__name__)
+aiohttp_logger.setLevel(logging.WARNING)
 pattern = re.compile(r".+:(.*)")
 
 
