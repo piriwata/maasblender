@@ -30,12 +30,17 @@ class HttpRunner(Runner):
             return await response.json()
 
     async def _post(
-        self, method: str, data: typing.Any = None, params: typing.Mapping = None
+        self,
+        method: str,
+        data: typing.Any = None,
+        params: typing.Mapping = None,
+        timeout_seconds=300,
     ):
         async with self._session.post(
             self._endpoint + method,
             json=data,
             params=params if params else {},
+            timeout=aiohttp.ClientTimeout(total=timeout_seconds),
         ) as response:
             await httputil.check_response(response)
             return await response.json()
@@ -46,7 +51,7 @@ class HttpRunner(Runner):
         return result
 
     async def setup(self, setting: typing.Mapping):
-        await self._post("setup", data=setting)
+        await self._post("setup", data=setting, timeout_seconds=3600)
 
     async def start(self):
         await self._post("start")
