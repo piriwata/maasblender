@@ -199,7 +199,7 @@ class OpenTripPlanner:
         date: $date
         time: $time
         transportModes: $modes
-        numItineraries: 3
+        numItineraries: 5
         maxTransfers: 4
       ) {
         itineraries {
