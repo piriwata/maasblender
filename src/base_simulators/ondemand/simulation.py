@@ -7,7 +7,7 @@ from logging import getLogger
 from environment import Environment
 from core import Network, User, Trip
 from event import EventQueue
-from mobility import CarManager, CarSetting
+from reservation import CarManager, CarSetting
 
 logger = getLogger(__name__)
 
@@ -17,17 +17,13 @@ class Simulation:
         self,
         start_time: datetime,
         network: Network,
-        board_time: float,
         max_delay_time: float,
         trips: dict[str, Trip],
         settings: typing.Collection[CarSetting],
-        max_calculation_seconds: int = 30,
-        max_calculation_stop_times_length: int = 10,
     ):
         self.env = Environment(start_time=start_time)
         self.event_queue = EventQueue(self.env)
         self.network = network
-        self.board_time = board_time
         self.stops = {
             location.stop_id: location
             for trip in trips.values()
@@ -36,10 +32,7 @@ class Simulation:
         self.car_manager = CarManager(
             network=self.network,
             event_queue=self.event_queue,
-            board_time=board_time,
             max_delay_time=max_delay_time,
-            max_calculation_seconds=max_calculation_seconds,
-            max_calculation_stop_times_length=max_calculation_stop_times_length,
             settings=settings,
         )
 
@@ -57,7 +50,7 @@ class Simulation:
         org = self.stops[org]
         dst = self.stops[dst]
         return bool(
-            self.car_manager.minimum_delay(
+            self.car_manager.solve_new_route(
                 User(
                     user_id=...,
                     demand_id=...,
@@ -68,7 +61,6 @@ class Simulation:
                     else self.env.datetime_now,
                     ideal=timedelta(
                         minutes=self.network.duration(org.stop_id, dst.stop_id)
-                        + self.board_time * 2
                     ),
                 )
             )
@@ -88,7 +80,6 @@ class Simulation:
                 desired=self.env.datetime_from(dept),
                 ideal=timedelta(
                     minutes=self.network.duration(org.stop_id, dst.stop_id)
-                    + self.board_time * 2
                 ),
             )
         )

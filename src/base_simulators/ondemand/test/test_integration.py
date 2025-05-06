@@ -58,7 +58,6 @@ class OneMobilityTestCase(unittest.TestCase):
 
         self.simulation = Simulation(
             start_time=self.base_datetime,
-            board_time=10,
             max_delay_time=30,
             network=self.network,
             trips={"trip": self.trip},
@@ -1879,7 +1878,7 @@ class OneMobilityTestCase(unittest.TestCase):
         )
 
         self.simulation.ready_to_depart("User1")
-        triggered_events = run(self.simulation, until=600.0)
+        run(self.simulation, until=600.0)
 
         # Since the reserved user has not yet arrived, the bus waits until the scheduled time.
         # At this time, a new reservation is received.
@@ -2284,7 +2283,6 @@ class TwoMobilityTestCase(unittest.TestCase):
         self.simulation = Simulation(
             start_time=self.base_datetime,
             network=self.network,
-            board_time=10,
             max_delay_time=30,
             trips={"trip1": self.trip1, "trip2": self.trip2},
             settings=[
