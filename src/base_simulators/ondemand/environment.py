@@ -18,7 +18,10 @@ class Environment(Original):
         return self.start_time + timedelta(minutes=elapsed)
 
     def elapsed(self, date_time: datetime):
-        return (date_time - self.start_time).total_seconds() / 60
+        return (date_time - self.start_time).total_seconds() / 60.0
+
+    def elapsed_secs(self, date_time: datetime):
+        return int((date_time - self.start_time).total_seconds())
 
     def timeout_until(self, date_time: datetime):
         return self.timeout(self.elapsed(date_time) - self.now)
