@@ -1060,7 +1060,7 @@ class OneMobilityTestCase(unittest.TestCase):
                     },
                 },
             ],
-            triggered_events
+            triggered_events,
         )
         self.simulation.ready_to_depart("User2")
 
