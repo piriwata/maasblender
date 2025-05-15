@@ -50,7 +50,7 @@ class Simulation:
         org = self.stops[org]
         dst = self.stops[dst]
         return bool(
-            self.car_manager.solve_new_route(
+            self.car_manager.minimum_delay(
                 User(
                     user_id=...,
                     demand_id=...,

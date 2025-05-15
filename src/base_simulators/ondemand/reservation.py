@@ -117,13 +117,18 @@ class CarManager:
         yield self.env.timeout(0)
 
         if solution := self.minimum_delay(user):
+            departure = None
             for stop_time in solution.stop_times:
-                self.event_queue.reserved(
-                    mobility=solution.car,
-                    user=user,
-                    departure=stop_time.departure,
-                    arrival=stop_time.arrival,
-                )
+                if user in stop_time.on:
+                    departure = stop_time.departure
+                if user in stop_time.off:
+                    assert departure
+                    self.event_queue.reserved(
+                        mobility=solution.car,
+                        user=user,
+                        departure=departure,
+                        arrival=stop_time.arrival,
+                    )
 
             solution.car.reserve(user=user, schedule=solution.stop_times)
 
