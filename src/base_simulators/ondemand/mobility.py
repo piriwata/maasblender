@@ -15,7 +15,6 @@ from ortools.constraint_solver import pywrapcp
 from core import Trip, Stop, Network, User, Mobility
 from event import EventQueue
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -246,19 +245,28 @@ class Car(Mobility):
     def solve_new_route(self, new_user: User) -> typing.Optional[Route]:
         node_locations = []
         demands = []
+        node_onoff = []
 
         # Create the routing index manager.
         manager = pywrapcp.RoutingIndexManager(
-            # まだ乗車していないユーザーはユニークな二つのNodeとみなす。乗客は降車だけを考えるのでユニークな一つのNodeとみなす。
+            # Users who haven't boarded yet are considered as two unique nodes each (pickup and delivery).
+            # Passengers already onboard are considered as a single unique node (delivery only).
             len(self.reserved_users) * 2 + len(self.passengers) + 2 + 1,
-            # num mobilities
-            1,
-            # depot
-            0,
+            1,  # num mobilities
+            0,  # depot
         )
 
         # Create Routing Model.
         routing = pywrapcp.RoutingModel(manager)
+
+        depot = (
+            self.moving.stop if self.moving else self.stop
+        )  # either current stop or in-transit stop
+        node_locations.append(depot)
+        demands.append(
+            len(self.passengers)
+        )  # Treat the passengers as if they are picked up at the depot.
+        node_onoff.append(None)
 
         # Define cost of each arc.
         def callback(from_index, to_index):
@@ -279,24 +287,27 @@ class Car(Mobility):
         dimension_name = "Time"
         routing.AddDimension(
             transit_callback_index,
-            60 * 60 * 24,  # slack
+            60 * 60 * 24,  # slack time (1 day)
             self.env.elapsed_secs(
                 window_end
-            ),  # 営業時間以内に depot に戻らないといけない。
+            ),  # must return to the depot within operating hours
             False,
             dimension_name,
         )
         time_dimension = routing.GetDimensionOrDie(dimension_name)
+
+        # Determine the route start time based on the vehicle's current state.
+        # If the vehicle is already moving, use its scheduled arrival time as the start time.
+        # Otherwise, use the current time if it is after the time window start;
+        # if not, use the window start time to ensure the route does not begin too early.
+        if to := self.moving:
+            start_time = to.arrival
+        else:
+            now = self.env.datetime_now
+            start_time = now if now > window_start else window_start
         time_dimension.CumulVar(routing.Start(0)).SetValue(
-            self.env.elapsed_secs(window_start)
+            self.env.elapsed_secs(start_time)
         )
-
-        node_onoff = []
-
-        # Assume depot で pickup することに
-        demands.append(len(self.passengers))
-        node_locations.append(self.stop)  # depot
-        node_onoff.append(None)
 
         for user in self.passengers:
             dst_node = len(node_locations)
