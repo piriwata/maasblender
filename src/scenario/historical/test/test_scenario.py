@@ -38,7 +38,22 @@ class HistoricalScenarioTestCase(unittest.TestCase):
                     dept=400.0,
                     service="mobility",
                     user_type="user-xyz",
-                )
+                ),
+                jschema.query.HistoricalDemandSetting(
+                    org=jschema.query.LocationSetting(
+                        locationId=org["locationId"],
+                        lat=org["lat"],
+                        lng=org["lng"],
+                    ),
+                    dst=jschema.query.LocationSetting(
+                        locationId=dst["locationId"], lat=dst["lat"], lng=dst["lng"]
+                    ),
+                    time=400.0,
+                    dept=400.0,
+                    service="mobility",
+                    user_type="user-xyz",
+                    actual_duration=20.0,
+                ),
             ],
             "U_%d",
             "D_%d",
@@ -56,6 +71,21 @@ class HistoricalScenarioTestCase(unittest.TestCase):
                     "org": org,
                     "dst": dst,
                     "service": "mobility",
+                    "actualDuration": None,
+                },
+            },
+            {
+                "time": 400,
+                "eventType": "DEMAND",
+                "details": {
+                    "userId": "U_2",
+                    "userType": "user-xyz",
+                    "demandId": "D_2",
+                    "dept": 400,
+                    "org": org,
+                    "dst": dst,
+                    "service": "mobility",
+                    "actualDuration": 20.0,
                 },
             },
         ]
@@ -64,7 +94,11 @@ class HistoricalScenarioTestCase(unittest.TestCase):
             {
                 "userId": "U_1",
                 "userType": "user-xyz",
-            }
+            },
+            {
+                "userId": "U_2",
+                "userType": "user-xyz",
+            },
         ]
         self.scenario.start()
         actual_events = []

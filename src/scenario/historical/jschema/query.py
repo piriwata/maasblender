@@ -18,6 +18,7 @@ class HistoricalDemandSetting(BaseModel):
     user_id: str | None = None
     demand_id: str | None = None
     user_type: str | None = None
+    actual_duration: float | None = None
 
     @model_validator(mode="after")
     def check_exist_time(self):

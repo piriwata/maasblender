@@ -28,6 +28,7 @@ class DemandInfo:
     service: str | None
     demand_id: str
     user_type: str | None
+    actual_duration: float | None
 
 
 @dataclass(frozen=True)
@@ -55,5 +56,6 @@ class DemandEvent:
                     "lng": info.dst.lng,
                 },
                 "service": info.service,
+                "actualDuration": info.actual_duration,
             },
         }

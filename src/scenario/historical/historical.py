@@ -67,6 +67,7 @@ class HistoricalScenario:
                     service=setting.service,
                     demand_id=setting.demand_id,
                     user_type=self._user_types[setting.user_id],
+                    actual_duration=setting.actual_duration,
                 ),
             )
             for setting in settings
