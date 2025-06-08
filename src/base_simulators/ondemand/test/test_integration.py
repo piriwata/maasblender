@@ -22,6 +22,18 @@ def run(simulation: Simulation, until: float):
     return events
 
 
+def run_until_reserved(simulation: Simulation):
+    events = []
+
+    while True:
+        simulation.step()
+        step_events = simulation.event_queue.events
+        events.extend(step_events)
+        for event in step_events:
+            if event["eventType"] == "RESERVED":
+                return events
+
+
 class OneMobilityTestCase(unittest.TestCase):
     def setUp(self) -> None:
         self.base_datetime = datetime.combine(date.today(), time())
@@ -58,7 +70,8 @@ class OneMobilityTestCase(unittest.TestCase):
 
         self.simulation = Simulation(
             start_time=self.base_datetime,
-            board_time=10,
+            enable_ortools=True,
+            board_time=0,
             max_delay_time=30,
             network=self.network,
             trips={"trip": self.trip},
@@ -104,7 +117,7 @@ class OneMobilityTestCase(unittest.TestCase):
                                 "org": {"locationId": "Stop1", "lat": ..., "lng": ...},
                                 "dst": {"locationId": "Stop2", "lat": ..., "lng": ...},
                                 "dept": 490.0,
-                                "arrv": 540.0,
+                                "arrv": 520.0,
                             }
                         ],
                     },
@@ -129,7 +142,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.DEPARTED,
-                    "time": 500.0,
+                    "time": 490.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -139,7 +152,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 530.0,
+                    "time": 520.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -149,7 +162,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 540.0,
+                    "time": 520.0,
                     "details": {
                         "userId": "User1",
                         "demandId": "DemandA",
@@ -207,7 +220,7 @@ class OneMobilityTestCase(unittest.TestCase):
                                 "org": {"locationId": "Stop1", "lat": ..., "lng": ...},
                                 "dst": {"locationId": "Stop2", "lat": ..., "lng": ...},
                                 "dept": 490.0,
-                                "arrv": 540.0,
+                                "arrv": 520.0,
                             }
                         ],
                     },
@@ -217,7 +230,7 @@ class OneMobilityTestCase(unittest.TestCase):
         )
 
         self.simulation.ready_to_depart(user_id="User1")
-        triggered_events = run(self.simulation, until=550)
+        triggered_events = run(self.simulation, until=530)
         self.assertEqual(
             [
                 {
@@ -232,7 +245,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.DEPARTED,
-                    "time": 500.0,
+                    "time": 490.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -242,7 +255,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 530.0,
+                    "time": 520.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -252,7 +265,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 540.0,
+                    "time": 520.0,
                     "details": {
                         "userId": "User1",
                         "demandId": "DemandA",
@@ -269,14 +282,14 @@ class OneMobilityTestCase(unittest.TestCase):
             demand_id="DemandA",
             org="Stop1",
             dst="Stop2",
-            dept=570.0,
+            dept=550.0,
         )
-        triggered_events = run(self.simulation, until=571)
+        triggered_events = run(self.simulation, until=551)
         self.assertEqual(
             [
                 {
                     "eventType": EventType.RESERVED,
-                    "time": 550.0,
+                    "time": 530.0,
                     "details": {
                         "success": True,
                         "userId": "User1",
@@ -286,15 +299,15 @@ class OneMobilityTestCase(unittest.TestCase):
                             {
                                 "org": {"locationId": "Stop1", "lat": ..., "lng": ...},
                                 "dst": {"locationId": "Stop2", "lat": ..., "lng": ...},
-                                "dept": 580.0,
-                                "arrv": 630.0,
+                                "dept": 560.0,
+                                "arrv": 590.0,
                             }
                         ],
                     },
                 },
                 {
                     "eventType": EventType.DEPARTED,
-                    "time": 550.0,
+                    "time": 530.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -307,12 +320,12 @@ class OneMobilityTestCase(unittest.TestCase):
         )
 
         self.simulation.ready_to_depart(user_id="User1")
-        triggered_events = run(self.simulation, until=650)
+        triggered_events = run(self.simulation, until=610)
         self.assertEqual(
             [
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 580.0,
+                    "time": 560.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -322,7 +335,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.DEPARTED,
-                    "time": 580.0,
+                    "time": 560.0,
                     "details": {
                         "userId": "User1",
                         "demandId": "DemandA",
@@ -332,7 +345,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.DEPARTED,
-                    "time": 590.0,
+                    "time": 560.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -342,7 +355,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 620.0,
+                    "time": 590.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -352,7 +365,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 630.0,
+                    "time": 590.0,
                     "details": {
                         "userId": "User1",
                         "demandId": "DemandA",
@@ -390,7 +403,7 @@ class OneMobilityTestCase(unittest.TestCase):
                                 "org": {"locationId": "Stop1", "lat": ..., "lng": ...},
                                 "dst": {"locationId": "Stop2", "lat": ..., "lng": ...},
                                 "dept": 490.0,
-                                "arrv": 540.0,
+                                "arrv": 520.0,
                             }
                         ],
                     },
@@ -404,7 +417,7 @@ class OneMobilityTestCase(unittest.TestCase):
             demand_id="DemandB",
             org="Stop1",
             dst="Stop2",
-            dept=570.0,
+            dept=550.0,
         )
         triggered_events = run(self.simulation, until=482)
         self.assertEqual(
@@ -421,8 +434,8 @@ class OneMobilityTestCase(unittest.TestCase):
                             {
                                 "org": {"locationId": "Stop1", "lat": ..., "lng": ...},
                                 "dst": {"locationId": "Stop2", "lat": ..., "lng": ...},
-                                "dept": 570.0,
-                                "arrv": 620.0,
+                                "dept": 550.0,
+                                "arrv": 580.0,
                             }
                         ],
                     },
@@ -448,7 +461,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.DEPARTED,
-                    "time": 500.0,
+                    "time": 490.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -458,7 +471,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 530.0,
+                    "time": 520.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -468,7 +481,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 540.0,
+                    "time": 520.0,
                     "details": {
                         "userId": "User1",
                         "demandId": "DemandA",
@@ -478,7 +491,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.DEPARTED,
-                    "time": 540.0,
+                    "time": 520.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -488,7 +501,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 570.0,
+                    "time": 550.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -498,7 +511,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.DEPARTED,
-                    "time": 570.0,
+                    "time": 550.0,
                     "details": {
                         "userId": "User2",
                         "demandId": "DemandB",
@@ -508,7 +521,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.DEPARTED,
-                    "time": 580.0,
+                    "time": 550.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -518,7 +531,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 610.0,
+                    "time": 580.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -528,7 +541,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 620.0,
+                    "time": 580.0,
                     "details": {
                         "userId": "User2",
                         "demandId": "DemandB",
@@ -586,7 +599,7 @@ class OneMobilityTestCase(unittest.TestCase):
                                 "org": {"locationId": "Stop1", "lat": ..., "lng": ...},
                                 "dst": {"locationId": "Stop2", "lat": ..., "lng": ...},
                                 "dept": 490.0,
-                                "arrv": 540.0,
+                                "arrv": 520.0,
                             }
                         ],
                     },
@@ -597,7 +610,7 @@ class OneMobilityTestCase(unittest.TestCase):
 
         self.simulation.ready_to_depart(user_id="User1")
 
-        triggered_events = run(self.simulation, until=510)
+        triggered_events = run(self.simulation, until=500)
         self.assertEqual(
             [
                 {
@@ -612,7 +625,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.DEPARTED,
-                    "time": 500.0,
+                    "time": 490.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -629,14 +642,14 @@ class OneMobilityTestCase(unittest.TestCase):
             demand_id="DemandB",
             org="Stop2",
             dst="Stop1",
-            dept=530.0,
+            dept=510.0,
         )
-        triggered_events = run(self.simulation, until=511)
+        triggered_events = run(self.simulation, until=501)
         self.assertEqual(
             [
                 {
                     "eventType": EventType.RESERVED,
-                    "time": 510.0,
+                    "time": 500.0,
                     "details": {
                         "success": True,
                         "userId": "User2",
@@ -646,8 +659,8 @@ class OneMobilityTestCase(unittest.TestCase):
                             {
                                 "org": {"locationId": "Stop2", "lat": ..., "lng": ...},
                                 "dst": {"locationId": "Stop1", "lat": ..., "lng": ...},
-                                "dept": 540.0,
-                                "arrv": 590.0,
+                                "dept": 520.0,
+                                "arrv": 550.0,
                             }
                         ],
                     },
@@ -662,7 +675,7 @@ class OneMobilityTestCase(unittest.TestCase):
             [
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 530.0,
+                    "time": 520.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -672,7 +685,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 540.0,
+                    "time": 520.0,
                     "details": {
                         "userId": "User1",
                         "demandId": "DemandA",
@@ -682,7 +695,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.DEPARTED,
-                    "time": 540.0,
+                    "time": 520.0,
                     "details": {
                         "userId": "User2",
                         "demandId": "DemandB",
@@ -692,7 +705,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.DEPARTED,
-                    "time": 550.0,
+                    "time": 520.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -702,7 +715,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 580.0,
+                    "time": 550.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -712,7 +725,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 590.0,
+                    "time": 550.0,
                     "details": {
                         "userId": "User2",
                         "demandId": "DemandB",
@@ -732,7 +745,7 @@ class OneMobilityTestCase(unittest.TestCase):
             demand_id="DemandA",
             org="Stop2",
             dst="Stop3",
-            dept=580.0,
+            dept=560.0,
         )
         triggered_events = run(self.simulation, until=481)
         self.assertEqual(
@@ -749,8 +762,8 @@ class OneMobilityTestCase(unittest.TestCase):
                             {
                                 "org": {"locationId": "Stop2", "lat": ..., "lng": ...},
                                 "dst": {"locationId": "Stop3", "lat": ..., "lng": ...},
-                                "dept": 580.0,
-                                "arrv": 620.0,
+                                "dept": 560.0,
+                                "arrv": 580.0,
                             }
                         ],
                     },
@@ -795,7 +808,7 @@ class OneMobilityTestCase(unittest.TestCase):
                                 "org": {"locationId": "Stop3", "lat": ..., "lng": ...},
                                 "dst": {"locationId": "Stop2", "lat": ..., "lng": ...},
                                 "dept": 530.0,
-                                "arrv": 570.0,
+                                "arrv": 550.0,
                             }
                         ],
                     },
@@ -832,7 +845,7 @@ class OneMobilityTestCase(unittest.TestCase):
             triggered_events,
         )
 
-        triggered_events = run(self.simulation, until=541)
+        triggered_events = run(self.simulation, until=531)
         self.assertEqual(
             [
                 {
@@ -857,7 +870,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.DEPARTED,
-                    "time": 540.0,
+                    "time": 530.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -868,342 +881,13 @@ class OneMobilityTestCase(unittest.TestCase):
             ],
             triggered_events,
         )
-
-        triggered_events = run(self.simulation, until=571)
-        self.assertEqual(
-            [
-                {
-                    "eventType": EventType.ARRIVED,
-                    "time": 560.0,
-                    "details": {
-                        "userId": None,
-                        "demandId": None,
-                        "mobilityId": "trip",
-                        "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
-                    },
-                },
-                {
-                    "eventType": EventType.ARRIVED,
-                    "time": 570.0,
-                    "details": {
-                        "userId": "User2",
-                        "demandId": "DemandB",
-                        "mobilityId": "trip",
-                        "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
-                    },
-                },
-            ],
-            triggered_events,
-        )
-        triggered_events = run(self.simulation, until=1440)
-        self.assertEqual(
-            [
-                {
-                    "eventType": EventType.DEPARTED,
-                    "time": 580.0,
-                    "details": {
-                        "userId": "User1",
-                        "demandId": "DemandA",
-                        "mobilityId": "trip",
-                        "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
-                    },
-                },
-                {
-                    "eventType": EventType.DEPARTED,
-                    "time": 590.0,
-                    "details": {
-                        "userId": None,
-                        "demandId": None,
-                        "mobilityId": "trip",
-                        "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
-                    },
-                },
-                {
-                    "eventType": EventType.ARRIVED,
-                    "time": 610.0,
-                    "details": {
-                        "userId": None,
-                        "demandId": None,
-                        "mobilityId": "trip",
-                        "location": {"locationId": "Stop3", "lat": ..., "lng": ...},
-                    },
-                },
-                {
-                    "eventType": EventType.ARRIVED,
-                    "time": 620.0,
-                    "details": {
-                        "userId": "User1",
-                        "demandId": "DemandA",
-                        "mobilityId": "trip",
-                        "location": {"locationId": "Stop3", "lat": ..., "lng": ...},
-                    },
-                },
-                {
-                    "eventType": EventType.DEPARTED,
-                    "time": 1440.0 - 60,
-                    "details": {
-                        "userId": None,
-                        "demandId": None,
-                        "mobilityId": "trip",
-                        "location": {"locationId": "Stop3", "lat": ..., "lng": ...},
-                    },
-                },
-                {
-                    "eventType": EventType.ARRIVED,
-                    "time": 1440.0 - 60 + 15,
-                    "details": {
-                        "userId": None,
-                        "demandId": None,
-                        "mobilityId": "trip",
-                        "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
-                    },
-                },
-            ],
-            triggered_events,
-        )
-
-    def test_reserve_after_boarding_while_on_boarding(self):
-        run(self.simulation, until=480.0)
-
-        self.simulation.reserve_user(
-            user_id="User1",
-            demand_id="DemandA",
-            org="Stop2",
-            dst="Stop3",
-            dept=490.0,
-        )
-        triggered_events = run(self.simulation, until=480.1)
-        self.assertEqual(
-            [
-                {
-                    "eventType": EventType.RESERVED,
-                    "time": 480.0,
-                    "details": {
-                        "success": True,
-                        "userId": "User1",
-                        "demandId": "DemandA",
-                        "mobilityId": "trip",
-                        "route": [
-                            {
-                                "org": {"locationId": "Stop2", "lat": ..., "lng": ...},
-                                "dst": {"locationId": "Stop3", "lat": ..., "lng": ...},
-                                "dept": 510.0,
-                                "arrv": 550.0,
-                            }
-                        ],
-                    },
-                },
-                {
-                    "eventType": EventType.DEPARTED,
-                    "time": 480.0,
-                    "details": {
-                        "userId": None,
-                        "demandId": None,
-                        "mobilityId": "trip",
-                        "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
-                    },
-                },
-            ],
-            triggered_events,
-        )
-
-        self.simulation.ready_to_depart(user_id="User1")
-
-        triggered_events = run(self.simulation, until=515)
-        self.assertEqual(
-            [
-                {
-                    "eventType": EventType.ARRIVED,
-                    "time": 510.0,
-                    "details": {
-                        "userId": None,
-                        "demandId": None,
-                        "mobilityId": "trip",
-                        "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
-                    },
-                },
-                {
-                    "eventType": EventType.DEPARTED,
-                    "time": 510.0,
-                    "details": {
-                        "userId": "User1",
-                        "demandId": "DemandA",
-                        "mobilityId": "trip",
-                        "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
-                    },
-                },
-            ],
-            triggered_events,
-        )
-
-        self.simulation.reserve_user(
-            user_id="User2",
-            demand_id="DemandB",
-            org="Stop2",
-            dst="Stop3",
-            dept=521.0,
-        )
-        triggered_events = run(self.simulation, until=516)
-        self.assertEqual(
-            [
-                {
-                    "eventType": EventType.RESERVED,
-                    "time": 515.0,
-                    "details": {
-                        "success": False,
-                        "userId": "User2",
-                        "demandId": "DemandB",
-                    },
-                }
-            ],
-            triggered_events,
-        )
-
-        self.simulation.reserve_user(
-            user_id="User3",
-            demand_id="DemandC",
-            org="Stop2",
-            dst="Stop3",
-            dept=519.0,
-        )
-        triggered_events = run(self.simulation, until=517)
-        self.assertEqual(
-            [
-                {
-                    "eventType": EventType.RESERVED,
-                    "time": 516.0,
-                    "details": {
-                        "success": True,
-                        "userId": "User3",
-                        "demandId": "DemandC",
-                        "mobilityId": "trip",
-                        "route": [
-                            {
-                                "org": {"locationId": "Stop2", "lat": ..., "lng": ...},
-                                "dst": {"locationId": "Stop3", "lat": ..., "lng": ...},
-                                "dept": 519.0,
-                                "arrv": 559.0,
-                            }
-                        ],
-                    },
-                }
-            ],
-            triggered_events,
-        )
-
-    def test_reserve_while_on_boarding(self):
-        run(self.simulation, until=480.0)
-
-        self.simulation.reserve_user(
-            user_id="User1",
-            demand_id="DemandA",
-            org="Stop2",
-            dst="Stop3",
-            dept=490.0,
-        )
-        triggered_events = run(self.simulation, until=480.1)
-        self.assertEqual(
-            [
-                {
-                    "eventType": EventType.RESERVED,
-                    "time": 480.0,
-                    "details": {
-                        "success": True,
-                        "userId": "User1",
-                        "demandId": "DemandA",
-                        "mobilityId": "trip",
-                        "route": [
-                            {
-                                "org": {"locationId": "Stop2", "lat": ..., "lng": ...},
-                                "dst": {"locationId": "Stop3", "lat": ..., "lng": ...},
-                                "dept": 510.0,
-                                "arrv": 550.0,
-                            }
-                        ],
-                    },
-                },
-                {
-                    "eventType": EventType.DEPARTED,
-                    "time": 480.0,
-                    "details": {
-                        "userId": None,
-                        "demandId": None,
-                        "mobilityId": "trip",
-                        "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
-                    },
-                },
-            ],
-            triggered_events,
-        )
-
-        self.simulation.ready_to_depart(user_id="User1")
-
-        triggered_events = run(self.simulation, until=515)
-        self.assertEqual(
-            [
-                {
-                    "eventType": EventType.ARRIVED,
-                    "time": 510.0,
-                    "details": {
-                        "userId": None,
-                        "demandId": None,
-                        "mobilityId": "trip",
-                        "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
-                    },
-                },
-                {
-                    "eventType": EventType.DEPARTED,
-                    "time": 510.0,
-                    "details": {
-                        "userId": "User1",
-                        "demandId": "DemandA",
-                        "mobilityId": "trip",
-                        "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
-                    },
-                },
-            ],
-            triggered_events,
-        )
-
-        self.simulation.reserve_user(
-            user_id="User2",
-            demand_id="DemandB",
-            org="Stop1",
-            dst="Stop2",
-            dept=550.0,
-        )
-        triggered_events = run(self.simulation, until=516)
-        self.assertEqual(
-            [
-                {
-                    "eventType": EventType.RESERVED,
-                    "time": 515.0,
-                    "details": {
-                        "success": True,
-                        "userId": "User2",
-                        "demandId": "DemandB",
-                        "mobilityId": "trip",
-                        "route": [
-                            {
-                                "org": {"locationId": "Stop1", "lat": ..., "lng": ...},
-                                "dst": {"locationId": "Stop2", "lat": ..., "lng": ...},
-                                "dept": 560.0,
-                                "arrv": 610.0,
-                            }
-                        ],
-                    },
-                }
-            ],
-            triggered_events,
-        )
-        self.simulation.ready_to_depart(user_id="User2")
 
         triggered_events = run(self.simulation, until=551)
         self.assertEqual(
             [
                 {
-                    "eventType": EventType.DEPARTED,
-                    "time": 520.0,
+                    "eventType": EventType.ARRIVED,
+                    "time": 550.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -1213,7 +897,43 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 540.0,
+                    "time": 550.0,
+                    "details": {
+                        "userId": "User2",
+                        "demandId": "DemandB",
+                        "mobilityId": "trip",
+                        "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
+                    },
+                },
+            ],
+            triggered_events,
+        )
+        triggered_events = run(self.simulation, until=1440)
+        self.assertEqual(
+            [
+                {
+                    "eventType": EventType.DEPARTED,
+                    "time": 560.0,
+                    "details": {
+                        "userId": "User1",
+                        "demandId": "DemandA",
+                        "mobilityId": "trip",
+                        "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
+                    },
+                },
+                {
+                    "eventType": EventType.DEPARTED,
+                    "time": 560.0,
+                    "details": {
+                        "userId": None,
+                        "demandId": None,
+                        "mobilityId": "trip",
+                        "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
+                    },
+                },
+                {
+                    "eventType": EventType.ARRIVED,
+                    "time": 580.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -1223,7 +943,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 550.0,
+                    "time": 580.0,
                     "details": {
                         "userId": "User1",
                         "demandId": "DemandA",
@@ -1233,7 +953,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.DEPARTED,
-                    "time": 550.0,
+                    "time": 1440.0 - 60,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -1241,36 +961,9 @@ class OneMobilityTestCase(unittest.TestCase):
                         "location": {"locationId": "Stop3", "lat": ..., "lng": ...},
                     },
                 },
-            ],
-            triggered_events,
-        )
-
-        triggered_events = run(self.simulation, until=580)
-        self.assertEqual(
-            [
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 565.0,
-                    "details": {
-                        "userId": None,
-                        "demandId": None,
-                        "mobilityId": "trip",
-                        "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
-                    },
-                },
-                {
-                    "eventType": EventType.DEPARTED,
-                    "time": 565.0,
-                    "details": {
-                        "userId": "User2",
-                        "demandId": "DemandB",
-                        "mobilityId": "trip",
-                        "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
-                    },
-                },
-                {
-                    "eventType": EventType.DEPARTED,
-                    "time": 575.0,
+                    "time": 1440.0 - 60 + 15,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -1282,54 +975,7 @@ class OneMobilityTestCase(unittest.TestCase):
             triggered_events,
         )
 
-        triggered_events = run(self.simulation, until=1440)
-        self.assertEqual(
-            [
-                {
-                    "eventType": EventType.ARRIVED,
-                    "time": 605.0,
-                    "details": {
-                        "userId": None,
-                        "demandId": None,
-                        "mobilityId": "trip",
-                        "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
-                    },
-                },
-                {
-                    "eventType": EventType.ARRIVED,
-                    "time": 615.0,
-                    "details": {
-                        "userId": "User2",
-                        "demandId": "DemandB",
-                        "mobilityId": "trip",
-                        "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
-                    },
-                },
-                {
-                    "eventType": EventType.DEPARTED,
-                    "time": 1440.0 - 60,
-                    "details": {
-                        "userId": None,
-                        "demandId": None,
-                        "mobilityId": "trip",
-                        "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
-                    },
-                },
-                {
-                    "eventType": EventType.ARRIVED,
-                    "time": 1440.0 - 60 + 30,
-                    "details": {
-                        "userId": None,
-                        "demandId": None,
-                        "mobilityId": "trip",
-                        "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
-                    },
-                },
-            ],
-            triggered_events,
-        )
-
-    def test_reserve_same_org_while_on_boarding(self):
+    def test_reserve_on_boarding(self):
         run(self.simulation, until=480.0)
 
         self.simulation.reserve_user(
@@ -1355,7 +1001,7 @@ class OneMobilityTestCase(unittest.TestCase):
                                 "org": {"locationId": "Stop2", "lat": ..., "lng": ...},
                                 "dst": {"locationId": "Stop3", "lat": ..., "lng": ...},
                                 "dept": 510.0,
-                                "arrv": 550.0,
+                                "arrv": 530.0,
                             }
                         ],
                     },
@@ -1376,7 +1022,15 @@ class OneMobilityTestCase(unittest.TestCase):
 
         self.simulation.ready_to_depart(user_id="User1")
 
-        triggered_events = run(self.simulation, until=515)
+        run(self.simulation, until=510)
+        self.simulation.reserve_user(
+            user_id="User2",
+            demand_id="DemandB",
+            org="Stop2",
+            dst="Stop3",
+            dept=510.0,
+        )
+        triggered_events = run_until_reserved(self.simulation)
         self.assertEqual(
             [
                 {
@@ -1390,32 +1044,8 @@ class OneMobilityTestCase(unittest.TestCase):
                     },
                 },
                 {
-                    "eventType": EventType.DEPARTED,
-                    "time": 510.0,
-                    "details": {
-                        "userId": "User1",
-                        "demandId": "DemandA",
-                        "mobilityId": "trip",
-                        "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
-                    },
-                },
-            ],
-            triggered_events,
-        )
-
-        self.simulation.reserve_user(
-            user_id="User2",
-            demand_id="DemandB",
-            org="Stop2",
-            dst="Stop3",
-            dept=516.0,
-        )
-        triggered_events = run(self.simulation, until=516)
-        self.assertEqual(
-            [
-                {
                     "eventType": EventType.RESERVED,
-                    "time": 515.0,
+                    "time": 510.0,
                     "details": {
                         "success": True,
                         "userId": "User2",
@@ -1425,23 +1055,23 @@ class OneMobilityTestCase(unittest.TestCase):
                             {
                                 "org": {"locationId": "Stop2", "lat": ..., "lng": ...},
                                 "dst": {"locationId": "Stop3", "lat": ..., "lng": ...},
-                                "dept": 516.0,
-                                "arrv": 556.0,
+                                "dept": 510.0,
+                                "arrv": 530.0,
                             }
                         ],
                     },
-                }
+                },
             ],
             triggered_events,
         )
-        self.simulation.ready_to_depart(user_id="User2")
+        self.simulation.ready_to_depart("User2")
 
-        triggered_events = run(self.simulation, until=1440)
+        triggered_events = run(self.simulation, until=515)
         self.assertEqual(
             [
                 {
                     "eventType": EventType.DEPARTED,
-                    "time": 520.0,
+                    "time": 510.0,
                     "details": {
                         "userId": "User2",
                         "demandId": "DemandB",
@@ -1451,62 +1081,22 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.DEPARTED,
-                    "time": 530.0,
-                    "details": {
-                        "userId": None,
-                        "demandId": None,
-                        "mobilityId": "trip",
-                        "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
-                    },
-                },
-                {
-                    "eventType": EventType.ARRIVED,
-                    "time": 550.0,
-                    "details": {
-                        "userId": None,
-                        "demandId": None,
-                        "mobilityId": "trip",
-                        "location": {"locationId": "Stop3", "lat": ..., "lng": ...},
-                    },
-                },
-                {
-                    "eventType": EventType.ARRIVED,
-                    "time": 560.0,
+                    "time": 510.0,
                     "details": {
                         "userId": "User1",
                         "demandId": "DemandA",
                         "mobilityId": "trip",
-                        "location": {"locationId": "Stop3", "lat": ..., "lng": ...},
-                    },
-                },
-                {
-                    "eventType": EventType.ARRIVED,
-                    "time": 560.0,
-                    "details": {
-                        "userId": "User2",
-                        "demandId": "DemandB",
-                        "mobilityId": "trip",
-                        "location": {"locationId": "Stop3", "lat": ..., "lng": ...},
+                        "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
                 },
                 {
                     "eventType": EventType.DEPARTED,
-                    "time": 1440.0 - 60,
+                    "time": 510.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
                         "mobilityId": "trip",
-                        "location": {"locationId": "Stop3", "lat": ..., "lng": ...},
-                    },
-                },
-                {
-                    "eventType": EventType.ARRIVED,
-                    "time": 1440.0 - 60 + 15,
-                    "details": {
-                        "userId": None,
-                        "demandId": None,
-                        "mobilityId": "trip",
-                        "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
+                        "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
                 },
             ],
@@ -1546,7 +1136,7 @@ class OneMobilityTestCase(unittest.TestCase):
                                 "org": {"locationId": "Stop1", "lat": ..., "lng": ...},
                                 "dst": {"locationId": "Stop2", "lat": ..., "lng": ...},
                                 "dept": 490.0,
-                                "arrv": 540.0,
+                                "arrv": 520.0,
                             }
                         ],
                     },
@@ -1564,7 +1154,7 @@ class OneMobilityTestCase(unittest.TestCase):
                                 "org": {"locationId": "Stop2", "lat": ..., "lng": ...},
                                 "dst": {"locationId": "Stop3", "lat": ..., "lng": ...},
                                 "dept": 880.0,
-                                "arrv": 920.0,
+                                "arrv": 900.0,
                             }
                         ],
                     },
@@ -1582,7 +1172,7 @@ class OneMobilityTestCase(unittest.TestCase):
             demand_id="Demand",
             org="Stop3",
             dst="Stop1",
-            dept=920.0,
+            dept=900.0,
         )
         self.simulation.ready_to_depart("User2")
         triggered_events = run(self.simulation, until=880.1)
@@ -1601,8 +1191,8 @@ class OneMobilityTestCase(unittest.TestCase):
                             {
                                 "org": {"locationId": "Stop3", "lat": ..., "lng": ...},
                                 "dst": {"locationId": "Stop1", "lat": ..., "lng": ...},
-                                "dept": 920.0,
-                                "arrv": 955.0,
+                                "dept": 900.0,
+                                "arrv": 915.0,
                             }
                         ],
                     },
@@ -1617,19 +1207,39 @@ class OneMobilityTestCase(unittest.TestCase):
                         "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
                     },
                 },
+                {
+                    "eventType": EventType.DEPARTED,
+                    "time": 880.0,
+                    "details": {
+                        "userId": None,
+                        "demandId": None,
+                        "mobilityId": "trip",
+                        "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
+                    },
+                },
             ],
             triggered_events,
         )
 
         self.simulation.ready_to_depart("User3")
 
-        run(self.simulation, until=955)
-        triggered_events = run(self.simulation, until=956)
+        run(self.simulation, until=915)
+        triggered_events = run(self.simulation, until=916)
         self.assertEqual(
             [
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 955.0,
+                    "time": 915.0,
+                    "details": {
+                        "userId": None,
+                        "demandId": None,
+                        "mobilityId": "trip",
+                        "location": {"locationId": "Stop1", "lat": ..., "lng": ...},
+                    },
+                },
+                {
+                    "eventType": EventType.ARRIVED,
+                    "time": 915.0,
                     "details": {
                         "userId": "User3",
                         "demandId": "Demand",
@@ -1667,7 +1277,7 @@ class OneMobilityTestCase(unittest.TestCase):
                                 "org": {"locationId": "Stop1", "lat": ..., "lng": ...},
                                 "dst": {"locationId": "Stop2", "lat": ..., "lng": ...},
                                 "dept": 490.0,
-                                "arrv": 540.0,
+                                "arrv": 520.0,
                             }
                         ],
                     },
@@ -1698,8 +1308,8 @@ class OneMobilityTestCase(unittest.TestCase):
                             {
                                 "org": {"locationId": "Stop3", "lat": ..., "lng": ...},
                                 "dst": {"locationId": "Stop2", "lat": ..., "lng": ...},
-                                "dept": 515.0,
-                                "arrv": 555.0,
+                                "dept": 510.0,
+                                "arrv": 530.0,
                             }
                         ],
                     },
@@ -1726,7 +1336,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.DEPARTED,
-                    "time": 500.0,
+                    "time": 490.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -1736,7 +1346,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 515.0,
+                    "time": 505.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -1746,7 +1356,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.DEPARTED,
-                    "time": 515.0,
+                    "time": 510.0,
                     "details": {
                         "userId": "User2",
                         "demandId": "DemandB",
@@ -1756,7 +1366,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.DEPARTED,
-                    "time": 525.0,
+                    "time": 510.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -1766,7 +1376,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 545.0,
+                    "time": 530.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -1776,7 +1386,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 555.0,
+                    "time": 530.0,
                     "details": {
                         "userId": "User1",
                         "demandId": "DemandA",
@@ -1786,7 +1396,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 555.0,
+                    "time": 530.0,
                     "details": {
                         "userId": "User2",
                         "demandId": "DemandB",
@@ -1851,7 +1461,7 @@ class OneMobilityTestCase(unittest.TestCase):
                                 "org": {"locationId": "Stop1", "lat": ..., "lng": ...},
                                 "dst": {"locationId": "Stop2", "lat": ..., "lng": ...},
                                 "dept": 490.0,
-                                "arrv": 540.0,
+                                "arrv": 520.0,
                             }
                         ],
                     },
@@ -1869,7 +1479,7 @@ class OneMobilityTestCase(unittest.TestCase):
                                 "org": {"locationId": "Stop2", "lat": ..., "lng": ...},
                                 "dst": {"locationId": "Stop3", "lat": ..., "lng": ...},
                                 "dept": 880.0,
-                                "arrv": 920.0,
+                                "arrv": 900.0,
                             }
                         ],
                     },
@@ -1879,7 +1489,7 @@ class OneMobilityTestCase(unittest.TestCase):
         )
 
         self.simulation.ready_to_depart("User1")
-        triggered_events = run(self.simulation, until=600.0)
+        run(self.simulation, until=600.0)
 
         # Since the reserved user has not yet arrived, the bus waits until the scheduled time.
         # At this time, a new reservation is received.
@@ -1908,7 +1518,7 @@ class OneMobilityTestCase(unittest.TestCase):
                                 "org": {"locationId": "Stop3", "lat": ..., "lng": ...},
                                 "dst": {"locationId": "Stop1", "lat": ..., "lng": ...},
                                 "dept": 655.0,
-                                "arrv": 690.0,
+                                "arrv": 670.0,
                             }
                         ],
                     },
@@ -1942,6 +1552,16 @@ class OneMobilityTestCase(unittest.TestCase):
                         "mobilityId": "trip",
                     },
                 },
+                {
+                    "eventType": EventType.DEPARTED,
+                    "time": 655.0,
+                    "details": {
+                        "userId": None,
+                        "demandId": None,
+                        "mobilityId": "trip",
+                        "location": {"locationId": "Stop3", "lat": ..., "lng": ...},
+                    },
+                },
             ],
             triggered_events,
         )
@@ -1962,17 +1582,27 @@ class OneMobilityTestCase(unittest.TestCase):
                         "mobilityId": "trip",
                     },
                 },
+                {
+                    "eventType": EventType.DEPARTED,
+                    "time": 880.0,
+                    "details": {
+                        "userId": None,
+                        "demandId": None,
+                        "mobilityId": "trip",
+                        "location": {"locationId": "Stop2", "lat": ..., "lng": ...},
+                    },
+                },
             ],
             triggered_events,
         )
 
-        run(self.simulation, until=910)
-        triggered_events = run(self.simulation, until=921)
+        run(self.simulation, until=900)
+        triggered_events = run(self.simulation, until=901)
         self.assertEqual(
             [
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 910.0,
+                    "time": 900.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -1982,7 +1612,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 920.0,
+                    "time": 900.0,
                     "details": {
                         "userId": "User2",
                         "demandId": "Demand",
@@ -2020,7 +1650,7 @@ class OneMobilityTestCase(unittest.TestCase):
                                 "org": {"locationId": "Stop1", "lat": ..., "lng": ...},
                                 "dst": {"locationId": "Stop2", "lat": ..., "lng": ...},
                                 "dept": 490.0,
-                                "arrv": 540.0,
+                                "arrv": 520.0,
                             }
                         ],
                     },
@@ -2034,7 +1664,7 @@ class OneMobilityTestCase(unittest.TestCase):
             demand_id="DemandB",
             org="Stop2",
             dst="Stop1",
-            dept=530.0,
+            dept=510.0,
         )
         triggered_events = run(self.simulation, until=482.0)
         self.assertEqual(
@@ -2051,8 +1681,8 @@ class OneMobilityTestCase(unittest.TestCase):
                             {
                                 "org": {"locationId": "Stop2", "lat": ..., "lng": ...},
                                 "dst": {"locationId": "Stop1", "lat": ..., "lng": ...},
-                                "dept": 540.0,
-                                "arrv": 590.0,
+                                "dept": 520.0,
+                                "arrv": 550.0,
                             }
                         ],
                     },
@@ -2077,7 +1707,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.DEPARTED,
-                    "time": 500.0,
+                    "time": 490.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -2087,7 +1717,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 530.0,
+                    "time": 520.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -2097,7 +1727,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 540.0,
+                    "time": 520.0,
                     "details": {
                         "userId": "User1",
                         "demandId": "DemandA",
@@ -2107,7 +1737,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.DEPARTED,
-                    "time": 540.0,
+                    "time": 520.0,
                     "details": {
                         "userId": "User2",
                         "demandId": "DemandB",
@@ -2117,7 +1747,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.DEPARTED,
-                    "time": 550.0,
+                    "time": 520.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -2127,7 +1757,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 580.0,
+                    "time": 550.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -2137,7 +1767,7 @@ class OneMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 590.0,
+                    "time": 550.0,
                     "details": {
                         "userId": "User2",
                         "demandId": "DemandB",
@@ -2284,7 +1914,8 @@ class TwoMobilityTestCase(unittest.TestCase):
         self.simulation = Simulation(
             start_time=self.base_datetime,
             network=self.network,
-            board_time=10,
+            enable_ortools=True,
+            board_time=0,
             max_delay_time=30,
             trips={"trip1": self.trip1, "trip2": self.trip2},
             settings=[
@@ -2335,7 +1966,7 @@ class TwoMobilityTestCase(unittest.TestCase):
                                 "org": {"locationId": "Stop1", "lat": ..., "lng": ...},
                                 "dst": {"locationId": "Stop2", "lat": ..., "lng": ...},
                                 "dept": 490.0,
-                                "arrv": 540.0,
+                                "arrv": 520.0,
                             }
                         ],
                     },
@@ -2360,7 +1991,7 @@ class TwoMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.DEPARTED,
-                    "time": 500.0,
+                    "time": 490.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -2370,7 +2001,7 @@ class TwoMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 530.0,
+                    "time": 520.0,
                     "details": {
                         "userId": None,
                         "demandId": None,
@@ -2380,7 +2011,7 @@ class TwoMobilityTestCase(unittest.TestCase):
                 },
                 {
                     "eventType": EventType.ARRIVED,
-                    "time": 540.0,
+                    "time": 520.0,
                     "details": {
                         "userId": "User1",
                         "demandId": "DemandA",

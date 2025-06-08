@@ -17,6 +17,7 @@ class Simulation:
         self,
         start_time: datetime,
         network: Network,
+        enable_ortools: bool,
         board_time: float,
         max_delay_time: float,
         trips: dict[str, Trip],
@@ -33,9 +34,13 @@ class Simulation:
             for trip in trips.values()
             for location in trip.stop_time.group.locations
         }
+        if enable_ortools and board_time > 0:
+            self.board_time = 0
+            logger.warning("board_time is ignored when enable_ortools is true")
         self.car_manager = CarManager(
             network=self.network,
             event_queue=self.event_queue,
+            enable_ortools=enable_ortools,
             board_time=board_time,
             max_delay_time=max_delay_time,
             max_calculation_seconds=max_calculation_seconds,

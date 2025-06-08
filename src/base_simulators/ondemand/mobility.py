@@ -11,10 +11,11 @@ import itertools
 import functools
 
 import simpy
+from ortools.constraint_solver import routing_enums_pb2
+from ortools.constraint_solver import pywrapcp
 
 from core import Trip, Stop, Network, User, Mobility
 from event import EventQueue
-
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +57,12 @@ class TimeoutWatchDog:
     def limit_exceeded(self):
         elapsed = time.perf_counter() - self.start_time
         return elapsed > self.limit_seconds
+
+
+@dataclasses.dataclass
+class OnOff:
+    on: typing.Optional[User] = None
+    off: typing.Optional[User] = None
 
 
 class Car(Mobility):
@@ -126,6 +133,10 @@ class Car(Mobility):
     @property
     def users(self):
         return (self._reserved_users | self._waiting_users | self._passengers).values()
+
+    @property
+    def reserved_users(self):
+        return (self._reserved_users | self._waiting_users).values()
 
     @property
     def waiting_users(self):
@@ -248,6 +259,172 @@ class Car(Mobility):
 
         self.env.process(self.arrived())
 
+    def solve_new_route(self, new_user: User) -> typing.Optional[Route]:
+        node_locations = []
+        demands = []
+        node_onoff = []
+
+        # Create the routing index manager.
+        manager = pywrapcp.RoutingIndexManager(
+            # Users who haven't boarded yet are considered as two unique nodes each (pickup and delivery).
+            # Passengers already onboard are considered as a single unique node (delivery only).
+            len(self.reserved_users) * 2 + len(self.passengers) + 2 + 1,
+            1,  # num mobilities
+            0,  # depot
+        )
+
+        # Create Routing Model.
+        routing = pywrapcp.RoutingModel(manager)
+
+        depot = (
+            self.moving.stop if self.moving else self.stop
+        )  # either current stop or in-transit stop
+        node_locations.append(depot)
+        demands.append(
+            len(self.passengers)
+        )  # Treat the passengers as if they are picked up at the depot.
+        node_onoff.append(None)
+
+        # Define cost of each arc.
+        def callback(from_index, to_index):
+            # Convert from routing variable Index to location ID.
+            from_loc = node_locations[manager.IndexToNode(from_index)]
+            to_loc = node_locations[manager.IndexToNode(to_index)]
+            duration = self.network.duration(from_loc.stop_id, to_loc.stop_id)
+            return int(duration * 60)
+
+        transit_callback_index = routing.RegisterTransitCallback(callback)
+        routing.SetArcCostEvaluatorOfAllVehicles(transit_callback_index)
+
+        window_start, window_end = self.window()
+        if window_start is None and window_end is None:
+            return None
+
+        # Add Distance constraint.
+        dimension_name = "Time"
+        routing.AddDimension(
+            transit_callback_index,
+            60 * 60 * 24,  # slack time (1 day)
+            self.env.elapsed_secs(
+                window_end
+            ),  # must return to the depot within operating hours
+            False,
+            dimension_name,
+        )
+        time_dimension = routing.GetDimensionOrDie(dimension_name)
+
+        # Determine the route start time based on the vehicle's current state.
+        # If the vehicle is already moving, use its scheduled arrival time as the start time.
+        # Otherwise, use the current time if it is after the time window start;
+        # if not, use the window start time to ensure the route does not begin too early.
+        if to := self.moving:
+            start_time = to.arrival
+        else:
+            now = self.env.datetime_now
+            start_time = now if now > window_start else window_start
+        time_dimension.CumulVar(routing.Start(0)).SetValue(
+            self.env.elapsed_secs(start_time)
+        )
+
+        for user in self.passengers:
+            dst_node = len(node_locations)
+            dst_index = manager.NodeToIndex(dst_node)
+            node_locations.append(user.dst)
+            demands.append(-1)  # delivery
+            node_onoff.append(OnOff(off=user))
+            time_dimension.CumulVar(dst_index).SetRange(
+                self.env.elapsed_secs(user.desired_dept + user.ideal_duration),
+                self.env.elapsed_secs(
+                    user.desired_dept + user.ideal_duration + self._max_delay_time
+                ),
+            )
+
+        for user in (
+            self._waiting_users | self._reserved_users | {new_user.user_id: new_user}
+        ).values():
+            org_node = len(node_locations)
+            org_index = manager.NodeToIndex(org_node)
+            node_locations.append(user.org)
+            demands.append(1)  # pickup
+            node_onoff.append(OnOff(on=user))
+
+            dst_node = len(node_locations)
+            dst_index = manager.NodeToIndex(dst_node)
+            node_locations.append(user.dst)
+            demands.append(-1)  # delivery
+            node_onoff.append(OnOff(off=user))
+
+            # Time window constraint
+            time_dimension.CumulVar(org_index).SetRange(
+                self.env.elapsed_secs(user.desired_dept),
+                self.env.elapsed_secs(user.desired_dept + self._max_delay_time),
+            )
+            time_dimension.CumulVar(dst_index).SetRange(
+                self.env.elapsed_secs(user.desired_dept + user.ideal_duration),
+                self.env.elapsed_secs(
+                    user.desired_dept + user.ideal_duration + self._max_delay_time
+                ),
+            )
+
+            # Define Transportation Requests.
+            routing.AddPickupAndDelivery(org_index, dst_index)
+            routing.solver().Add(
+                time_dimension.CumulVar(org_index) <= time_dimension.CumulVar(dst_index)
+            )
+
+        # Define pickup-delivery demands
+        demand_callback_index = routing.RegisterUnaryTransitCallback(
+            lambda index: demands[manager.IndexToNode(index)]
+        )
+
+        routing.AddDimensionWithVehicleCapacity(
+            demand_callback_index,
+            0,  # null capacity slack
+            [self.capacity],  # vehicle maximum capacities
+            True,  # start cumul to zero
+            "Capacity",
+        )
+
+        assert len(node_locations) == manager.GetNumberOfNodes() == len(demands), (
+            "Mismatch found, It might be a bug."
+        )
+
+        # Instantiate route start and end times to produce feasible times.
+        routing.AddVariableMinimizedByFinalizer(
+            time_dimension.CumulVar(routing.Start(0))
+        )
+        routing.AddVariableMinimizedByFinalizer(time_dimension.CumulVar(routing.End(0)))
+
+        # Setting first solution heuristic.
+        search_parameters = pywrapcp.DefaultRoutingSearchParameters()
+        search_parameters.first_solution_strategy = (
+            routing_enums_pb2.FirstSolutionStrategy.PARALLEL_CHEAPEST_INSERTION
+        )
+
+        # Solve the problem.
+        solution = routing.SolveWithParameters(search_parameters)
+
+        if not solution:
+            return None
+
+        route = []
+        current = routing.Start(0)
+        current = solution.Value(routing.NextVar(current))
+        while not routing.IsEnd(current):
+            node = manager.IndexToNode(current)
+            location = node_locations[node]
+            onoff = node_onoff[node]
+
+            if onoff.on:
+                route.append(StopTime(stop=location, on=[onoff.on]))
+            if onoff.off:
+                route.append(StopTime(stop=location, off=[onoff.off]))
+            if routing.IsEnd(current):
+                break
+            current = solution.Value(routing.NextVar(current))
+
+        return Route(route)
+
     def routes_appended_new_user(
         self, user: User, timeout_seconds: int = 30, max_stop_time_length: int = 20
     ):
@@ -296,7 +473,8 @@ class Car(Mobility):
                         continue
                     # exclude the pattern that exceeds max delay
                     if any(
-                        value > self._max_delay_time for value in Delay(self, r).values
+                        value > self._max_delay_time
+                        for value in Evaluation(self, r).values
                     ):
                         continue
                     if len(r.stop_times) > max_stop_time_length:
@@ -364,9 +542,6 @@ class Route:
             return False
         return self.stop_times == other.stop_times
 
-    # def __hash__(self):
-    #     return hash(tuple(self.stop_times))
-
     @property
     def max_passengers(self):
         return max(
@@ -406,9 +581,6 @@ class StopTime:
             )
         )
 
-    # def __hash__(self):
-    #     return hash((self.stop, frozenset(self.on), frozenset(self.off)))
-
     def __add__(self, other: StopTime):
         assert self.stop is other.stop, (self.stop, other.stop)
         return StopTime(
@@ -418,7 +590,7 @@ class StopTime:
         )
 
 
-class Delay:
+class Evaluation:
     def __init__(self, car: Car, plan: Route):
         self.car = car
         self.stop_times = plan.stop_times
@@ -430,11 +602,11 @@ class Delay:
         if start_window is None:
             return
 
-        # If on the move, set to the next stop-time.
-        # If not on, set to the current stop and time.
         if to := self.car.moving:
+            # If on moving, set to the next stop and time.
             previous = StopTime(stop=to.stop, departure=to.arrival)
         else:
+            # If not on moving, set to the current stop and time.
             now = self.car.env.datetime_now
             if now >= start_window:
                 previous = StopTime(stop=car.stop, departure=now)
@@ -468,7 +640,7 @@ class Delay:
             ]
             self.value = sum(self.values, timedelta()) / len(self.values)
 
-    def __lt__(self, other: Delay):
+    def __lt__(self, other: Evaluation):
         return self.value < other.value
 
 
@@ -486,6 +658,7 @@ class CarManager:
         self,
         network: Network,
         event_queue: EventQueue,
+        enable_ortools: bool,
         board_time: float,
         max_delay_time: float,
         settings: typing.Collection[CarSetting],
@@ -495,6 +668,7 @@ class CarManager:
         self.network = network
         self.event_queue = event_queue
         self.board_time: timedelta = timedelta(minutes=board_time)
+        self.enable_ortools = enable_ortools
         self.max_delay_time: timedelta = timedelta(minutes=max_delay_time)
         self.max_calculation_seconds = max_calculation_seconds
         self.max_calculation_stop_times_length = max_calculation_stop_times_length
@@ -522,9 +696,51 @@ class CarManager:
                 mobility.user_ready(user)
                 return user
 
-    def minimum_delay(self, user: User):
+    def reserve(self, user: User):
+        self.env.process(self._reserve(user))
+
+    def _reserve(self, user: User):
+        yield self.env.timeout(0)
+
+        if solution := self.minimum_delay(user):
+            departure = None
+            for stop_time in solution.stop_times:
+                if user in stop_time.on:
+                    departure = stop_time.departure - self.board_time
+                if user in stop_time.off:
+                    arrival = stop_time.arrival + self.board_time
+                    assert departure
+                    self.event_queue.reserved(
+                        mobility=solution.car,
+                        user=user,
+                        departure=departure,
+                        arrival=arrival,
+                    )
+
+            solution.car.reserve(user=user, schedule=solution.stop_times)
+
+        else:
+            self.event_queue.reserve_failed(user)
+
+    def minimum_delay(self, user: User) -> Evaluation | None:
+        if self.enable_ortools:
+            return self.minimum_delay_by_ortools(user)
+        else:
+            return self.minimum_delay_by_brute_force(user)
+
+    def minimum_delay_by_ortools(self, user: User) -> Evaluation | None:
+        return min(
+            (
+                Evaluation(mobility, route)
+                for mobility in self.mobilities.values()
+                if (route := mobility.solve_new_route(user))
+            ),
+            default=None,
+        )
+
+    def minimum_delay_by_brute_force(self, user: User) -> Evaluation | None:
         delays = [
-            Delay(car, route)
+            Evaluation(car, route)
             for car in self.mobilities.values()
             for route in car.routes_appended_new_user(
                 user,
@@ -535,31 +751,3 @@ class CarManager:
 
         if len(delays):
             return min(delays)
-
-    def reserve(self, user: User):
-        self.env.process(self._reserve(user))
-
-    def _reserve(self, user: User):
-        yield self.env.timeout(0)
-
-        if minimum_delay := self.minimum_delay(user):
-            departure = None
-            for stop_time in minimum_delay.stop_times:
-                if user in stop_time.on:
-                    departure = stop_time.departure - self.board_time
-                if user in stop_time.off:
-                    arrival = stop_time.arrival + self.board_time
-                    assert departure
-                    self.event_queue.reserved(
-                        mobility=minimum_delay.car,
-                        user=user,
-                        departure=departure,
-                        arrival=arrival,
-                    )
-
-                    minimum_delay.car.reserve(
-                        user=user, schedule=minimum_delay.stop_times
-                    )
-
-        else:
-            self.event_queue.reserve_failed(user)
