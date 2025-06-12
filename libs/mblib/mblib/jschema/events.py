@@ -39,6 +39,7 @@ class DemandEventDetails(BaseModel, extra=Extra.allow):
     org: Location
     dst: Location
     service: str | None = None
+    actualDuration: float | None = None
     dept: float | None = None  # immediate departure demand or arrive-by demand if None
     arrv: float | None = None  # arrive-by demand if not None
 

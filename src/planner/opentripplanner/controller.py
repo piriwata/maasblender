@@ -311,7 +311,6 @@ async def plan(org: query.LocationSetting, dst: query.LocationSetting, dept: flo
     org = Location(id_=org.locationId, lat=org.lat, lng=org.lng)
     dst = Location(id_=dst.locationId, lat=dst.lat, lng=dst.lng)
     plans = await planner.plan(org, dst, dept)
-    print(plans)
     return plans
 
 
