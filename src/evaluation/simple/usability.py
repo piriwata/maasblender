@@ -58,7 +58,7 @@ class UsabilityEvaluator:
         """
         enqueue DEMAND event at dept
         """
-        demand = DemandEvent(
+        self.env.process(self._demand(DemandEvent(
             env=self.env,
             event_time=event_time,
             dept=dept,
@@ -66,8 +66,7 @@ class UsabilityEvaluator:
             dst=dst,
             service=service,
             demand_id=demand_id,
-        )
-        self.env.process(self._demand(demand))
+        )))
 
     def _demand(self, demand: DemandEvent):
         match self.timing:
@@ -85,7 +84,7 @@ class UsabilityEvaluator:
         return self.env.now
 
     async def evaluate(self, demand: DemandEvent):
-        plans = await self._plan(org=demand.org, dst=demand.dst, dept=demand.dept)
+        plans = await self.planner.plan(org=demand.org, dst=demand.dst, dept=demand.dept)
         result = await self._evaluate(
             plans,
             actual=demand.service,
@@ -94,9 +93,6 @@ class UsabilityEvaluator:
             demand_id=demand.demand_id,
         )
         await self.logger.write_json(result)
-
-    def _plan(self, org: Location, dst: Location, dept: float):
-        return self.planner.plan(org, dst, dept)
 
     async def _evaluate(
         self,
