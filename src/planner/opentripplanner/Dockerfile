@@ -19,7 +19,6 @@ RUN wget ${jdk_url} \
 COPY requirements.txt ./
 ENV PIP_ROOT_USER_ACTION=ignore
 RUN pip install --upgrade pip \
- && pip install --upgrade setuptools \
  && pip install -r requirements.txt
 
 RUN chown nobody -R /var/otp

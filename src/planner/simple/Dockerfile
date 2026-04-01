@@ -8,7 +8,6 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt ./
 ENV PIP_ROOT_USER_ACTION=ignore
 RUN pip install --upgrade pip \
- && pip install --upgrade setuptools \
  && pip install -r requirements.txt
 
 USER nobody
