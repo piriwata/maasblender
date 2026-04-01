@@ -1,7 +1,7 @@
 FROM python:3.11-slim
 
 ARG jdk_version=21
-ARG otp_version=2.6.0
+ARG otp_version=2.4.0
 ARG jdk_url=https://download.oracle.com/java/${jdk_version}/latest/jdk-${jdk_version}_linux-x64_bin.deb
 ARG otp_url=https://repo1.maven.org/maven2/org/opentripplanner/otp/${otp_version}/otp-${otp_version}-shaded.jar
 
