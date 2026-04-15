@@ -150,7 +150,7 @@ jobs:
             exit 1
           fi
 
-          if ! grep -Eq '"source":[[:space:]]*"route_deviation"' <<<"$response"; then
+          if ! jq -Rse 'split("\n") | map(select(length > 0) | fromjson? | .source == "route_deviation") | any' <<<"$response" >/dev/null; then
             echo "Validation failed: route deviation events were not found"
             exit 1
           fi
