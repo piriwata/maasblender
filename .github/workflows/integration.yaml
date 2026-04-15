@@ -150,8 +150,9 @@ jobs:
             exit 1
           fi
 
+          found_sources=$(jq -Rse 'split("\n") | map(select(length > 0) | fromjson? | .source) | unique | join(", ")' <<<"$response")
           if ! jq -Rse 'split("\n") | map(select(length > 0) | fromjson? | .source == "route_deviation") | any' <<<"$response" >/dev/null; then
-            echo "Validation failed: route deviation events were not found"
+            echo "Validation failed: route deviation events were not found (sources: $found_sources)"
             exit 1
           fi
 
