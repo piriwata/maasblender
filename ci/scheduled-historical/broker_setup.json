@@ -83,7 +83,7 @@
         {
           "mobility_id": "F_001",
           "trip_id": "FLEX",
-          "capacity": 1,
+          "capacity": 20,
           "stop": "1_1"
         }
       ]
