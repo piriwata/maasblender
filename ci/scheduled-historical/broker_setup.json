@@ -28,6 +28,21 @@
           },
           "time": 540.0,
           "dept": 540.0
+        },
+        {
+          "org": {
+            "locationId": "toyama_station",
+            "lat": 36.7014265,
+            "lng": 137.210879
+          },
+          "dst": {
+            "locationId": "toyama_court",
+            "lat": 36.6835921,
+            "lng": 137.2044729
+          },
+          "time": 540.0,
+          "dept": 540.0,
+          "service": "route_deviation"
         }
       ],
       "userIDFormat": "U_%d"
@@ -46,6 +61,32 @@
       "mobility": {
         "capacity": 20
       }
+    }
+  },
+  "route_deviation": {
+    "type": "http",
+    "endpoint": "http://route_deviation",
+    "details": {
+      "reference_time": "20230404",
+      "input_files": [
+        {
+          "filename": "flex.zip"
+        }
+      ],
+      "network": {
+        "fetch_url": "http://planner/matrix"
+      },
+      "board_time": 1,
+      "max_delay_time": 10,
+      "mobility_speed": 300,
+      "mobilities": [
+        {
+          "mobility_id": "F_001",
+          "trip_id": "FLEX",
+          "capacity": 1,
+          "stop": "1_1"
+        }
+      ]
     }
   },
   "planner": {
@@ -68,6 +109,14 @@
             }
           ],
           "agency_id": "7230001002032"
+        },
+        "route_deviation": {
+          "type": "gtfs_flex",
+          "input_files": [
+            {
+              "filename": "flex.zip"
+            }
+          ]
         }
       },
       "reference_time": "20230404",
