@@ -74,7 +74,7 @@
         }
       ],
       "network": {
-        "fetch_url": "http://planner/matrix"
+        "fetch_url": "http://route_planner/matrix"
       },
       "board_time": 1,
       "max_delay_time": 10,
@@ -109,14 +109,26 @@
             }
           ],
           "agency_id": "7230001002032"
-        },
+        }
+      },
+      "reference_time": "20230404",
+      "walking_meters_per_minute": 80.0
+    }
+  },
+  "route_planner": {
+    "type": "planner",
+    "endpoint": "http://route_planner",
+    "details": {
+      "networks": {
         "route_deviation": {
           "type": "gtfs_flex",
           "input_files": [
             {
               "filename": "flex.zip"
             }
-          ]
+          ],
+          "mobility_meters_per_minute": 300,
+          "expected_waiting_time": 5
         }
       },
       "reference_time": "20230404",
@@ -128,7 +140,7 @@
     "endpoint": "http://user_model",
     "details": {
       "planner": {
-        "endpoint":  "http://planner/plan"
+        "endpoint": "http://broker/plan"
       }
     }
   }

@@ -59,9 +59,9 @@ jobs:
             exit 1
           fi
 
-      - name: Setup the OpenTripPlanner planner for route deviation
+      - name: Setup the simple planner for route deviation
         run: |
-          response=$(curl -sS -X POST -F upload_file=@../ondemand-oneway-generator-commuter-case/flex.zip http://localhost:3010/upload)
+          response=$(curl -sS -X POST -F upload_file=@../ondemand-oneway-generator-commuter-case/flex.zip http://localhost:3011/upload)
           message=$(echo $response | jq -r '.message')
           if [ "$message" = "successfully uploaded. flex.zip" ]; then
             echo "Validation passed: $message"
@@ -142,8 +142,9 @@ jobs:
       - name: Get the result and validate
         run: |
           response=$(curl -sS http://localhost:3000/events)
+          expected_min_lines=200
           line_count=$(echo "$response" | wc -l)
-          if [ "$line_count" -ge 200 ] && echo "$response" | grep -q '"source":"route_deviation"'; then
+          if [ "$line_count" -ge "$expected_min_lines" ] && grep -Eq '"source":[[:space:]]*"route_deviation"' <<<"$response"; then
             echo "Validation passed: Line count is $line_count and route deviation events were found"
           else
             echo "Validation failed: route deviation events were not found or line count is only $line_count"

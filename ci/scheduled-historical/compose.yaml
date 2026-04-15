@@ -34,6 +34,12 @@ services:
     ports:
       - "3010:80"
 
+  route_planner:
+    build:
+      context: ../../src/planner/simple
+    ports:
+      - "3011:80"
+
   walking:
     build:
       context: ../../src/base_simulators/walking
