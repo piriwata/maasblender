@@ -144,12 +144,18 @@ jobs:
           response=$(curl -sS http://localhost:3000/events)
           expected_min_lines=200
           line_count=$(echo "$response" | wc -l)
-          if [ "$line_count" -ge "$expected_min_lines" ] && grep -Eq '"source":[[:space:]]*"route_deviation"' <<<"$response"; then
-            echo "Validation passed: Line count is $line_count and route deviation events were found"
-          else
-            echo "Validation failed: route deviation events were not found or line count is only $line_count"
+
+          if [ "$line_count" -lt "$expected_min_lines" ]; then
+            echo "Validation failed: Line count is only $line_count"
             exit 1
           fi
+
+          if ! grep -Eq '"source":[[:space:]]*"route_deviation"' <<<"$response"; then
+            echo "Validation failed: route deviation events were not found"
+            exit 1
+          fi
+
+          echo "Validation passed: Line count is $line_count and route deviation events were found"
 
   ondemand-oneway-generator-commuter-case:
     name: Run ondemand oneway generator commuter test case
