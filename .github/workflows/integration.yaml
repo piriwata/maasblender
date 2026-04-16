@@ -11,12 +11,12 @@ on:
       - "v[0-9]+.[0-9]+.[0-9]+*"
 
 jobs:
-  scheduled-historical-case:
-    name: Run scheduled historical test case
+  scheduled-routedeviation-historical-case:
+    name: Run scheduled route_deviation historical test case
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ci/scheduled-historical
+        working-directory: ci/scheduled-routedeviation-historical
     steps:
       - uses: actions/checkout@v4
 
