@@ -22,11 +22,23 @@ services:
     ports:
       - "3001:80"
 
+  route_deviation:
+    build:
+      context: ../../src/base_simulators/ondemand
+    ports:
+      - "3002:80"
+
   planner:
     build:
       context: ../../src/planner/opentripplanner
     ports:
       - "3010:80"
+
+  route_planner:
+    build:
+      context: ../../src/planner/simple
+    ports:
+      - "3011:80"
 
   walking:
     build:

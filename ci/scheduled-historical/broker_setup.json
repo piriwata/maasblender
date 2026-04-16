@@ -28,6 +28,21 @@
           },
           "time": 540.0,
           "dept": 540.0
+        },
+        {
+          "org": {
+            "locationId": "toyama_station",
+            "lat": 36.7014265,
+            "lng": 137.210879
+          },
+          "dst": {
+            "locationId": "toyama_court",
+            "lat": 36.6835921,
+            "lng": 137.2044729
+          },
+          "time": 540.0,
+          "dept": 540.0,
+          "service": "route_deviation"
         }
       ],
       "userIDFormat": "U_%d"
@@ -46,6 +61,32 @@
       "mobility": {
         "capacity": 20
       }
+    }
+  },
+  "route_deviation": {
+    "type": "http",
+    "endpoint": "http://route_deviation",
+    "details": {
+      "reference_time": "20230404",
+      "input_files": [
+        {
+          "filename": "flex.zip"
+        }
+      ],
+      "network": {
+        "fetch_url": "http://route_planner/matrix"
+      },
+      "board_time": 1,
+      "max_delay_time": 10,
+      "mobility_speed": 300,
+      "mobilities": [
+        {
+          "mobility_id": "F_001",
+          "trip_id": "FLEX",
+          "capacity": 20,
+          "stop": "1_1"
+        }
+      ]
     }
   },
   "planner": {
@@ -74,12 +115,32 @@
       "walking_meters_per_minute": 80.0
     }
   },
+  "route_planner": {
+    "type": "planner",
+    "endpoint": "http://route_planner",
+    "details": {
+      "networks": {
+        "route_deviation": {
+          "type": "gtfs_flex",
+          "input_files": [
+            {
+              "filename": "flex.zip"
+            }
+          ],
+          "mobility_meters_per_minute": 300,
+          "expected_waiting_time": 5
+        }
+      },
+      "reference_time": "20230404",
+      "walking_meters_per_minute": 80.0
+    }
+  },
   "user": {
     "type": "http",
     "endpoint": "http://user_model",
     "details": {
       "planner": {
-        "endpoint":  "http://planner/plan"
+        "endpoint": "http://broker/plan"
       }
     }
   }
