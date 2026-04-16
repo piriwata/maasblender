@@ -37,11 +37,33 @@ jobs:
             exit 1
           fi
 
-      - name: Setup the OpenTripPlanner planner
+      - name: Setup the route deviation simulation
+        run: |
+          response=$(curl -sS -X POST -F upload_file=@./flex.zip http://localhost:3002/upload)
+          message=$(echo $response | jq -r '.message')
+          if [ "$message" = "successfully uploaded. flex.zip" ]; then
+            echo "Validation passed: $message"
+          else
+            echo "Validation failed: $response"
+            exit 1
+          fi
+
+      - name: Setup the OpenTripPlanner for scheduled
         run: |
           response=$(curl -sS -X POST -F upload_file=@./gtfs.zip http://localhost:3010/upload)
           message=$(echo $response | jq -r '.message')
           if [ "$message" = "successfully uploaded. gtfs.zip" ]; then
+            echo "Validation passed: $message"
+          else
+            echo "Validation failed: $response"
+            exit 1
+          fi
+
+      - name: Setup the OpenTripPlanner for route deviation
+        run: |
+          response=$(curl -sS -X POST -F upload_file=@./flex.zip http://localhost:3010/upload)
+          message=$(echo $response | jq -r '.message')
+          if [ "$message" = "successfully uploaded. flex.zip" ]; then
             echo "Validation passed: $message"
           else
             echo "Validation failed: $response"
@@ -120,10 +142,10 @@ jobs:
       - name: Get the result and validate
         run: |
           response=$(curl -sS http://localhost:3000/events)
+          expected_min_event_lines=200
           line_count=$(echo "$response" | wc -l)
-          if [ "$line_count" -ge 200 ]; then
-            echo "Validation passed: Line count is $line_count"
-          else
+
+          if [ "$line_count" -lt "$expected_min_event_lines" ]; then
             echo "Validation failed: Line count is only $line_count"
             exit 1
           fi
