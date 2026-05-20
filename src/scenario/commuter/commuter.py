@@ -26,14 +26,14 @@ class Commuter:
     demand: typing.Callable[[str, str, DemandInfo], None]
 
     def out_daily(self, day, demand_id_gen: typing.Iterator[str]):
-        if self.dept_out:
+        if self.dept_out is not None:
             timeout = self.dept_out
             dept = self.dept_out + 1440.0 * day
             arrv = None
         else:
             timeout = self.arrv_out - self.lead_time
             dept = None
-            arrv = self.arrv_out - self.lead_time + 1440.0 * day
+            arrv = self.arrv_out + 1440.0 * day
         yield self.env.timeout(timeout)
         self.demand(
             self.user_id,
@@ -49,14 +49,14 @@ class Commuter:
         )
 
     def in_daily(self, day, demand_id_gen: typing.Iterator[str]):
-        if self.dept_in:
+        if self.dept_in is not None:
             timeout = self.dept_in
             dept = self.dept_in + 1440.0 * day
             arrv = None
         else:
             timeout = self.arrv_in - self.lead_time
             dept = None
-            arrv = self.arrv_in - self.lead_time + 1440.0 * day
+            arrv = self.arrv_in + 1440.0 * day
         yield self.env.timeout(timeout)
         self.demand(
             self.user_id,
