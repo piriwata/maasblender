@@ -88,12 +88,8 @@ class CommuterScenario:
             Commuter(
                 env=self.env,
                 user_id=user_id,
-                org=Location(
-                    setting.org.locationId, setting.org.lat, setting.org.lng
-                ),
-                dst=Location(
-                    setting.dst.locationId, setting.dst.lat, setting.dst.lng
-                ),
+                org=Location(setting.org.locationId, setting.org.lat, setting.org.lng),
+                dst=Location(setting.dst.locationId, setting.dst.lat, setting.dst.lng),
                 dept_out=setting.deptOut,
                 dept_in=setting.deptIn,
                 arrv_out=setting.arrvOut,
@@ -141,4 +137,6 @@ class CommuterScenario:
             day += 1
 
     def _demand(self, user_id: str, demand_id: str, info: DemandInfo):
-        self._events.append(DemandEvent(user_id=user_id, demand_id=demand_id, info=info))
+        self._events.append(
+            DemandEvent(user_id=user_id, demand_id=demand_id, info=info)
+        )
