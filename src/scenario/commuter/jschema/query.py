@@ -53,7 +53,9 @@ class CommuterSetting(BaseModel):
             self.deptIn if self.deptIn is not None else self.arrvIn - self.leadTime
         )
         if out_emit > in_emit:
-            raise ValueError("outbound demand must be emitted earlier than or equal to inbound")
+            raise ValueError(
+                "outbound demand must be emitted earlier than or equal to inbound"
+            )
 
         return self
 

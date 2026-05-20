@@ -204,7 +204,6 @@ class CommuterScenarioTestCase(unittest.TestCase):
                 DemandEvent.model_validate(actual),
             )
 
-
     def test_mixed_mode_dept_out_arrv_in(self):
         self.scenario.setup(
             {

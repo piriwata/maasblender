@@ -13,9 +13,7 @@ class HistoricalDemandSetting(BaseModel):
     org: LocationSetting
     dst: LocationSetting
     time: float | None = Field(None, description="Time to reserve mobilities")
-    dept: float | None = Field(
-        None, description="Time to start move from org to dst"
-    )
+    dept: float | None = Field(None, description="Time to start move from org to dst")
     arrv: float | None = Field(None, description="Time to arrive at dst")
     service: str | None = None
     user_id: str | None = None
