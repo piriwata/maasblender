@@ -1,6 +1,6 @@
 FROM python:3.11-slim
 
-ARG jdk_version=21
+ARG jdk_version=25
 ARG otp_version=2.9.0
 ARG jdk_url=https://download.oracle.com/java/${jdk_version}/latest/jdk-${jdk_version}_linux-x64_bin.deb
 
