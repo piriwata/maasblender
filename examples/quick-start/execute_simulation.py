@@ -4,7 +4,7 @@ import json
 import sys
 import time
 import zipfile
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 import httpx
@@ -45,8 +45,16 @@ def extract_gtfs_period(zip_path: Path) -> tuple[datetime, datetime]:
 
             for row in reader:
                 if row.get("start_date") and row.get("end_date"):
-                    start_dates.append(datetime.strptime(row["start_date"], "%Y%m%d"))
-                    end_dates.append(datetime.strptime(row["end_date"], "%Y%m%d"))
+                    start_dates.append(
+                        datetime.strptime(row["start_date"], "%Y%m%d").replace(
+                            tzinfo=timezone.utc
+                        )
+                    )
+                    end_dates.append(
+                        datetime.strptime(row["end_date"], "%Y%m%d").replace(
+                            tzinfo=timezone.utc
+                        )
+                    )
             if start_dates and end_dates:
                 return min(start_dates), max(end_dates)
             else:
@@ -86,7 +94,9 @@ def validate_reference_times(settings_path: Path):
         if not reference_time:
             continue
 
-        reference_date = datetime.strptime(reference_time, "%Y%m%d")
+        reference_date = datetime.strptime(reference_time, "%Y%m%d").replace(
+            tzinfo=timezone.utc
+        )
 
         for file_info in input_files:
             filename = file_info["filename"]

@@ -81,7 +81,9 @@ async def setup(settings: query.Setup):
 
     global sim
     sim = Simulation(
-        start_time=datetime.datetime.strptime(settings.reference_time, "%Y%m%d"),
+        start_time=datetime.datetime.strptime(
+            settings.reference_time, "%Y%m%d"
+        ).replace(tzinfo=datetime.timezone.utc),
         capacity=settings.mobility.capacity,
         trips=gtfs_files.trips,
         blocks=gtfs_files.blocks,
