@@ -27,6 +27,8 @@ services:
   scheduled:
     build:
       context: ../../src/base_simulators/scheduled
+      args:
+        otp_version: 2.9.0
     ports:
       - "3001:80"
 
