@@ -34,7 +34,7 @@ services:
     build:
       context: ../../src/planner/opentripplanner
       args:
-        otp_version: 2.9.0
+        otp_version: 2.6.0
     ports:
       - "3010:80"
 
