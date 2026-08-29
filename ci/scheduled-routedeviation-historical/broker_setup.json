@@ -26,8 +26,8 @@
             "lat": 36.6835921,
             "lng": 137.2044729
           },
-          "time": 540.0,
-          "dept": 540.0,
+          "time": 180.0,
+          "dept": 180.0,
           "service": "gtfs"
         },
         {
@@ -41,9 +41,25 @@
             "lat": 36.6835921,
             "lng": 137.2044729
           },
-          "time": 530.0,
-          "dept": 540.0,
+          "time": 170.0,
+          "dept": 180.0,
           "service": "route_deviation"
+        },
+        {
+          "org": {
+            "locationId": "toyama_station",
+            "lat": 36.7014265,
+            "lng": 137.210879
+          },
+          "dst": {
+            "locationId": "toyama_court",
+            "lat": 36.6835921,
+            "lng": 137.2044729
+          },
+          "time": 1050.0,
+          "dept": 1050.0,
+          "service": "gtfs",
+          "user_id": "U_3"
         }
       ],
       "userIDFormat": "U_%d"
@@ -54,6 +70,7 @@
     "endpoint": "http://scheduled",
     "details": {
       "reference_time": "20230404",
+      "simulation_start_time": "06:00",
       "input_files": [
         {
           "filename": "gtfs.zip"
@@ -69,6 +86,7 @@
     "endpoint": "http://route_deviation",
     "details": {
       "reference_time": "20230404",
+      "simulation_start_time": "06:00",
       "input_files": [
         {
           "filename": "gtfs_flex.zip"
@@ -131,6 +149,7 @@
         }
       },
       "reference_time": "20230404",
+      "simulation_start_time": "06:00",
       "walking_meters_per_minute": 50.0
     }
   },
