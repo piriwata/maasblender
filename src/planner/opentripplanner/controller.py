@@ -207,7 +207,9 @@ async def deploy_otp_files(
 @app.post("/setup", response_model=response.Message)
 async def setup(request: fastapi.Request, setting: query.Setup):
     timezone = datetime.timezone(datetime.timedelta(hours=setting.timezone))
-    ref_datetime = datetime.datetime.strptime(setting.reference_time, "%Y%m%d").replace(
+    ref_datetime = datetime.datetime.strptime(
+        f"{setting.reference_time} {setting.simulation_start_time}", "%Y%m%d %H:%M"
+    ).replace(
         # ToDo: Consider the proper handling of time zone
         tzinfo=timezone
     )
