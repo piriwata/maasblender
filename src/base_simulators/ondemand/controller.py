@@ -126,10 +126,11 @@ async def setup(settings: query.Setup):
             )
 
     global sim
+    start_time = datetime.datetime.strptime(
+        f"{settings.reference_time} {settings.simulation_start_time}", "%Y%m%d %H:%M"
+    ).replace(tzinfo=datetime.timezone.utc)
     sim = Simulation(
-        start_time=datetime.datetime.strptime(
-            settings.reference_time, "%Y%m%d"
-        ).replace(tzinfo=datetime.timezone.utc),
+        start_time=start_time,
         network=network,
         trips=trips,
         enable_ortools=settings.enable_ortools,
