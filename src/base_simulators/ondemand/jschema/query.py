@@ -24,6 +24,7 @@ class InputFilesItem(BaseModel):
 
 class Setup(BaseModel):
     reference_time: constr(min_length=8, max_length=8)
+    simulation_start_time: constr(pattern=r"^\d{2}:\d{2}$") = "00:00"
     input_files: list[InputFilesItem] = Field(..., min_items=1, max_items=2)
     network: InputFilesItem
     enable_ortools: bool = True

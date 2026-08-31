@@ -67,6 +67,7 @@ class MaaSSimNetworkSetting(BaseModel):
 class Setup(BaseModel):
     walking_meters_per_minute: float
     reference_time: constr(min_length=8, max_length=8)
+    simulation_start_time: constr(pattern=r"^\d{2}:\d{2}$") = "00:00"
     networks: typing.Mapping[
         str,
         GtfsNetworkSetting

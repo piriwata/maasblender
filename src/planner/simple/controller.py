@@ -64,9 +64,9 @@ async def setup(settings: query.Setup):
             "walking", walking_meters_per_minute=settings.walking_meters_per_minute
         )
     ]
-    start_time = datetime.datetime.strptime(settings.reference_time, "%Y%m%d").replace(
-        tzinfo=datetime.timezone.utc
-    )
+    start_time = datetime.datetime.strptime(
+        f"{settings.reference_time} {settings.simulation_start_time}", "%Y%m%d %H:%M"
+    ).replace(tzinfo=datetime.timezone.utc)
     async with aiohttp.ClientSession() as session:
         for name, setting in settings.networks.items():
             if setting.type == "gbfs":

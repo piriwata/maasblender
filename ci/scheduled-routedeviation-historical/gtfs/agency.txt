@@ -1,0 +1,2 @@
+﻿agency_id,agency_name,agency_url,agency_timezone,agency_lang
+7230001002032,株式会社富山市民プラザ　まちづくり事業部,http://www.siminplaza.co.jp/maidohaya,Asia/Tokyo,ja

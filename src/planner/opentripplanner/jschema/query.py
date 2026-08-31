@@ -51,6 +51,7 @@ class Setup(BaseModel):
     otp_config: OTPDetails
     networks: dict[str, NetworkSetting]
     reference_time: constr(min_length=8, max_length=8)
+    simulation_start_time: constr(pattern=r"^\d{2}:\d{2}$") = "00:00"
     modes: conlist(TransportModes, min_length=1) = None
     walking_meters_per_minute: float | None = (
         None  # get from router_config.json, if None

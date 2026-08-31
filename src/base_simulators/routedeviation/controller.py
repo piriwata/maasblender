@@ -80,8 +80,11 @@ async def setup(settings: query.Setup):
         gtfs_files = gtfs.GtfsFilesReader(archive)
 
     global sim
+    start_time = datetime.datetime.strptime(
+        f"{settings.reference_time} {settings.simulation_start_time}", "%Y%m%d %H:%M"
+    )
     sim = Simulation(
-        start_time=datetime.datetime.strptime(settings.reference_time, "%Y%m%d"),
+        start_time=start_time,
         capacity=settings.mobility.capacity,
         trips=gtfs_files.trips,
         blocks=gtfs_files.blocks,

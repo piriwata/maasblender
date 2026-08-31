@@ -1,0 +1,2 @@
+﻿service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,end_date
+毎日,1,1,1,1,1,1,1,20230401,20240331

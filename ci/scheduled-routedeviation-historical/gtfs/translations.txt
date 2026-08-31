@@ -1,0 +1,89 @@
+﻿table_name,field_name,language,translation,record_id,field_value
+stops,stop_name,ja-Hrkt,とやまえきまえ,,富山駅前
+stops,stop_name,en,Toyama Sta. Mae,,富山駅前
+stops,stop_name,ja-Hrkt,しんさくらまち,,新桜町
+stops,stop_name,en,Shinsakuramachi,,新桜町
+stops,stop_name,ja-Hrkt,ひがしでんぢがたまち,,東田地方町
+stops,stop_name,en,Higashidenjigatamachi,,東田地方町
+stops,stop_name,ja-Hrkt,きたしんまち・おおさかやしょっぷまえ,,北新町・大阪屋ショップ前
+stops,stop_name,en,Kitashinmachi・Osakayashop Mae,,北新町・大阪屋ショップ前
+stops,stop_name,ja-Hrkt,きたしんまちひがし,,北新町東
+stops,stop_name,en,Kitashinmachi Higashi,,北新町東
+stops,stop_name,ja-Hrkt,おおたじんじゃまえ,,於保多神社前
+stops,stop_name,en,Ota Jinja Mae,,於保多神社前
+stops,stop_name,ja-Hrkt,いなりもとまちいっちょうめ,,稲荷元町一丁目
+stops,stop_name,en,Inarimotomachi-itchome(Inarimotomachi 1),,稲荷元町一丁目
+stops,stop_name,ja-Hrkt,あぴあまえ,,アピア前
+stops,stop_name,en,APA Mae,,アピア前
+stops,stop_name,ja-Hrkt,たちいでまちにちょうめ,,舘出町二丁目
+stops,stop_name,en,Tachiidemachi-nichome(Tachiidemachi 2),,舘出町二丁目
+stops,stop_name,ja-Hrkt,さかえまちにちょうめ,,栄町二丁目
+stops,stop_name,en,Sakaemachi-nichome(Sakaemachi 2),,栄町二丁目
+stops,stop_name,ja-Hrkt,さかえまちさんちょうめ,,栄町三丁目
+stops,stop_name,en,Sakaemachi-sanchome(Sakaemachi 3),,栄町三丁目
+stops,stop_name,ja-Hrkt,しみずもとまち,,清水元町
+stops,stop_name,en,Shimizumotomachi,,清水元町
+stops,stop_name,ja-Hrkt,あさひまちこうえんまえ,,旭町公園前
+stops,stop_name,en,Asahimachi Koen Mae,,旭町公園前
+stops,stop_name,ja-Hrkt,あさひまち,,旭町
+stops,stop_name,en,Asahimachi,,旭町
+stops,stop_name,ja-Hrkt,しみずまちきゅうちょうめ,,清水町九丁目
+stops,stop_name,en,Shimizumachi-kyuchome(Shimizumachi 9),,清水町九丁目
+stops,stop_name,ja-Hrkt,しみずまちはっちょうめ,,清水町八丁目
+stops,stop_name,en,Shimizumachi-hatchome(Shimizumachi 8),,清水町八丁目
+stops,stop_name,ja-Hrkt,ごばんまち,,五番町
+stops,stop_name,en,Gobanmachi,,五番町
+stops,stop_name,ja-Hrkt,ちゅうきょういんまえ,,中教院前
+stops,stop_name,en,Chukyoin Mae,,中教院前
+stops,stop_name,ja-Hrkt,きたしんまち,,北新町
+stops,stop_name,en,Kitashinmachi,,北新町
+stops,stop_name,ja-Hrkt,しろがねちょうこうえんまえ,,白銀町公園前
+stops,stop_name,en,Shiroganecho Koen Mae,,白銀町公園前
+stops,stop_name,ja-Hrkt,ちゅうおうどおり,,中央通り
+stops,stop_name,en,Chuodori,,中央通り
+stops,stop_name,ja-Hrkt,にしちょう,,西町
+stops,stop_name,en,Nishicho,,西町
+stops,stop_name,ja-Hrkt,ぐらんどぷらざまえ,,グランドプラザ前
+stops,stop_name,en,Grand Pｌaza Mae,,グランドプラザ前
+stops,stop_name,ja-Hrkt,ぐらんどぷらざまえにいかわしんようきんこ,,グランドプラザ前にいかわ信用金庫
+stops,stop_name,en,Grand Pｌaza Mae Nikawa Shinyokinko,,グランドプラザ前にいかわ信用金庫
+stops,stop_name,ja-Hrkt,えちぜんまち,,越前町
+stops,stop_name,en,Echizenmachi,,越前町
+stops,stop_name,ja-Hrkt,あいおいちょう,,相生町
+stops,stop_name,en,Aioicho,,相生町
+stops,stop_name,ja-Hrkt,とやまちほうさいばんしょまえ,,富山地方裁判所前
+stops,stop_name,en,Toyama Chihosaibansho Mae,,富山地方裁判所前
+stops,stop_name,ja-Hrkt,いそべまちよんちょうめ,,磯部町四丁目
+stops,stop_name,en,Isobemachi-yonchome(Isobemachi 4),,磯部町四丁目
+stops,stop_name,ja-Hrkt,いそべまちさんちょうめ,,磯部町三丁目
+stops,stop_name,en,Isobemachi-sanchome(Isobemachi 3),,磯部町三丁目
+stops,stop_name,ja-Hrkt,いそべまちいっちょうめ,,磯部町一丁目
+stops,stop_name,en,Ishobemachi-itchome(Isobemachi 1),,磯部町一丁目
+stops,stop_name,ja-Hrkt,ごこくじんじゃ・とやままちなかびょういんまえ,,護国神社・富山まちなか病院前
+stops,stop_name,en,Gokoku Jinja・Toyama Machinaka Hospital Mae,,護国神社・富山まちなか病院前
+stops,stop_name,ja-Hrkt,とやまちゅうぶこうこうまえ,,富山中部高校前
+stops,stop_name,en,Toyama Chubu Koko Mae,,富山中部高校前
+stops,stop_name,ja-Hrkt,あたごまちいっちょうめ,,愛宕町一丁目
+stops,stop_name,en,Atagomachi-itchome(Atagomachi 1),,愛宕町一丁目
+stops,stop_name,ja-Hrkt,ゆうほうこうこうぐらうんどにし,,雄峰高校グラウンド前
+stops,stop_name,en,Yuho Koko Ground Mae,,雄峰高校グラウンド前
+stops,stop_name,ja-Hrkt,じんずうまち,,神通町
+stops,stop_name,en,Jinzumachi,,神通町
+stops,stop_name,ja-Hrkt,たからまち,,宝町
+stops,stop_name,en,Takaramachi,,宝町
+routes,route_long_name,ja-Hrkt,にしるーと,,西ルート
+routes,route_long_name,en,Nishi route,,西ルート
+routes,route_long_name,ja-Hrkt,ひがしるーと,,東ルート
+routes,route_long_name,en,Higashi route,,東ルート
+trips,trip_headsign,ja-Hrkt,たからまち,,宝町
+trips,trip_headsign,en,Takaramachi,,宝町
+trips,trip_headsign,ja-Hrkt,しんさくらまち,,新桜町
+trips,trip_headsign,en,Shinsakuramachi,,新桜町
+stop_times,stop_headsign,ja-Hrkt,あぴあまえ,,アピア前
+stop_times,stop_headsign,en,APA Mae,,アピア前
+stop_times,stop_headsign,ja-Hrkt,にしちょう,,西町
+stop_times,stop_headsign,en,Nishicho,,西町
+stop_times,stop_headsign,ja-Hrkt,ごこくじんじゃ・とやままちなかびょういんまえ,,護国神社・富山まちなか病院前
+stop_times,stop_headsign,en,Gokoku Jinja・Toyama Machinaka Hospital Mae,,護国神社・富山まちなか病院前
+stop_times,stop_headsign,ja-Hrkt,とやまえきまえ,,富山駅前
+stop_times,stop_headsign,en,Toyama Sta. Mae,,富山駅前

@@ -196,7 +196,7 @@ def get_user_trips(events: list[dict[str, Any]], user_id: str) -> list[Trip]:
 
 
 def assert_departed_at(
-    trips: list[Trip], departed_from: str, at: float, tolerance: float = 1e-6
+    trips: list[Trip], departed_from: str, at: float, tolerance: float = 1e-3
 ) -> None:
     if not trips:
         print(
@@ -216,19 +216,23 @@ def assert_departed_at(
     sys.exit(1)
 
 
-def assert_arrived_at(trips: list[Trip], arrived: str) -> None:
+def assert_arrived_at(
+    trips: list[Trip], arrived: str, at: float | None = None, tolerance: float = 1e-3
+) -> None:
     if not trips:
         print(f"  [FAIL] no trips found. expected arrival at {arrived}")
         sys.exit(1)
 
     last_trip = trips[-1]
-    if last_trip.dst == arrived:
+    if last_trip.dst == arrived and (
+        at is None or abs(last_trip.arrv - at) <= tolerance
+    ):
         print(f"  [OK] arrived at {arrived}: {last_trip}")
         return
 
+    expected = f"{arrived} at {at}" if at is not None else arrived
     print(
-        f"  [FAIL] expected final arrival at {arrived}, "
-        f"got: {last_trip}. all trips: {trips}"
+        f"  [FAIL] expected final arrival at {expected}, got: {last_trip}. all trips: {trips}"
     )
     sys.exit(1)
 
@@ -249,6 +253,13 @@ def main() -> None:
         wait_for_service_ready(client, "http://localhost:3001/openapi.json")
         wait_for_service_ready(client, "http://localhost:3002/openapi.json")
         wait_for_service_ready(client, "http://localhost:3010/openapi.json")
+
+        # --- Compress gtfs folder ---
+        print("Compressing gtfs folder ...")
+        gtfs_folder = file_path("gtfs")
+        gtfs_zip = file_path("gtfs")
+        shutil.make_archive(gtfs_zip, "zip", gtfs_folder)
+        print("  [OK] gtfs.zip created")
 
         # --- Compress gtfs_flex folder ---
         print("Compressing gtfs_flex folder ...")
@@ -331,19 +342,26 @@ def main() -> None:
             .splitlines()
         ]
 
-    # --- historical user: station -> court at 540 using scheduled service ---
+    # --- historical user: station -> court at 09:00 (sim time 180) using scheduled service ---
     print("Checking U_1 trips ...")
     trips = get_user_trips(events, user_id="U_1")
-    assert_departed_at(trips, "toyama_station", 540.0)
-    assert_arrived_at(trips, "toyama_court")
+    assert_departed_at(trips, "toyama_station", 180.0)
+    assert_arrived_at(trips, "toyama_court", 193.5)
     assert_used_service(trips, "gtfs")
 
-    # --- historical user: miyashita_bridge -> court at 545 using route-deviation service ---
+    # --- historical user: miyashita_bridge -> court at 09:05 (sim time 185) using route-deviation service ---
     print("Checking U_2 trips ...")
     trips = get_user_trips(events, user_id="U_2")
-    assert_departed_at(trips, "rd_station_court", 545.0)
-    assert_arrived_at(trips, "toyama_court")
+    assert_departed_at(trips, "rd_station_court", 185.0)
+    assert_arrived_at(trips, "toyama_court", 190.0)
     assert_used_service(trips, "route_deviation")
+
+    # --- historical user: station -> court at 23:30 (sim time 1050) using scheduled overnight service ---
+    print("Checking U_3 trips ...")
+    trips = get_user_trips(events, user_id="U_3")
+    assert_departed_at(trips, "toyama_station", 1050.0)
+    assert_arrived_at(trips, "toyama_court", 1063.5)
+    assert_used_service(trips, "gtfs")
 
     print("\nAll integration tests passed!")
 

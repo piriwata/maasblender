@@ -237,6 +237,122 @@ class SingleTripTestCase(unittest.TestCase):
         self.assertEqual(expected_events, triggered_events)
 
 
+class MidnightSingleTripTestCase(unittest.TestCase):
+    def setUp(self) -> None:
+        self.stops = gtfs_stations
+        self.mobility_id = "midnight_mobility"
+
+    def _create_midnight_simulation(self, start_time: datetime):
+        simulation = Simulation(
+            start_time=start_time,
+            capacity=20,
+            trips={
+                self.mobility_id: SingleTrip(
+                    route=...,
+                    service=Service(
+                        start_date=BASE_DATE - timedelta(days=1),
+                        end_date=BASE_DATE + timedelta(days=1),
+                        monday=True,
+                        tuesday=True,
+                        wednesday=True,
+                        thursday=True,
+                        friday=True,
+                        saturday=True,
+                        sunday=True,
+                    ),
+                    stop_times=[
+                        StopTime(
+                            stop=self.stops[each[0]],
+                            departure=timedelta(minutes=each[1]),
+                        )
+                        for each in [
+                            ("3_1", 1438),  # 23:58
+                            ("7_1", 1445),  # 24:05
+                        ]
+                    ],
+                )
+            },
+        )
+        simulation.start()
+        return simulation
+
+    def test_raise_error_with_default_midnight_start_time(self):
+        simulation = self._create_midnight_simulation(
+            start_time=datetime.combine(BASE_DATE, time())
+        )
+        with self.assertRaisesRegex(
+            ValueError,
+            "simulation start time is in the middle of an operation day",
+        ):
+            run(simulation, until=10)
+
+    def test_complete_when_start_time_is_adjusted_for_midnight_operation(self):
+        simulation = self._create_midnight_simulation(
+            start_time=datetime.combine(BASE_DATE - timedelta(days=1), time(23, 55))
+        )
+        triggered_events = run(simulation, until=11)
+
+        expected_events = [
+            {
+                "eventType": EventType.ARRIVED,
+                "time": 3.0,
+                "details": {
+                    "userId": None,
+                    "demandId": None,
+                    "mobilityId": self.mobility_id,
+                    "location": {
+                        "locationId": self.stops["3_1"].stop_id,
+                        "lat": self.stops["3_1"].lat,
+                        "lng": self.stops["3_1"].lng,
+                    },
+                },
+            },
+            {
+                "eventType": EventType.DEPARTED,
+                "time": 3.0,
+                "details": {
+                    "userId": None,
+                    "demandId": None,
+                    "mobilityId": self.mobility_id,
+                    "location": {
+                        "locationId": self.stops["3_1"].stop_id,
+                        "lat": self.stops["3_1"].lat,
+                        "lng": self.stops["3_1"].lng,
+                    },
+                },
+            },
+            {
+                "eventType": EventType.ARRIVED,
+                "time": 10.0,
+                "details": {
+                    "userId": None,
+                    "demandId": None,
+                    "mobilityId": self.mobility_id,
+                    "location": {
+                        "locationId": self.stops["7_1"].stop_id,
+                        "lat": self.stops["7_1"].lat,
+                        "lng": self.stops["7_1"].lng,
+                    },
+                },
+            },
+            {
+                "eventType": EventType.DEPARTED,
+                "time": 10.0,
+                "details": {
+                    "userId": None,
+                    "demandId": None,
+                    "mobilityId": self.mobility_id,
+                    "location": {
+                        "locationId": self.stops["7_1"].stop_id,
+                        "lat": self.stops["7_1"].lat,
+                        "lng": self.stops["7_1"].lng,
+                    },
+                },
+            },
+        ]
+        self.assertEqual(expected_events, triggered_events)
+
+
 class BlockTripTestCase(unittest.TestCase):
     def setUp(self) -> None:
         self.reference_date = date(year=2024, month=4, day=1)

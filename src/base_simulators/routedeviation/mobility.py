@@ -118,6 +118,16 @@ class Car(Mobility):
     def run(self):
         while True:
             if trip := self.trip():
+                stop_times = trip.stop_times_at(self.operation_date)
+                if stop_times and stop_times[0].arrival < self.current_datetime:
+                    raise ValueError(
+                        "simulation start time is in the middle of an operation day: "
+                        f"mobility_id={self.mobility_id}, "
+                        f"start_time={self.env.start_time.isoformat()}, "
+                        f"current_time={self.current_datetime.isoformat()}, "
+                        f"first_departure_time={stop_times[0].arrival.isoformat()}"
+                    )
+
                 # 時刻表に従って順番に停車駅に移動する。
                 for plan in trip.iter_stop_times_at(self.operation_date, self.users):
                     yield self.env.timeout_until(plan.arrival)
