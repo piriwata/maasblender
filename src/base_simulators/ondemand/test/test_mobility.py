@@ -98,6 +98,20 @@ class RoutingTestCase(TestCase):
 
         self.assertEqual(expected, actual.stop_times)
 
+    def test_return_none_when_new_user_lower_bound_exceeds_window_end(self):
+        user = User(
+            user_id="U001",
+            demand_id="D0001",
+            org=stops[1],
+            dst=stops[2],
+            desired=self.base_datetime + timedelta(hours=11, minutes=55),
+            ideal=timedelta(
+                minutes=self.network.duration(stops[1].stop_id, stops[2].stop_id)
+            ),
+        )
+
+        self.assertIsNone(self.mobility1.solve_new_route(user))
+
     def test_find_routes_who_have_same_org_dst(self):
         user1 = User(
             user_id="U001",

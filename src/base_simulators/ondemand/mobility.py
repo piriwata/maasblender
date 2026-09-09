@@ -298,6 +298,14 @@ class Car(Mobility):
         if window_start is None and window_end is None:
             return None
 
+        window_end_secs = self.env.elapsed_secs(window_end)
+        if (
+            self.env.elapsed_secs(new_user.desired_dept) > window_end_secs
+            or self.env.elapsed_secs(new_user.desired_dept + new_user.ideal_duration)
+            > window_end_secs
+        ):
+            return None
+
         # Add Distance constraint.
         dimension_name = "Time"
         routing.AddDimension(
