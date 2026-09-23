@@ -34,6 +34,28 @@ To utilize our platform in each phase, the platform has features that enables us
 ## How to Use
 Please read the [documentation](https://maasblender.github.io/).
 
+## Development
+
+Install [uv](https://docs.astral.sh/uv/) to manage Python environments. The
+repository root manages only shared development tools:
+
+```bash
+uv run ruff format . --check
+uv run ruff check .
+```
+
+Each containerized component is an independent uv project. From its directory,
+use `uv sync --frozen` and `uv run --no-sync python main.py`. Build component
+images from the repository root so their local `mblib` dependency is included:
+
+```bash
+docker build -f src/base_simulators/ondemand/Dockerfile .
+```
+
+Existing `requirements.txt` files are retained for backward compatibility with
+the previous pip-based workflow. New dependency changes must be made in the
+component's `pyproject.toml` and committed `uv.lock`.
+
 ## Contributing
 If you find bugs or want to add some features, please check out the [contributing guide](CONTRIBUTING.md). 
 

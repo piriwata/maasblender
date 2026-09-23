@@ -288,7 +288,7 @@ async def setup(request: fastapi.Request, setting: query.Setup):
         await asyncio.wait_for(
             planner_up(interval=5), timeout=env.OPENTRIPPLANNER_STARTUP_TIMEOUT
         )
-    except asyncio.TimeoutError:
+    except TimeoutError:
         msg = "Failed to configure; unable to start OTP process."
         raise fastapi.HTTPException(fastapi.status.HTTP_408_REQUEST_TIMEOUT, msg)
     return {"message": "successfully configured."}

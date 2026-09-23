@@ -6,21 +6,23 @@ This directory contains the integration test cases.
 
 ```
 ci/
-├── README.md                              # This file
-├── allowed-license.lst                    # Allowlist used by the license check workflow
-├── ondemand-oneway-generator-commuter-case/   # Test case 1
-└── scheduled-routedeviation-historical/       # Test case 2
+├── README.md                                 # This file
+├── allowed-license.lst                       # Allowlist used by the license check workflow
+├── arriveby-ondemand-scheduled-case/         # Test case
+├── ondemand-oneway-generator-commuter-case/  # Test case
+└── scheduled-routedeviation-historical/      # Test case
 ```
 
 ## How It Works
 
 Each test case is built around the following three files.
 
-| File                      | Purpose                                                                                                     |
-|---------------------------|-------------------------------------------------------------------------------------------------------------|
-| `compose.yaml`            | Defines the Docker Compose stack required for the test, such as simulators, planners, and the broker.       |
-| `requirements.txt`        | Lists the Python dependencies for the test script.                                                          |
-| `run_integration_test.py` | The actual test runner. It calls the containers' HTTP APIs, runs the simulation, and validates the results. |
+| File                         | Purpose                                                                                                     |
+|------------------------------|-------------------------------------------------------------------------------------------------------------|
+| `compose.yaml`               | Defines the Docker Compose stack required for the test, such as simulators, planners, and the broker.       |
+| `pyproject.toml` / `uv.lock` | Declare and lock the Python dependencies for the test script.                                               |
+| `requirements.txt`           | Retained for compatibility with the previous pip-based workflow.                                            |
+| `run_integration_test.py`    | The actual test runner. It calls the containers' HTTP APIs, runs the simulation, and validates the results. |
 
 ### Execution with GitHub Actions
 
@@ -32,8 +34,8 @@ Each test case is built around the following three files.
 │              │         │                                                      │
 │ Automatically│         │  Runs each test case directory in parallel:          │
 │ discovers    │         │    1. `docker compose up -d`                         │
-│ test cases   │         │    2. `pip install -r requirements.txt`              │
-│ under ci/    │         │    3. `python run_integration_test.py`               │
+│ test cases   │         │    2. `uv sync --frozen`                             │
+│ under ci/    │         │    3. `uv run --no-sync python run_integration_test.py` │
 └──────────────┘         └──────────────────────────────────────────────────────┘
 ```
 
@@ -48,9 +50,9 @@ cd ci/ondemand-oneway-generator-commuter-case
 # Start the containers
 docker compose up -d
 
-# Install Python dependencies
-pip install -r requirements.txt
+# Install locked Python dependencies
+uv sync --frozen
 
 # Run the integration test
-python run_integration_test.py
+uv run --no-sync python run_integration_test.py
 ```

@@ -128,7 +128,7 @@ async def setup(settings: query.Setup):
     global sim
     start_time = datetime.datetime.strptime(
         f"{settings.reference_time} {settings.simulation_start_time}", "%Y%m%d %H:%M"
-    ).replace(tzinfo=datetime.timezone.utc)
+    ).replace(tzinfo=datetime.UTC)
     sim = Simulation(
         start_time=start_time,
         network=network,

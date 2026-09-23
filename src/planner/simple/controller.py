@@ -66,7 +66,7 @@ async def setup(settings: query.Setup):
     ]
     start_time = datetime.datetime.strptime(
         f"{settings.reference_time} {settings.simulation_start_time}", "%Y%m%d %H:%M"
-    ).replace(tzinfo=datetime.timezone.utc)
+    ).replace(tzinfo=datetime.UTC)
     async with aiohttp.ClientSession() as session:
         for name, setting in settings.networks.items():
             if setting.type == "gbfs":
