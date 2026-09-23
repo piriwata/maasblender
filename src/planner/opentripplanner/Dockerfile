@@ -27,12 +27,19 @@ COPY --from=ghcr.io/astral-sh/uv:0.12.10 /uv /uvx /bin/
 RUN chown nobody -R /var/otp
 
 WORKDIR /workspace/src/planner/opentripplanner
+
 COPY libs/mblib /workspace/libs/mblib
-COPY src/planner/opentripplanner/pyproject.toml src/planner/opentripplanner/uv.lock ./
+COPY src/planner/opentripplanner/pyproject.toml ./
+COPY src/planner/opentripplanner/uv.lock ./
+
 RUN uv sync --frozen --no-install-project
+
 COPY src/planner/opentripplanner ./
 
+ENV PATH="/workspace/src/planner/opentripplanner/.venv/bin:$PATH"
+
+RUN chown -R nobody:nogroup .
 USER nobody
 
-ENTRYPOINT ["uv", "run", "--no-sync", "uvicorn", "controller:app"]
+ENTRYPOINT ["uvicorn", "controller:app"]
 CMD ["--host", "0.0.0.0", "--port", "80"]
