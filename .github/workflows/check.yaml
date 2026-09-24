@@ -24,7 +24,7 @@ jobs:
       - name: Get src subdirectories
         id: set-subdir
         run: |
-          list=`find ./src -name requirements.txt | sed -r "s/^(.*)requirements.txt/\1/g" | jq -R -s -c 'split("\n")[:-1]' | jq -c .`
+          list=`find ./src -name pyproject.toml | sed -r "s/^(.*)pyproject.toml/\1/g" | jq -R -s -c 'split("\n")[:-1]' | jq -c .`
           echo "target-list=$list" >> $GITHUB_OUTPUT
   check-license:
     runs-on: ubuntu-latest
@@ -33,10 +33,10 @@ jobs:
       matrix:
         target: ${{ fromJson(needs.set-matrix.outputs.subdirs) }}
     steps:
-      - name: Setup python
-        uses: actions/setup-python@v4
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
         with:
-          python-version: '3.11'
+          enable-cache: true
       - name: Checkout
         uses: actions/checkout@v3
       - name: Get allowed licence list
@@ -44,9 +44,8 @@ jobs:
         run: |
           LICENSE_LIST=$(awk '!/^\s*#/' allowed-license.lst | tr '\n' ';')
           echo "license=$LICENSE_LIST" >> $GITHUB_ENV
-      - name: Install and run pip-licenses          
+      - name: Install and run pip-licenses
         working-directory: ${{ matrix.target }}
         run: |
-          pip install -r requirements.txt
-          pip install -U pip-licenses-cli
-          pip-licenses --allow-only="${{ env.license }}"
+          uv sync --frozen
+          uv run --with pip-licenses-cli pip-licenses --allow-only="${{ env.license }}"

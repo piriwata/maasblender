@@ -16,7 +16,7 @@ jobs:
       - name: Get src subdirectories
         id: set-subdir
         run: |
-          list=`find ./src -name requirements.txt | sed -r "s/^.*src\/(.*)\/requirements.txt/\1/g" | jq -R -s -c 'split("\n")[:-1]' | jq -c .`
+          list=`find ./src -name pyproject.toml | sed -r "s/^.*src\/(.*)\/pyproject.toml/\1/g" | jq -R -s -c 'split("\n")[:-1]' | jq -c .`
           echo "target-list=$list" >> $GITHUB_OUTPUT
   unittest:
     runs-on: ubuntu-latest
@@ -26,14 +26,14 @@ jobs:
         target: ${{ fromJson(needs.set-matrix.outputs.subdirs) }}
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: astral-sh/setup-uv@v5
         with:
-          python-version: '3.11'
+          enable-cache: true
 
-      - name: Install dependencies
+      - name: Sync dependencies
         working-directory: ./src/${{ matrix.target }}
-        run: pip install -r requirements.txt
+        run: uv sync --frozen
 
       - name: unittest
         working-directory: ./src/${{ matrix.target }}
-        run: python -m unittest discover -s ./test  -p 'test_*.py'
+        run: uv run --no-sync python -m unittest discover -s ./test -p 'test_*.py'

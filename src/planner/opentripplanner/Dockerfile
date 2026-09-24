@@ -22,18 +22,24 @@ RUN if [ $(echo "${otp_version}" | cut -d. -f1-2 | tr -d '.') -lt 27 ]; then \
   mkdir /var/otp && \
   wget ${OTP_URL} -O /var/otp/otp-shaded.jar
 
-COPY requirements.txt ./
-ENV PIP_ROOT_USER_ACTION=ignore
-RUN pip install --upgrade pip \
- && pip install --upgrade setuptools \
- && pip install -r requirements.txt
+COPY --from=ghcr.io/astral-sh/uv:0.12.10 /uv /uvx /bin/
 
 RUN chown nobody -R /var/otp
 
-USER nobody
+WORKDIR /workspace/src/planner/opentripplanner
 
-WORKDIR /app
-COPY . .
+COPY libs/mblib /workspace/libs/mblib
+COPY src/planner/opentripplanner/pyproject.toml ./
+COPY src/planner/opentripplanner/uv.lock ./
+
+RUN uv sync --frozen --no-install-project
+
+COPY src/planner/opentripplanner ./
+
+ENV PATH="/workspace/src/planner/opentripplanner/.venv/bin:$PATH"
+
+RUN chown -R nobody:nogroup .
+USER nobody
 
 ENTRYPOINT ["uvicorn", "controller:app"]
 CMD ["--host", "0.0.0.0", "--port", "80"]

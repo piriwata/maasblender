@@ -1,24 +1,24 @@
 services:
   broker:
-    build: ../../src/simulation_broker
+    build: { context: ../.., dockerfile: src/simulation_broker/Dockerfile }
     ports:
       - "3000:80"
 
   walking:
-    build: ../../src/base_simulators/walking
+    build: { context: ../.., dockerfile: src/base_simulators/walking/Dockerfile }
 
   user_model:
-    build: ../../src/user_model/simple
+    build: { context: ../.., dockerfile: src/user_model/simple/Dockerfile }
 
   scenario_commuter:
-    build: ../../src/scenario/commuter
+    build: { context: ../.., dockerfile: src/scenario/commuter/Dockerfile }
 
   scheduled:
-    build: ../../src/base_simulators/scheduled
+    build: { context: ../.., dockerfile: src/base_simulators/scheduled/Dockerfile }
     ports:
       - "3001:80"
 
   planner:
-    build: ../../src/planner/opentripplanner
+    build: { context: ../.., dockerfile: src/planner/opentripplanner/Dockerfile }
     ports:
       - "3010:80"
