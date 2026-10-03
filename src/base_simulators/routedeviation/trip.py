@@ -3,7 +3,7 @@
 import dataclasses
 import itertools
 import typing
-from datetime import date, datetime, time, timedelta
+from datetime import date
 
 from core import (
     AbstractStopTime,
@@ -21,6 +21,7 @@ from core import (
     TripLocation,
     User,
 )
+from routing import EqualIntervalRouter
 
 T = typing.TypeVar("T")
 
@@ -109,9 +110,8 @@ def _get_paths(
 
 def get_deviated_stops(
     location_id: str,
-    departure: timedelta,
-    arrival: timedelta,
-    at_date: date,
+    origin: StopTimeWithDateTime,
+    destination: StopTimeWithDateTime,
     users: dict[str, User],
 ) -> list[DeviatedStopTimeWithDateTime]:
     tstops: list[TemporaryStop] = []
@@ -125,15 +125,13 @@ def get_deviated_stops(
             and tstop.location.location_id == location_id
         ):  # if drop off on deviated route
             tstops.append(tstop)
-    if not tstops:
-        return []
-    dt_initial = datetime.combine(at_date, time()) + departure
-    duration: timedelta = arrival - departure
-    n = len(tstops) + 1
-    return [
-        DeviatedStopTimeWithDateTime(tstop, dt_initial + i / n * duration)
-        for i, tstop in enumerate(tstops, 1)
-    ]
+    return EqualIntervalRouter().plan(
+        origin=origin.stop,
+        destination=destination.stop,
+        temporary_stops=tstops,
+        departure=origin.departure,
+        arrival=destination.arrival,
+    )
 
 
 @dataclasses.dataclass(frozen=True)
@@ -191,7 +189,10 @@ class SingleTrip(Trip):
                     yield StopTimeWithDateTime(stop_time=p, reference_date=at_date)
                 case TripLocation() as p:
                     tstops = get_deviated_stops(
-                        p.location_id, loc1.departure, loc3.arrival, at_date, users
+                        p.location_id,
+                        StopTimeWithDateTime(stop_time=loc1, reference_date=at_date),
+                        StopTimeWithDateTime(stop_time=loc3, reference_date=at_date),
+                        users,
                     )
                     yield from tstops
                 case _:
@@ -281,7 +282,10 @@ class BlockTrip(Trip):
                     yield StopTimeWithDateTime(stop_time=p, reference_date=at_date)
                 case TripLocation() as p:
                     tstops = get_deviated_stops(
-                        p.location_id, loc1.departure, loc3.arrival, at_date, users
+                        p.location_id,
+                        StopTimeWithDateTime(stop_time=loc1, reference_date=at_date),
+                        StopTimeWithDateTime(stop_time=loc3, reference_date=at_date),
+                        users,
                     )
                     yield from tstops
                 case _:
