@@ -3,13 +3,24 @@
 from __future__ import annotations
 
 import typing
-from datetime import datetime, time, timedelta
+from datetime import date, datetime, time, timedelta
 from itertools import chain
 from logging import getLogger
 
-from core import Mobility, Path, StopLike, Trip, User, UserStatus
+from core import (
+    AbstractStopTimeWithDateTime,
+    Mobility,
+    Path,
+    StopLike,
+    StopTimeWithDateTime,
+    Trip,
+    TripLocation,
+    User,
+    UserStatus,
+)
 from environment import Environment
 from event import ArrivedEvent, DepartedEvent, EventQueue, ReservedEvent
+from routing import EqualIntervalRouter
 
 logger = getLogger(__name__)
 
@@ -115,6 +126,31 @@ class Car(Mobility):
         self.events.enqueue(DepartedEvent(env=self.env, mobility=self))
         self._stop = None
 
+    def _iter_movement_plans(
+        self, trip: Trip, at_date: date
+    ) -> typing.Iterator[AbstractStopTimeWithDateTime]:
+        stop_times = list(trip.iter_stop_times_at(at_date))
+        for index, stop_time in enumerate(stop_times):
+            match stop_time:
+                case StopTimeWithDateTime():
+                    yield stop_time
+                case TripLocation(location_id=location_id):
+                    temporary_stops = [
+                        stop
+                        for user in self.users.values()
+                        for stop in (user.path.pick_up_stop, user.path.drop_off_stop)
+                        if stop is not None and stop.location.location_id == location_id
+                    ]
+                    origin = stop_times[index - 1]
+                    destination = stop_times[index + 1]
+                    yield from EqualIntervalRouter().plan(
+                        origin=origin.stop,
+                        destination=destination.stop,
+                        temporary_stops=temporary_stops,
+                        departure=origin.departure,
+                        arrival=destination.arrival,
+                    )
+
     def run(self):
         while True:
             if trip := self.trip():
@@ -129,7 +165,7 @@ class Car(Mobility):
                     )
 
                 # 時刻表に従って順番に停車駅に移動する。
-                for plan in trip.iter_stop_times_at(self.operation_date, self.users):
+                for plan in self._iter_movement_plans(trip, self.operation_date):
                     yield self.env.timeout_until(plan.arrival)
                     self._arrive(plan.stop)
                     yield self.env.timeout_until(plan.departure)

@@ -7,8 +7,6 @@ from datetime import date
 
 from core import (
     AbstractStopTime,
-    AbstractStopTimeWithDateTime,
-    DeviatedStopTimeWithDateTime,
     Path,
     Route,
     Service,
@@ -19,9 +17,7 @@ from core import (
     TemporaryStop,
     Trip,
     TripLocation,
-    User,
 )
-from routing import EqualIntervalRouter
 
 T = typing.TypeVar("T")
 
@@ -108,32 +104,6 @@ def _get_paths(
                 )
 
 
-def get_deviated_stops(
-    location_id: str,
-    origin: StopTimeWithDateTime,
-    destination: StopTimeWithDateTime,
-    users: dict[str, User],
-) -> list[DeviatedStopTimeWithDateTime]:
-    tstops: list[TemporaryStop] = []
-    for user in users.values():
-        if (
-            tstop := user.path.pick_up_stop
-        ) and tstop.location.location_id == location_id:  # if pick up on deviated route
-            tstops.append(tstop)
-        if (
-            (tstop := user.path.drop_off_stop)
-            and tstop.location.location_id == location_id
-        ):  # if drop off on deviated route
-            tstops.append(tstop)
-    return EqualIntervalRouter().plan(
-        origin=origin.stop,
-        destination=destination.stop,
-        temporary_stops=tstops,
-        departure=origin.departure,
-        arrival=destination.arrival,
-    )
-
-
 @dataclasses.dataclass(frozen=True)
 class SingleTrip(Trip):
     """Sequence of two or more stops that occur during a specific time period."""
@@ -178,30 +148,20 @@ class SingleTrip(Trip):
         ]
 
     def iter_stop_times_at(
-        self, at_date: date, users: dict[str, User]
-    ) -> typing.Iterator[AbstractStopTimeWithDateTime]:
-        yield StopTimeWithDateTime(
-            stop_time=self.stop_times_with[0], reference_date=at_date
-        )
-        for loc1, loc2, loc3 in _triplewise(self.stop_times_with):
-            match loc2:
-                case StopTime() as p:
-                    yield StopTimeWithDateTime(stop_time=p, reference_date=at_date)
-                case TripLocation() as p:
-                    tstops = get_deviated_stops(
-                        p.location_id,
-                        StopTimeWithDateTime(stop_time=loc1, reference_date=at_date),
-                        StopTimeWithDateTime(stop_time=loc3, reference_date=at_date),
-                        users,
+        self, at_date: date
+    ) -> typing.Iterator[StopTimeWithDateTime | TripLocation]:
+        for stop_time in self.stop_times_with:
+            match stop_time:
+                case StopTime():
+                    yield StopTimeWithDateTime(
+                        stop_time=stop_time, reference_date=at_date
                     )
-                    yield from tstops
+                case TripLocation():
+                    yield stop_time
                 case _:
                     raise TypeError(
-                        f"illegal type included in stop_times_with: {type(loc2)=}"
+                        f"illegal type included in stop_times_with: {type(stop_time)=}"
                     )
-        yield StopTimeWithDateTime(
-            stop_time=self.stop_times_with[-1], reference_date=at_date
-        )
 
     def start_time(self, at: date):
         return next(iter(self.stop_times_at(at))).arrival
@@ -272,29 +232,20 @@ class BlockTrip(Trip):
         ]
 
     def iter_stop_times_at(
-        self, at_date: date, users: dict[str, User]
-    ) -> typing.Iterator[AbstractStopTimeWithDateTime]:
-        stop_times_with = self.stop_times_with(at_date)
-        yield StopTimeWithDateTime(stop_time=stop_times_with[0], reference_date=at_date)
-        for loc1, loc2, loc3 in _triplewise(stop_times_with):
-            match loc2:
-                case StopTime() as p:
-                    yield StopTimeWithDateTime(stop_time=p, reference_date=at_date)
-                case TripLocation() as p:
-                    tstops = get_deviated_stops(
-                        p.location_id,
-                        StopTimeWithDateTime(stop_time=loc1, reference_date=at_date),
-                        StopTimeWithDateTime(stop_time=loc3, reference_date=at_date),
-                        users,
+        self, at_date: date
+    ) -> typing.Iterator[StopTimeWithDateTime | TripLocation]:
+        for stop_time in self.stop_times_with(at_date):
+            match stop_time:
+                case StopTime():
+                    yield StopTimeWithDateTime(
+                        stop_time=stop_time, reference_date=at_date
                     )
-                    yield from tstops
+                case TripLocation():
+                    yield stop_time
                 case _:
                     raise TypeError(
-                        f"illegal type included in stop_times_with: {type(loc2)=}"
+                        f"illegal type included in stop_times_with: {type(stop_time)=}"
                     )
-        yield StopTimeWithDateTime(
-            stop_time=stop_times_with[-1], reference_date=at_date
-        )
 
     def stop_times_with(self, at: date) -> list[AbstractStopTime]:
         return [
