@@ -111,14 +111,14 @@ def step():
 
 
 @app.post("/triggered")
-def triggered(event: query.TriggeredEvent | events.Event):
+async def triggered(event: query.TriggeredEvent | events.Event):
     # expect nothing to happen. just let time forward.
     if sim.env.now < event.time:
         sim.env.run(until=event.time)
 
     match event:
         case query.ReserveEvent():
-            sim.reserve_user(
+            await sim.reserve_user(
                 user_id=event.details.userId,
                 demand_id=event.details.demandId,
                 org=event.details.org,

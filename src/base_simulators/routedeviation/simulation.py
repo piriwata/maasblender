@@ -104,7 +104,7 @@ class Simulation:
             )
         return False
 
-    def reserve_user(
+    async def reserve_user(
         self, user_id: str, demand_id: str, org: Location, dst: Location, dept: float
     ):
         stop_org = self._to_stop_like(org.locationId, org.lat, org.lng)
