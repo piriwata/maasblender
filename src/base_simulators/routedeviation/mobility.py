@@ -9,6 +9,7 @@ from logging import getLogger
 
 from core import (
     AbstractStopTimeWithDateTime,
+    DeviatedStopTimeWithDateTime,
     Mobility,
     Path,
     StopLike,
@@ -20,7 +21,7 @@ from core import (
 )
 from environment import Environment
 from event import ArrivedEvent, DepartedEvent, EventQueue, ReservedEvent
-from routing import EqualIntervalRouter
+from routing import EqualIntervalRouter, Router
 
 logger = getLogger(__name__)
 
@@ -41,6 +42,7 @@ class Car(Mobility):
         mobility_id: str,
         capacity: int,
         trip: Trip,
+        router: Router | None = None,
     ):
         super().__init__(mobility_id=mobility_id, trip=trip)
         self.env = env
@@ -48,6 +50,10 @@ class Car(Mobility):
         self._capacity = capacity
         self._stop = None
         self.users = {}
+        self.router = router if router is not None else EqualIntervalRouter()
+        self.deviation_plans: dict[
+            tuple[date, str], list[DeviatedStopTimeWithDateTime]
+        ] = {}
 
     @property
     def stop(self):
@@ -129,27 +135,12 @@ class Car(Mobility):
     def _iter_movement_plans(
         self, trip: Trip, at_date: date
     ) -> typing.Iterator[AbstractStopTimeWithDateTime]:
-        stop_times = list(trip.iter_stop_times_at(at_date))
-        for index, stop_time in enumerate(stop_times):
+        for stop_time in trip.iter_stop_times_at(at_date):
             match stop_time:
                 case StopTimeWithDateTime():
                     yield stop_time
                 case TripLocation(location_id=location_id):
-                    temporary_stops = [
-                        stop
-                        for user in self.users.values()
-                        for stop in (user.path.pick_up_stop, user.path.drop_off_stop)
-                        if stop is not None and stop.location.location_id == location_id
-                    ]
-                    origin = stop_times[index - 1]
-                    destination = stop_times[index + 1]
-                    yield from EqualIntervalRouter().plan(
-                        origin=origin.stop,
-                        destination=destination.stop,
-                        temporary_stops=temporary_stops,
-                        departure=origin.departure,
-                        arrival=destination.arrival,
-                    )
+                    yield from self.deviation_plans.get((at_date, location_id), [])
 
     def run(self):
         while True:
@@ -197,6 +188,49 @@ class Car(Mobility):
         self.users[user_id] = user
         self.env.process(self._reserved(user))
 
+    async def plan_deviations(
+        self, reservation: Path
+    ) -> dict[tuple[date, str], list[DeviatedStopTimeWithDateTime]] | None:
+        at_date = reservation.pick_up.reference_date
+        stops = [
+            stop
+            for stop in (reservation.pick_up_stop, reservation.drop_off_stop)
+            if stop is not None
+        ]
+        if not stops:
+            return {}
+        stop_times = list(self.trip(at_date).iter_stop_times_at(at_date))
+        result = {}
+        for index, stop_time in enumerate(stop_times):
+            if not isinstance(stop_time, TripLocation):
+                continue
+            location_id = stop_time.location_id
+            added = [stop for stop in stops if stop.location.location_id == location_id]
+            if not added:
+                continue
+            origin = stop_times[index - 1]
+            destination = stop_times[index + 1]
+            if origin.departure <= self.current_datetime:
+                return None
+            existing = [
+                stop
+                for user in self.users.values()
+                if user.path.pick_up.reference_date == at_date
+                for stop in (user.path.pick_up_stop, user.path.drop_off_stop)
+                if stop is not None and stop.location.location_id == location_id
+            ]
+            plan = await self.router.plan(
+                origin=origin.stop,
+                destination=destination.stop,
+                temporary_stops=[*existing, *added],
+                departure=origin.departure,
+                arrival=destination.arrival,
+            )
+            if plan is None:
+                return None
+            result[(at_date, location_id)] = plan
+        return result
+
     def _reserved(self, user: User):
         yield self.env.timeout(0)
         self.events.enqueue(
@@ -230,6 +264,7 @@ class CarSetting(typing.NamedTuple):
     mobility_id: str
     capacity: int
     trip: Trip
+    router: Router | None = None
 
 
 class CarManager:
@@ -250,6 +285,7 @@ class CarManager:
                 mobility_id=setting.mobility_id,
                 capacity=setting.capacity,
                 trip=setting.trip,
+                router=setting.router,
             )
             for setting in settings
         }

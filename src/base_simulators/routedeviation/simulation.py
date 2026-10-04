@@ -10,6 +10,7 @@ from environment import Environment
 from event import EventQueue, ReserveFailedEvent
 from mblib.jschema.events import Location
 from mobility import CarManager, CarSetting
+from routing import Router
 from trip import BlockTrip, SingleTrip, Stop, TripLocation
 
 logger = getLogger(__name__)
@@ -28,6 +29,7 @@ class Simulation:
         capacity: int,
         trips: dict[str, SingleTrip] | None = None,
         blocks: dict[str, list[SingleTrip]] | None = None,
+        router: Router | None = None,
     ) -> None:
         trips = trips or {}
         blocks = blocks or {}
@@ -43,6 +45,7 @@ class Simulation:
                     mobility_id=trip_id,
                     capacity=capacity,
                     trip=trip,
+                    router=router,
                 )
                 for trip_id, trip in trips.items()
             ]
@@ -53,6 +56,7 @@ class Simulation:
                     trip=BlockTrip(
                         trips=sorted(trips, key=lambda x: x.stop_times[0].departure)
                     ),
+                    router=router,
                 )
                 for block_id, trips in blocks.items()
             ],
@@ -104,16 +108,33 @@ class Simulation:
             )
         return False
 
+    async def _reservation_candidate(
+        self, stop_org: StopLike, stop_dst: StopLike, dept: float
+    ):
+        candidates = [
+            (car, path)
+            for car in self.car_manager.mobilities.values()
+            if (path := car.earliest_path(stop_org, stop_dst, dept)) is not None
+        ]
+        for car, path in sorted(candidates, key=lambda candidate: candidate[1].arrival):
+            if not car.is_reservable(path):
+                continue
+            plans = await car.plan_deviations(path)
+            if plans is not None:
+                return car, path, plans
+        return None
+
     async def reserve_user(
         self, user_id: str, demand_id: str, org: Location, dst: Location, dept: float
     ):
         stop_org = self._to_stop_like(org.locationId, org.lat, org.lng)
         stop_dst = self._to_stop_like(dst.locationId, dst.lat, dst.lng)
-        if mobility := self.car_manager.earliest_mobility(stop_org, stop_dst, dept):
-            path = mobility.earliest_path(stop_org, stop_dst, dept)
-            if mobility.is_reservable(path):
-                mobility.reserve(user_id, demand_id, path)
-                return
+        candidate = await self._reservation_candidate(stop_org, stop_dst, dept)
+        if candidate is not None:
+            mobility, path, plans = candidate
+            mobility.deviation_plans.update(plans)
+            mobility.reserve(user_id, demand_id, path)
+            return
 
         self.env.process(self._failed_to_reserve(user_id, demand_id))
 

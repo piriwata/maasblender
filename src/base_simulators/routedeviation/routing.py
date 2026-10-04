@@ -8,7 +8,7 @@ from core import DeviatedStopTimeWithDateTime, Stop, TemporaryStop
 
 class Router(ABC):
     @abstractmethod
-    def plan(
+    async def plan(
         self,
         origin: Stop,
         destination: Stop,
@@ -20,7 +20,7 @@ class Router(ABC):
 
 
 class EqualIntervalRouter(Router):
-    def plan(
+    async def plan(
         self,
         origin: Stop,
         destination: Stop,
