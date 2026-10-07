@@ -13,6 +13,7 @@ from jschema import query, response
 from mblib.io import httputil
 from mblib.io.log import init_logger
 from mblib.jschema import events, spec
+from routing import EqualIntervalRouter, RoadDistanceRouter
 from simulation import Simulation
 
 logger = logging.getLogger(__name__)
@@ -88,6 +89,12 @@ async def setup(settings: query.Setup):
         capacity=settings.mobility.capacity,
         trips=gtfs_files.trips,
         blocks=gtfs_files.blocks,
+        router=(
+            RoadDistanceRouter(str(settings.planner.endpoint), settings.mobility.speed)
+            if settings.route_calculation_method
+            == query.RouteCalculationMethod.BRUTE_FORCE
+            else EqualIntervalRouter()
+        ),
     )
 
     return {"message": "successfully configured."}

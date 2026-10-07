@@ -2,12 +2,12 @@
 # SPDX-License-Identifier: Apache-2.0
 import unittest
 from datetime import date, datetime, timedelta
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from core import Service, Stop, StopTime, TripLocation
 from mblib.jschema.events import Location
 from mobility import Car
-from routing import EqualIntervalRouter
+from routing import EqualIntervalRouter, RoadDistanceRouter
 from simulation import Simulation
 from trip import SingleTrip
 
@@ -205,3 +205,40 @@ class DeviationPlanningTestCase(unittest.IsolatedAsyncioTestCase):
         car = sim.car_manager.mobilities["car"]
         self.assertIn("user", car.users)
         self.assertEqual({}, car.deviation_plans)
+
+    async def test_brute_force_reservation_and_equal_interval_inquiry(self):
+        response = MagicMock()
+        response.json = AsyncMock(
+            return_value={"matrix": [[0, 400, 1000], [400, 0, 600], [1000, 600, 0]]}
+        )
+        request = MagicMock()
+        request.__aenter__ = AsyncMock(return_value=response)
+        session = MagicMock()
+        session.post.return_value = request
+        client = MagicMock()
+        client.__aenter__ = AsyncMock(return_value=session)
+        sim = self.create_simulation(RoadDistanceRouter("http://planner", 100))
+        with patch("routing.aiohttp.ClientSession", return_value=client) as factory:
+            self.assertIs(True, await sim.reservable("flex", "destination"))
+            factory.assert_not_called()
+            await self.reserve(sim)
+            car = sim.car_manager.mobilities["car"]
+            self.assertEqual(
+                sim.env.start_time + timedelta(hours=9, minutes=4),
+                car.deviation_plans[(self.day, "flex")][0].arrival,
+            )
+            sim.dept_user("user")
+            sim.start()
+            triggered = []
+            while sim.peek() < 561:
+                sim.step()
+                triggered.extend(sim.event_queue.events)
+            departures = [
+                event["time"]
+                for event in triggered
+                if event["eventType"] == "DEPARTED"
+                and event["details"]["userId"] == "user"
+            ]
+            self.assertEqual([544], departures)
+            self.assertEqual({}, car.users)
+            session.post.assert_called_once()
