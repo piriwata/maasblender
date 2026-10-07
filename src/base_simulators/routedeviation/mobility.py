@@ -78,22 +78,70 @@ class Car(Mobility):
     def passengers(self):
         return self._get_users_of(UserStatus.RIDING)
 
-    def is_reservable(self, reservation: Path):
-        paths = [user.path for user in self.users.values()] + [reservation]
-        for path in paths:
-            departure = path.departure
-            if (
-                len(
-                    [
-                        path
-                        for path in paths
-                        if path.departure <= departure < path.arrival
-                    ]
-                )
-                > self._capacity
-            ):
-                return False
-        return True
+    async def is_reservable(self, path: Path, *, router: Router | None = None) -> bool:
+        return await self.plan_reservation(path, router=router) is not None
+
+    async def plan_reservation(
+        self, path: Path, *, router: Router | None = None
+    ) -> dict[tuple[date, str], list[DeviatedStopTimeWithDateTime]] | None:
+        # Include the new request alongside all existing reservations.
+        # Occupancy can increase only at a departure, so check every departure.
+        # Count each timetable interval as [departure, arrival): a passenger
+        # arriving at this instant leaves before another passenger boards.
+        paths = [user.path for user in self.users.values()] + [path]
+        for reservation in paths:
+            departure = reservation.departure
+            passengers = sum(
+                other.departure <= departure < other.arrival for other in paths
+            )
+            if passengers > self._capacity:
+                return None
+
+        # Replan only the deviation areas used by this pickup or drop-off.
+        at_date = path.pick_up.reference_date
+        stops = [
+            stop for stop in (path.pick_up_stop, path.drop_off_stop) if stop is not None
+        ]
+        if not stops:
+            return {}
+        router = router if router is not None else self.router
+        stop_times = list(self.trip(at_date).iter_stop_times_at(at_date))
+        result = {}
+        for index, stop_time in enumerate(stop_times):
+            if not isinstance(stop_time, TripLocation):
+                continue
+            location_id = stop_time.location_id
+            added = [stop for stop in stops if stop.location.location_id == location_id]
+            if not added:
+                continue
+            # Each deviation area lies between two fixed timetable stops.
+            # Once its departure is reached, its movement plan cannot be changed.
+            origin = stop_times[index - 1]
+            destination = stop_times[index + 1]
+            if origin.departure <= self.current_datetime:
+                return None
+            # Include existing pickup/drop-off points for the same service date
+            # and area, so the router produces a plan for all affected users.
+            existing = [
+                stop
+                for user in self.users.values()
+                if user.path.pick_up.reference_date == at_date
+                for stop in (user.path.pick_up_stop, user.path.drop_off_stop)
+                if stop is not None and stop.location.location_id == location_id
+            ]
+            # The router orders and times these stops within the timetable window.
+            plan = await router.plan(
+                origin=origin.stop,
+                destination=destination.stop,
+                temporary_stops=[*existing, *added],
+                departure=origin.departure,
+                arrival=destination.arrival,
+            )
+            if plan is None:
+                return None
+            result[(at_date, location_id)] = plan
+        # Return all plans together; reserve() saves them only after success.
+        return result
 
     def _get_on(self):
         assert self.stop
@@ -182,54 +230,18 @@ class Car(Mobility):
         }
         return f"Car({data})"
 
-    def reserve(self, user_id: str, demand_id: str, path: Path):
+    def reserve(
+        self,
+        user_id: str,
+        demand_id: str,
+        path: Path,
+        plans: dict[tuple[date, str], list[DeviatedStopTimeWithDateTime]],
+    ):
         assert user_id not in self.users
         user = User(user_id, demand_id, path)
+        self.deviation_plans.update(plans)
         self.users[user_id] = user
         self.env.process(self._reserved(user))
-
-    async def plan_deviations(
-        self, reservation: Path
-    ) -> dict[tuple[date, str], list[DeviatedStopTimeWithDateTime]] | None:
-        at_date = reservation.pick_up.reference_date
-        stops = [
-            stop
-            for stop in (reservation.pick_up_stop, reservation.drop_off_stop)
-            if stop is not None
-        ]
-        if not stops:
-            return {}
-        stop_times = list(self.trip(at_date).iter_stop_times_at(at_date))
-        result = {}
-        for index, stop_time in enumerate(stop_times):
-            if not isinstance(stop_time, TripLocation):
-                continue
-            location_id = stop_time.location_id
-            added = [stop for stop in stops if stop.location.location_id == location_id]
-            if not added:
-                continue
-            origin = stop_times[index - 1]
-            destination = stop_times[index + 1]
-            if origin.departure <= self.current_datetime:
-                return None
-            existing = [
-                stop
-                for user in self.users.values()
-                if user.path.pick_up.reference_date == at_date
-                for stop in (user.path.pick_up_stop, user.path.drop_off_stop)
-                if stop is not None and stop.location.location_id == location_id
-            ]
-            plan = await self.router.plan(
-                origin=origin.stop,
-                destination=destination.stop,
-                temporary_stops=[*existing, *added],
-                departure=origin.departure,
-                arrival=destination.arrival,
-            )
-            if plan is None:
-                return None
-            result[(at_date, location_id)] = plan
-        return result
 
     def _reserved(self, user: User):
         yield self.env.timeout(0)

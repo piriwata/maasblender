@@ -130,8 +130,8 @@ async def triggered(event: query.TriggeredEvent | events.Event):
 
 
 @app.get("/reservable", response_model=response.ReservableStatus)
-def reservable(org: str, dst: str):
-    return {"reservable": sim.reservable(org, dst)}
+async def reservable(org: str, dst: str):
+    return {"reservable": await sim.reservable(org, dst)}
 
 
 @app.post("/finish", response_model=response.Message)
