@@ -115,10 +115,10 @@ class Car(Mobility):
             if not added:
                 continue
             # Each deviation area lies between two fixed timetable stops.
-            # Once its departure is reached, its movement plan cannot be changed.
+            # After its departure time, its movement plan cannot be changed.
             origin = stop_times[index - 1]
             destination = stop_times[index + 1]
-            if origin.departure <= self.current_datetime:
+            if origin.departure < self.current_datetime:
                 return None
             # Include existing pickup/drop-off points for the same service date
             # and area, so the router produces a plan for all affected users.
