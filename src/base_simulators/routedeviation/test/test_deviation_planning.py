@@ -168,11 +168,22 @@ class DeviationPlanningTestCase(unittest.IsolatedAsyncioTestCase):
         router.plan.assert_not_awaited()
         self.assertEqual({"first"}, set(sim.car_manager.mobilities["car"].users))
 
-    async def test_reservation_after_deviation_departure_is_rejected(self):
+    async def test_reservation_at_deviation_departure_is_accepted(self):
         router = EqualIntervalRouter()
         router.plan = AsyncMock(wraps=router.plan)
         sim = self.create_simulation(router)
         sim.env.run(until=540)
+        await self.reserve(sim, dept=540)
+        router.plan.assert_awaited_once()
+        car = sim.car_manager.mobilities["car"]
+        self.assertIn("user", car.users)
+        self.assertIn((self.day, "flex"), car.deviation_plans)
+
+    async def test_reservation_after_deviation_departure_is_rejected(self):
+        router = EqualIntervalRouter()
+        router.plan = AsyncMock(wraps=router.plan)
+        sim = self.create_simulation(router)
+        sim.env.run(until=541)
         await self.reserve(sim, dept=540)
         router.plan.assert_not_awaited()
         self.assertEqual({}, sim.car_manager.mobilities["car"].users)
