@@ -33,11 +33,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v7
         with:
           version: "0.12.10"
           python-version: "3.12"
-          python-arch: ${{ matrix.arch }}
           enable-cache: true
 
       - uses: actions/setup-java@v6
