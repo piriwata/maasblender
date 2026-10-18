@@ -29,6 +29,8 @@ jobs:
           - { os: windows, arch: aarch64, runner: windows-11-arm }
           - { os: macos, arch: x86_64, runner: macos-15-intel }
           - { os: macos, arch: aarch64, runner: macos-15 }
+    env:
+      PYTHONUTF8: "1"
 
     steps:
       - uses: actions/checkout@v4
