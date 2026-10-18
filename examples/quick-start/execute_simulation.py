@@ -147,9 +147,7 @@ def main():
                 },
                 headers={"accept": "application/json"},
             )
-            if response.status_code != 200:
-                print(response.text)
-                return
+            response.raise_for_status()
             print(response.json())
 
         with open(gtfs, "rb") as gtfs_file:
@@ -164,9 +162,7 @@ def main():
                 },
                 headers={"accept": "application/json"},
             )
-            if response.status_code != 200:
-                print(response.text)
-                return
+            response.raise_for_status()
             print(response.json())
 
         # 2. Uploads GTFS files to the scheduled simulation service
@@ -182,9 +178,7 @@ def main():
                 },
                 headers={"accept": "application/json"},
             )
-            if response.status_code != 200:
-                print(response.text)
-                return
+            response.raise_for_status()
             print(response.json())
 
         # 3. Sets up the broker service with the configuration file
@@ -198,24 +192,16 @@ def main():
             headers={"accept": "application/json", "Content-Type": "application/json"},
             timeout=720,
         )
-        try:
-            print(response.json())
-            if response.status_code != 200:
-                return
-        except json.JSONDecodeError:
-            print(response.text)
-            sys.exit(-1)
+        response.raise_for_status()
+        print(response.json())
 
         # 4. Starts the broker service
         # Sends a request to `localhost:3000/start` to start the initialization process.
         response = client.post(
             "http://localhost:3000/start", headers={"accept": "application/json"}
         )
-        try:
-            print(response.json())
-        except json.JSONDecodeError:
-            print(response.text)
-            sys.exit(-1)
+        response.raise_for_status()
+        print(response.json())
 
         # 5. Runs the simulation
         # Sends a request to `localhost:3000/run` with a simulation duration parameter (`until=1440`).
@@ -224,11 +210,8 @@ def main():
             params={"until": "1440"},
             headers={"accept": "application/json"},
         )
-        try:
-            print(response.json())
-        except json.JSONDecodeError:
-            print(response.text)
-            sys.exit(-2)
+        response.raise_for_status()
+        print(response.json())
 
         # 6. Periodically checks the simulation status
         # Polls the broker service every 10 seconds to check if the simulation is still running.
@@ -238,25 +221,33 @@ def main():
             response = client.get(
                 "http://localhost:3000/peek", headers={"accept": "application/json"}
             )
-            try:
-                peek = response.json()
-                running = peek["running"]
-                next_time = peek["next"]
-                if peek["success"]:
-                    print("running:", next_time)
-                else:
-                    print("failed", next_time)
-                    sys.exit(-3)
-            except json.JSONDecodeError:
-                print(response.text)
-        print("successfully finished.")
+            response.raise_for_status()
+            peek = response.json()
+            running = peek["running"]
+            next_time = peek["next"]
+            if peek["success"]:
+                print("running:", next_time)
+            else:
+                print("failed", next_time)
+                sys.exit(-3)
 
-        # 7. Retrieves simulation results after simulation completion
-        # Fetches event logs from `localhost:3000/events` and saves them to `output/events.txt`.
+        # 7. Finishes the broker and closes its buffered result writer.
+        # running=False only means the simulation loop has stopped.
+        response = client.post(
+            "http://localhost:3000/finish",
+            headers={"accept": "application/json"},
+            timeout=720,
+        )
+        response.raise_for_status()
+
+        # 8. Retrieves simulation results after the result writer has closed.
+        # Fetches event logs from `localhost:3000/events` and saves them to `events.txt`.
         response = client.get("http://localhost:3000/events")
+        response.raise_for_status()
         with open("events.txt", "w", encoding="utf-8") as file:
             file.write(response.text)
         print("All events recorded to events.txt")
+        print("successfully finished.")
 
 
 if __name__ == "__main__":
