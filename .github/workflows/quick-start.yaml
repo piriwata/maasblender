@@ -1,0 +1,54 @@
+name: Quick Start Smoke Test
+
+on:
+  push:
+    branches:
+      - main
+      - "v[0-9]+.[0-9]+.[0-9]+*"
+  pull_request:
+    branches:
+      - main
+      - "v[0-9]+.[0-9]+.[0-9]+*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  quick-start:
+    name: Quick Start (${{ matrix.os }}, ${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: linux, arch: x86_64, runner: ubuntu-24.04 }
+          - { os: linux, arch: aarch64, runner: ubuntu-24.04-arm }
+          - { os: windows, arch: x86_64, runner: windows-2025 }
+          - { os: windows, arch: aarch64, runner: windows-11-arm }
+          - { os: macos, arch: x86_64, runner: macos-15-intel }
+          - { os: macos, arch: aarch64, runner: macos-15 }
+    env:
+      PYTHONUTF8: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.12.10"
+          python-version: "3.12"
+          enable-cache: true
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: microsoft
+          java-version: "25"
+          architecture: ${{ matrix.arch == 'aarch64' && 'aarch64' || 'x64' }}
+
+      # Run real services natively: hosted Windows/macOS runners do not provide
+      # the same Linux Docker environment as the Ubuntu runners.
+      - name: Run Quick Start
+        working-directory: examples/quick-start
+        run: uv run --no-project --with httpx python ../../ci/quick-start/run_smoke_test.py
