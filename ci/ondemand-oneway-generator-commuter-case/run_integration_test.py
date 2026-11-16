@@ -299,14 +299,14 @@ def main() -> None:
         wait_for_service_ready(client, "http://localhost:3010/openapi.json")
 
         # --- Setup ondemand simulator and its planner ---
-        response = upload_file(client, "http://localhost:3002/upload", "flex.zip")
-        assert_message(response, "successfully uploaded. flex.zip")
+        response = upload_file(client, "http://localhost:3002/upload", "gtfs_flex.zip")
+        assert_message(response, "successfully uploaded. gtfs_flex.zip")
         response = upload_file(
             client,
             "http://localhost:3010/upload",
-            "flex.zip",
+            "gtfs_flex.zip",
         )
-        assert_message(response, "successfully uploaded. flex.zip")
+        assert_message(response, "successfully uploaded. gtfs_flex.zip")
 
         # --- Setup oneway simulator and its planner ---
         response = upload_file(client, "http://localhost:3003/upload", "gbfs.zip")
