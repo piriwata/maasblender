@@ -75,7 +75,7 @@
       "reference_time": "20230404",
       "input_files": [
         {
-          "filename": "flex.zip"
+          "filename": "gtfs_flex.zip"
         }
       ],
       "network": {
@@ -112,7 +112,7 @@
           "type": "gtfs_flex",
           "input_files": [
             {
-              "filename": "flex.zip"
+              "filename": "gtfs_flex.zip"
             }
           ],
           "mobility_meters_per_minute": 300,

@@ -13,14 +13,17 @@ RUN wget ${jdk_url} \
  && dpkg -i jdk-*_linux-x64_bin.deb \
  && rm jdk-*_linux-x64_bin.deb
 
-# OTPバージョンに応じてURLを振り分け
-RUN if [ $(echo "${otp_version}" | cut -d. -f1-2 | tr -d '.') -lt 27 ]; then \
-    OTP_URL="https://repo1.maven.org/maven2/org/opentripplanner/otp/${otp_version}/otp-${otp_version}-shaded.jar"; \
-  else \
-    OTP_URL="https://repo1.maven.org/maven2/org/opentripplanner/otp-shaded/${otp_version}/otp-shaded-${otp_version}.jar"; \
-  fi && \
-  mkdir /var/otp && \
-  wget ${OTP_URL} -O /var/otp/otp-shaded.jar
+# Prefer GitHub Releases. Try both published JAR names before falling back to Maven Central.
+RUN mkdir /var/otp && \
+  release="https://github.com/opentripplanner/OpenTripPlanner/releases/download/v${otp_version}" && \
+  maven="https://repo.maven.apache.org/maven2/org/opentripplanner" && \
+  jar="otp-shaded-${otp_version}.jar" && \
+  legacy_jar="otp-${otp_version}-shaded.jar" && \
+  for url in "$release/$jar" "$release/$legacy_jar" \
+    "$maven/otp-shaded/$otp_version/$jar" "$maven/otp/$otp_version/$legacy_jar"; do \
+    if wget --tries=1 "$url" -O /var/otp/otp-shaded.jar; then exit 0; fi; \
+  done; \
+  exit 1
 
 COPY --from=ghcr.io/astral-sh/uv:0.12.10 /uv /uvx /bin/
 

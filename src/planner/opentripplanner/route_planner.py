@@ -65,6 +65,17 @@ class OpenTripPlanner:
     async def close(self):
         await self.client.close_async()
 
+    async def agency_ids(self) -> set[str]:
+        query = gql("""
+        query Agencies {
+          agencies {
+            gtfsId
+          }
+        }
+        """)
+        response = await self.client.execute_async(query)
+        return {id_from_gtfs_id(agency["gtfsId"]) for agency in response["agencies"]}
+
     def _elapsed(self, timestamp: str):
         return (
             datetime.datetime.fromtimestamp(int(timestamp) / 1000).astimezone()

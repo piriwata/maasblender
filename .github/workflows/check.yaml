@@ -4,13 +4,17 @@ on:
     branches:
       - "main"
       - "v[0-9]+.[0-9]+.[0-9]+*"
-    paths: 'src/**'
+    paths:
+      - 'src/**'
+      - '.github/workflows/check.yaml'
   pull_request:
     types: [opened, reopened, edited, synchronize]
     branches:
       - "main"
       - "v[0-9]+.[0-9]+.[0-9]+*"
-    paths: 'src/**'
+    paths:
+      - 'src/**'
+      - '.github/workflows/check.yaml'
   workflow_dispatch:
 
 jobs:
