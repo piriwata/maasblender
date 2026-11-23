@@ -4,10 +4,10 @@ version = "0.0.0"
 requires-python = ">=3.11"
 dependencies = [
     "aiohttp~=3.13.5",
-    "fastapi>=0.73",
+    "fastapi>=0.119.1,<1",
     "mblib",
-    "pydantic>=1.9.0",
-    "pydantic-settings>=2.0.0",
+    "pydantic>=2.12,<3",
+    "pydantic-settings>=2.12,<3",
     "simpy~=4.1.1",
     "uvicorn>=0.17",
 ]

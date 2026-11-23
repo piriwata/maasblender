@@ -29,7 +29,7 @@ class OpenTripPlanner:
         endpoint: str,
         ref_datetime: datetime.datetime,
         walking_meters_per_minute: float,
-        transport_modes: list[list[typing.Mapping]],
+        transport_modes: list[typing.Mapping] | None,
         services: typing.Mapping[str, str],
     ):
         super().__init__()
@@ -46,16 +46,23 @@ class OpenTripPlanner:
             transport_modes
             if transport_modes
             else [
-                [
-                    {"mode": "WALK"},
-                    {"mode": "TRANSIT"},
-                ],
-                [{"mode": "WALK"}, {"mode": "FLEX", "qualifier": "DIRECT"}],
-                [
-                    {"mode": "TRANSIT"},
-                    {"mode": "FLEX", "qualifier": "ACCESS"},
-                    {"mode": "FLEX", "qualifier": "EGRESS"},
-                ],
+                {
+                    "direct": ["WALK"],
+                    "transit": {
+                        "access": ["WALK"],
+                        "egress": ["WALK"],
+                        "transfer": ["WALK"],
+                    },
+                },
+                {"direct": ["WALK", "FLEX"], "directOnly": True},
+                {
+                    "direct": ["WALK"],
+                    "transit": {
+                        "access": ["WALK", "FLEX"],
+                        "egress": ["WALK", "FLEX"],
+                        "transfer": ["WALK"],
+                    },
+                },
             ]
         )
         self.services = services  # key: agency_id, value: service name
@@ -64,6 +71,17 @@ class OpenTripPlanner:
 
     async def close(self):
         await self.client.close_async()
+
+    async def agency_ids(self) -> set[str]:
+        query = gql("""
+        query Agencies {
+          agencies {
+            gtfsId
+          }
+        }
+        """)
+        response = await self.client.execute_async(query)
+        return {id_from_gtfs_id(agency["gtfsId"]) for agency in response["agencies"]}
 
     def _elapsed(self, timestamp: str):
         return (
@@ -94,8 +112,7 @@ class OpenTripPlanner:
                             session,
                             org=stop_a,
                             dst=stop_b,
-                            date=f"{base.date()}",
-                            time=f"{base.time()}",
+                            date_time=base,
                         )
                         for stop_b in stops
                     ]
@@ -177,24 +194,33 @@ class OpenTripPlanner:
         response = await self.client.execute_async(query)
         return response["stops"]
 
+    @staticmethod
+    def _location_input(location: Location) -> dict:
+        return {
+            "label": location.id_,
+            "location": {
+                "coordinate": {"latitude": location.lat, "longitude": location.lng}
+            },
+        }
+
     async def distance(
-        self, session, org: Location, dst: Location, date: str, time: str
+        self, session, org: Location, dst: Location, date_time: datetime.datetime
     ) -> int:
         query = gql("""
-        query PlanQuery($from: InputCoordinates, $to: InputCoordinates, $date: String, $time: String) {
-          plan(
-            from: $from
-            to: $to
-            date: $date
-            time: $time
-            transportModes: [{ mode: CAR }]
-            numItineraries: 1
-            maxTransfers: 1
+        query DistanceQuery($origin: PlanLabeledLocationInput!, $destination: PlanLabeledLocationInput!, $dateTime: PlanDateTimeInput) {
+          planConnection(
+            origin: $origin
+            destination: $destination
+            dateTime: $dateTime
+            modes: { direct: [CAR], directOnly: true }
+            first: 1
           ) {
-            itineraries {
+            edges {
+              node {
                 legs {
                     distance
                 }
+              }
             }
           }
         }
@@ -203,15 +229,14 @@ class OpenTripPlanner:
         response = await session.execute(
             query,
             variable_values={
-                "date": date,
-                "time": time,
-                "from": {"lat": org.lat, "lon": org.lng},
-                "to": {"lat": dst.lat, "lon": dst.lng},
+                "dateTime": {"earliestDeparture": date_time.isoformat()},
+                "origin": self._location_input(org),
+                "destination": self._location_input(dst),
             },
         )
 
-        if response["plan"]["itineraries"]:
-            itinerary = response["plan"]["itineraries"][0]
+        if response["planConnection"]["edges"]:
+            itinerary = response["planConnection"]["edges"][0]["node"]
             # Return the total distance across all itinerary legs.
             return sum(leg["distance"] for leg in itinerary["legs"])
         else:
@@ -219,48 +244,48 @@ class OpenTripPlanner:
 
     async def _plan_query(
         self,
-        modes: list[typing.Mapping],
+        modes: typing.Mapping,
         org: Location,
         dst: Location,
         dept: float,
         arrv: float | None = None,
     ):
         query = gql("""
-    query PlanQuery($modes: [TransportMode], $from: InputCoordinates, $to: InputCoordinates, $date: String, $time: String, $arriveBy: Boolean) {
-      plan(
-        from: $from
-        to: $to
-        date: $date
-        time: $time
-        arriveBy: $arriveBy
-        transportModes: $modes
-        numItineraries: 3
-        maxTransfers: 4
+    query PlanQuery($modes: PlanModesInput, $origin: PlanLabeledLocationInput!, $destination: PlanLabeledLocationInput!, $dateTime: PlanDateTimeInput) {
+      planConnection(
+        origin: $origin
+        destination: $destination
+        dateTime: $dateTime
+        modes: $modes
+        first: 3
+        preferences: { transit: { transfer: { maximumTransfers: 4 } } }
       ) {
-        itineraries {
-          walkTime
-          legs {
-            mode
-            agency {
-              gtfsId
-            }
-            from {
-              name
-              lat
-              lon
-              stop {
+        edges {
+          node {
+            walkTime
+            legs {
+              mode
+              agency {
                 gtfsId
               }
-              departureTime
-            }
-            to {
-              name
-              lat
-              lon
-              stop {
-                gtfsId
+              from {
+                name
+                lat
+                lon
+                stop {
+                  gtfsId
+                }
+                departureTime
               }
-              arrivalTime
+              to {
+                name
+                lat
+                lon
+                stop {
+                  gtfsId
+                }
+                arrivalTime
+              }
             }
           }
         }
@@ -273,27 +298,26 @@ class OpenTripPlanner:
             target_datetime = self.ref_datetime + datetime.timedelta(
                 seconds=math.floor(arrv * 60)
             )
-            arrive_by = True
+            date_time_field = "latestArrival"
         else:
             # depart-after: use dept as the departure time, round up to avoid fractional seconds
             target_datetime = self.ref_datetime + datetime.timedelta(
                 seconds=math.ceil(dept * 60)
             )
-            arrive_by = False
+            date_time_field = "earliestDeparture"
 
         response = await self.client.execute_async(
             query,
             variable_values={
                 "modes": modes,
-                "date": f"{target_datetime.date()}",
-                "time": f"{target_datetime.time()}",
-                "arriveBy": arrive_by,
-                "from": {"lat": org.lat, "lon": org.lng},
-                "to": {"lat": dst.lat, "lon": dst.lng},
+                "dateTime": {date_time_field: target_datetime.isoformat()},
+                "origin": self._location_input(org),
+                "destination": self._location_input(dst),
             },
         )
 
-        for itinerary in response["plan"]["itineraries"]:
+        for edge in response["planConnection"]["edges"]:
+            itinerary = edge["node"]
             itinerary["legs"][0]["from"]["name"] = org.id_
             itinerary["legs"][-1]["to"]["name"] = dst.id_
             yield Path(

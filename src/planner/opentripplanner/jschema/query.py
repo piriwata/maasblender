@@ -1,8 +1,9 @@
 # SPDX-FileCopyrightText: 2023 TOYOTA MOTOR CORPORATION and MaaS Blender Contributors
 # SPDX-License-Identifier: Apache-2.0
 from enum import Enum
+from typing import Literal
 
-from pydantic import AnyHttpUrl, BaseModel, conlist, constr, model_validator
+from pydantic import AnyHttpUrl, BaseModel, ConfigDict, conlist, constr, model_validator
 
 
 class LocationSetting(BaseModel):
@@ -38,13 +39,60 @@ class NetworkSetting(BaseModel):
     agency_id: str | None = None  # equivalent to system_id for GBFS file
 
 
-class TransportMode(BaseModel):
-    mode: str
-    qualifier: str | None = None
+StreetMode = Literal[
+    "WALK", "BICYCLE", "CAR", "BICYCLE_RENTAL", "CAR_RENTAL", "SCOOTER_RENTAL", "FLEX"
+]
+ParkingMode = Literal["BICYCLE_PARKING", "CAR_PARKING"]
+TransitMode = Literal[
+    "AIRPLANE",
+    "BUS",
+    "CABLE_CAR",
+    "CARPOOL",
+    "COACH",
+    "FERRY",
+    "FUNICULAR",
+    "GONDOLA",
+    "MONORAIL",
+    "RAIL",
+    "SNOW_AND_ICE",
+    "SUBWAY",
+    "TAXI",
+    "TRAM",
+    "TROLLEYBUS",
+]
 
 
-class TransportModes(BaseModel):
-    modes: conlist(TransportMode, min_length=1)
+class TransitModePreferenceCostInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    reluctance: float
+
+
+class PlanTransitModePreferenceInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    mode: TransitMode
+    cost: TransitModePreferenceCostInput | None = None
+
+
+class PlanTransitModesInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    access: list[StreetMode | ParkingMode | Literal["CAR_DROP_OFF"]] | None = None
+    egress: list[StreetMode | Literal["CAR_PICKUP"]] | None = None
+    transfer: list[Literal["WALK", "BICYCLE", "CAR"]] | None = None
+    transit: list[PlanTransitModePreferenceInput] | None = None
+
+
+class PlanModesInput(BaseModel):
+    """OTP planConnection modes, passed to GraphQL without mode conversion."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    direct: list[StreetMode | ParkingMode] | None = None
+    directOnly: bool | None = None
+    transit: PlanTransitModesInput | None = None
+    transitOnly: bool | None = None
 
 
 class Setup(BaseModel):
@@ -52,7 +100,7 @@ class Setup(BaseModel):
     networks: dict[str, NetworkSetting]
     reference_time: constr(min_length=8, max_length=8)
     simulation_start_time: constr(pattern=r"^\d{2}:\d{2}$") = "00:00"
-    modes: conlist(TransportModes, min_length=1) = None
+    modes: conlist(PlanModesInput, min_length=1) | None = None
     walking_meters_per_minute: float | None = (
         None  # get from router_config.json, if None
     )

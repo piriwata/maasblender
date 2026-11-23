@@ -20,6 +20,36 @@ SERVICES = {
 OTP_VERSION = "2.9.0"  # Keep in sync with the planner Dockerfile.
 
 
+def download_otp(jar: Path) -> None:
+    release = f"https://github.com/opentripplanner/OpenTripPlanner/releases/download/v{OTP_VERSION}"
+    maven = "https://repo.maven.apache.org/maven2/org/opentripplanner"
+    filename = f"otp-shaded-{OTP_VERSION}.jar"
+    legacy_filename = f"otp-{OTP_VERSION}-shaded.jar"
+    urls = (
+        f"{release}/{filename}",
+        f"{release}/{legacy_filename}",
+        f"{maven}/otp-shaded/{OTP_VERSION}/{filename}",
+        f"{maven}/otp/{OTP_VERSION}/{legacy_filename}",
+    )
+    partial = jar.with_suffix(".part")
+    for url in urls:
+        try:
+            with httpx.stream(
+                "GET", url, timeout=180, follow_redirects=True
+            ) as response:
+                response.raise_for_status()
+                with partial.open("wb") as file:
+                    for chunk in response.iter_bytes():
+                        file.write(chunk)
+            partial.replace(jar)
+            return
+        except httpx.HTTPError as exc:
+            print(f"OTP download failed from {url}: {exc}", file=sys.stderr)
+        finally:
+            partial.unlink(missing_ok=True)
+    raise RuntimeError(f"Unable to download OpenTripPlanner {OTP_VERSION}")
+
+
 def main():
     work = Path.cwd()
     settings_path = work / "broker_setup.json"
@@ -29,15 +59,7 @@ def main():
         settings = settings.replace(f"http://{name}", f"http://localhost:{port}")
 
     jar = work / "otp-shaded.jar"
-    url = (
-        "https://repo.maven.apache.org/maven2/org/opentripplanner/otp-shaded/"
-        f"{OTP_VERSION}/otp-shaded-{OTP_VERSION}.jar"
-    )
-    with httpx.stream("GET", url, timeout=180, follow_redirects=True) as response:
-        response.raise_for_status()
-        with jar.open("wb") as file:
-            for chunk in response.iter_bytes():
-                file.write(chunk)
+    download_otp(jar)
 
     volume = work / "otp-volume"
     volume.mkdir(exist_ok=True)

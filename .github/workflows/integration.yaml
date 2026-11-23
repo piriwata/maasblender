@@ -49,3 +49,7 @@ jobs:
 
       - name: Run integration test
         run: uv run --no-sync python run_integration_test.py
+
+      - name: Show service logs on failure
+        if: failure()
+        run: docker compose logs --no-color --tail=300

@@ -260,8 +260,7 @@ async def setup(request: fastapi.Request, setting: query.Setup):
         ref_datetime=ref_datetime,
         walking_meters_per_minute=walking_meters_per_minute,
         transport_modes=[
-            [{"mode": mode.mode, "qualifier": mode.qualifier} for mode in modes.modes]
-            for modes in setting.modes
+            modes.model_dump(mode="json", exclude_unset=True) for modes in setting.modes
         ]
         if setting.modes
         else None,
@@ -291,6 +290,23 @@ async def setup(request: fastapi.Request, setting: query.Setup):
     except TimeoutError:
         msg = "Failed to configure; unable to start OTP process."
         raise fastapi.HTTPException(fastapi.status.HTTP_408_REQUEST_TIMEOUT, msg)
+
+    # Health only confirms startup; a configured feed may have been ignored.
+    loaded_agencies = await planner.agency_ids()
+    missing_services = [
+        f"{service} (agency_id={network.agency_id or service})"
+        for service, network in setting.networks.items()
+        if network.type in ["gtfs", "gtfs_flex"]
+        and (network.agency_id or service) not in loaded_agencies
+    ]
+    if missing_services:
+        await shutdown_event()
+        msg = (
+            "Configured GTFS agencies are missing from OTP: "
+            + ", ".join(missing_services)
+            + ". Check feed filenames, build-config.json, and agency_id settings."
+        )
+        raise fastapi.HTTPException(fastapi.status.HTTP_400_BAD_REQUEST, msg)
     return {"message": "successfully configured."}
 
 
