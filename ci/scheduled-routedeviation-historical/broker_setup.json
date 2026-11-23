@@ -109,25 +109,27 @@
         ]
       },
       "modes": [
-      {
-        "modes": [
-          { "mode": "WALK" },
-          { "mode": "TRANSIT" }
-        ]
-      },
-      {
-        "modes": [
-          { "mode": "WALK" },
-          { "mode": "FLEX", "qualifier": "DIRECT" }
-        ]
-      },
-      {
-        "modes": [
-          { "mode": "TRANSIT" },
-          { "mode": "FLEX", "qualifier": "ACCESS" },
-          { "mode": "FLEX", "qualifier": "EGRESS" }
-        ]
-      }],
+        {
+          "direct": ["WALK"],
+          "transit": {
+            "access": ["WALK"],
+            "egress": ["WALK"],
+            "transfer": ["WALK"]
+          }
+        },
+        {
+          "direct": ["WALK", "FLEX"],
+          "directOnly": true
+        },
+        {
+          "direct": ["WALK"],
+          "transit": {
+            "access": ["WALK", "FLEX"],
+            "egress": ["WALK", "FLEX"],
+            "transfer": ["WALK"]
+          }
+        }
+      ],
       "networks": {
         "gtfs": {
           "type": "gtfs",

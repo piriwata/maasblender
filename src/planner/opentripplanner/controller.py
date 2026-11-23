@@ -260,8 +260,7 @@ async def setup(request: fastapi.Request, setting: query.Setup):
         ref_datetime=ref_datetime,
         walking_meters_per_minute=walking_meters_per_minute,
         transport_modes=[
-            [{"mode": mode.mode, "qualifier": mode.qualifier} for mode in modes.modes]
-            for modes in setting.modes
+            modes.model_dump(mode="json", exclude_unset=True) for modes in setting.modes
         ]
         if setting.modes
         else None,
